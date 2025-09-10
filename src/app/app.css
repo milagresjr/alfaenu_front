@@ -1,0 +1,40 @@
+/* Estilo padrão para SweetAlert2 */
+.swal2-popup {
+  border-radius: 0.5rem !important; /* Tailwind rounded-lg */
+}
+
+/* Estilo escuro se a classe "dark" estiver no <body> ou <html> */
+.dark .swal2-popup {
+  background-color: #1e1e2f !important;
+  color: #ffffff !important;
+}
+
+.dark .swal2-title {
+  color: #ffffff !important;
+}
+
+.dark .swal2-confirm {
+  background-color: #27ae60 !important; /* Tailwind indigo-600 */
+  color: white !important;
+}
+
+.dark .swal2-cancel {
+  background-color: #dc2626 !important; /* Tailwind red-600 */
+  color: white !important;
+}
+
+
+/* SCROOL BAR */
+/* global.css ou index.css */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px; /* largura */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #3b82f6; /* azul Tailwind (blue-500) */
+  border-radius: 9999px; /* arredondado */
+}
