@@ -3,6 +3,7 @@ import { useDebounce } from "@uidotdev/usehooks";
 import { useEffect, useRef, useState } from "react";
 import { ClienteType } from "@/features/client/types";
 import { useClientes } from "@/features/client/hooks/useClientsQuery";
+import { ServiceType } from "@/features/service/types";
 
 interface Props {
     selectedCliente: ClienteType | null;
@@ -41,7 +42,6 @@ export function SelectClient({
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
-
 
     // 🔥 foca quando o dropdown abrir
     useEffect(() => {
@@ -109,27 +109,34 @@ export function SelectClient({
                         ) : (
                             <>
                                 {/* Lista de clientes */}
-                                <ul className="max-h-48 overflow-y-auto">
-                                    {(data?.data.length ?? 0) > 0 ? (
-                                        data?.data.map((cliente, idx) => (
-                                            <li
-                                                key={idx}
-                                                className="px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded"
-                                                onClick={() => {
-                                                    onSelectCliente(cliente);
-                                                    setIsOpen(false);
-                                                }}
-                                            >
-                                                <strong className="text-gray-700 dark:text-gray-300 font-normal">{cliente.nome || ''}</strong>
-                                                <div className="text-xs text-gray-400">{cliente.n_bi || ''}</div>
-                                            </li>
-                                        ))
-                                    ) : (
-                                        <li className="text-sm text-gray-400 px-2">
-                                            Nenhum cliente encontrado
-                                        </li>
-                                    )}
-                                </ul>
+                                <div className="min-h-[130px] max-h-[150px] overflow-y-auto custom-scrollbar">
+                                    <ul className="">
+                                        {(data?.data.length ?? 0) > 0 ? (
+                                            data?.data.map((cliente, idx) => (
+                                                <li
+                                                    key={idx}
+                                                    className="px-2 flex justify-center flex-col space-y-0 min-h-[35px] hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                                                    onClick={() => {
+                                                        onSelectCliente(cliente);
+                                                        setIsOpen(false);
+                                                    }}
+                                                >
+                                                    <strong className="text-gray-700 dark:text-gray-300 font-normal">{cliente.nome || ''}</strong>
+                                                    <div className="text-xs text-gray-400">{cliente.n_bi || ''}</div>
+                                                </li>
+                                            ))
+                                        ) : (
+                                            <></>
+                                        )}
+                                    </ul>
+                                    {
+                                        (!((data?.data.length ?? 0) > 0)) && (
+                                            <div className="h-[150px] flex items-center justify-center text-lg text-gray-400 px-2 ">
+                                                Nenhum cliente encontrado
+                                            </div>
+                                        )
+                                    }
+                                </div>
 
                                 {/* Paginação simples */}
                                 {/* <div

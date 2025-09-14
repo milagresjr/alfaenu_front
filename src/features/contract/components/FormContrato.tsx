@@ -5,36 +5,34 @@ import Input from "@/components/form/input/InputField";
 import TextArea from "@/components/form/input/TextArea";
 import Label from "@/components/form/Label";
 import Select from "@/components/form/Select";
-import Button from "@/components/ui/button/Button";
+import Button from "@/components/ui-old/button/Button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
-import { Controller, useFieldArray, useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import z from "zod";
 import { SelectClient } from "./SelectClient";
 import { useEffect, useState } from "react";
 import { ClienteType } from "@/features/client/types";
 import { useTermos } from "@/features/term/hooks/useTermosQuery";
-import { all } from "axios";
 import { useServicos } from "@/features/service/hooks/useServicesQuery";
-import { Eye, File, Plus, Trash } from "lucide-react";
+import { File, Trash2 } from "lucide-react";
 import { ServiceType } from "@/features/service/types";
 import { toast } from "react-toastify";
 import { useContratoStore } from "../store/useContratoStore";
-import { ModalTermo } from "./ModalTermo";
-import { useCreateContrato, useUpdateContrato } from "../hooks/useContractQuery";
 import { useQueryClient } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 import { alert } from "@/lib/alert";
 import { api } from "@/services/api";
 import SelectServices from "./SelectService";
-import PdfPreview from "./PdfPreview";
-import { ContratoType } from "../types";
-import { AssinaturaCliente } from "./AssinaturaCliente";
-import { AssinaturaUser } from "./AssinaturaUser";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
+import { ContratoType, SubcontaType } from "../types";
+import BottomOffCanvas from "./BottonOffCanvas";
+import { useProgress } from "@bprogress/next";
+import { useRouter } from "next/navigation";
+import { useCreateContrato } from "../hooks/useContractQuery";
 
 const schemma = z.object({
     nota: z.string(),
-    desconto: z.number(),
+    desconto: z.string(),
     valor_por_pagar: z.number(),
     valor_pago: z.string(),
     termo_id: z.string(),
@@ -45,7 +43,8 @@ const schemma = z.object({
     assinatura_user: z.string(),
 });
 
-type FormValues = z.infer<typeof schemma>;
+//type FormValues = z.infer<typeof schemma>;
+
 
 export function FormContrato() {
 
@@ -53,7 +52,7 @@ export function FormContrato() {
         resolver: zodResolver(schemma),
         defaultValues: {
             nota: "",
-            desconto: 0,
+            desconto: '0',
             valor_por_pagar: 0,
             valor_pago: '0',
             termo_id: '',
@@ -66,19 +65,23 @@ export function FormContrato() {
     });
 
 
-    const [servicos, setServicos] = useState<ServiceType[]>([
-        { id: "", nome: "", valor: 0, valor_externo: 0, tipo: '' }
+    const [subcontas, setSubcontas] = useState<SubcontaType[]>([
+        { id: "1", nome: "Subconta 1", servicos: [] }
     ]);
+    const [activeTab, setActiveTab] = useState("1")
 
     const [cliente, setCliente] = useState<ClienteType | null>(null);
 
-    const [showPreview, setShowPreview] = useState(false);
     const [loadingPreviewPdf, setLoadingPreview] = useState(false);
+
+    const progress = useProgress();
+
+    const router = useRouter();
 
     const { data: termos } = useTermos();
     const { data: servicosData } = useServicos();
 
-    const { setOpenModalTermo, setSelectedTermo, assinaturaCliente, assinaturaUser } = useContratoStore();
+    const { setOpenModalTermo, setSelectedTermo, assinaturaCliente, assinaturaUser, setOpenOffCanvas } = useContratoStore();
 
     const mode = "create";
 
@@ -97,43 +100,127 @@ export function FormContrato() {
         { value: "pos-pago", label: "Pós-Pago" }
     ];
 
-    const addServico = () => {
-        setServicos([...servicos, { id: "", nome: "", valor: 0, valor_externo: 0, tipo: '' }]);
+    // Adicionar subconta
+    const addSubconta = () => {
+        const newId = String(subcontas.length + 1)
+        setSubcontas([
+            ...subcontas,
+            { id: newId, nome: `Subconta ${newId}`, servicos: [] }
+        ])
+    }
+
+    const removeSubconta = () => {
+        setSubcontas((prev) => prev.slice(0, -1));
     };
 
-    const removeServico = (index: number) => {
-        setServicos(servicos.filter((_, i) => i !== index));
-    };
 
-    const updateServico = (index: number, id: string) => {
-        const updated = [...servicos];
-        const servico = servicosData?.data.find((servico) => Number(servico.id) === Number(id));
-        if (!servico) return;
-        updated[index].id = servico.id;
-        updated[index].nome = servico.nome;
-        updated[index].valor = servico.valor;
-        updated[index].valor_externo = servico.valor_externo;
-        updated[index].tipo = servico.tipo
-        setServicos(updated);
-    };
+
+    // Adicionar serviço numa subconta
+    const addServico = (subcontaId: string) => {
+        setSubcontas(prev =>
+            prev.map(s =>
+                s.id === subcontaId
+                    ? {
+                        ...s,
+                        servicos: [
+                            ...s.servicos,
+                            { id: "", nome: "", valor: 0, valor_externo: 0, tipo: "" }
+                        ]
+                    }
+                    : s
+            )
+        )
+    }
+
+    // Remover serviço numa subconta
+    const removeServico = (subcontaId: string, index: number) => {
+        setSubcontas(prev =>
+            prev.map(s =>
+                s.id === subcontaId
+                    ? {
+                        ...s,
+                        servicos: s.servicos.filter((_, i) => i !== index)
+                    }
+                    : s
+            )
+        )
+    }
+
+    const updateSubcontaNome = (id: string, novoNome: string) => {
+        setSubcontas(prev =>
+            prev.map(s =>
+                s.id === id
+                    ? { ...s, nome: novoNome }
+                    : s
+            )
+        )
+    }
+
+
+    // Atualizar serviço numa subconta
+    const updateServico = (subcontaId: string, index: number, id: string) => {
+        const servico = servicosData?.data.find(s => Number(s.id) === Number(id))
+        if (!servico) return
+
+        setSubcontas(prev =>
+            prev.map(s =>
+                s.id === subcontaId
+                    ? {
+                        ...s,
+                        servicos: s.servicos.map((sv, i) =>
+                            i === index
+                                ? {
+                                    id: servico.id,
+                                    nome: servico.nome,
+                                    valor: Number(servico.valor),
+                                    valor_externo: servico.valor_externo,
+                                    tipo: servico.tipo
+                                }
+                                : sv
+                        )
+                    }
+                    : s
+            )
+        )
+    }
 
     const created = useCreateContrato();
 
     const idTermo = watch("termo_id");
     const desconto = watch("desconto");
 
-    const totalAPagar = servicos.reduce((acc, servico) => acc + Number(servico?.valor), 0);
-    const totalComDesconto = totalAPagar - desconto;
+    const totalAPagar = subcontas.reduce((acc, subconta) => {
+        const subtotal = subconta.servicos.reduce((soma, servico) => soma + Number(servico.valor), 0);
+        return acc + subtotal;
+    }, 0);
+    const totalComDesconto = totalAPagar - Number(desconto);
     setValue("valor_por_pagar", totalComDesconto);
+
+
+    function totalPorSubconta(idSubconta: string) {
+        const total = subcontas.find((subconta) => subconta.id === idSubconta)?.servicos.reduce((acc, servico) => {
+            return acc + Number(servico.valor);
+        }, 0);
+        return total;
+    }
 
     const termoSelecionado = termos?.data.find((termo) => termo.id === Number(idTermo));
 
     const queryClient = useQueryClient();
 
-    function onSubmit(data: any) {
+    async function onSubmit(data: any) {
 
         if (validacaoForm(data)) {
             return;
+        }
+
+        const erros = validarSubcontas(subcontas)
+
+        if (erros.length > 0) {
+            erros.forEach(item => {
+                toast.error(item);
+            })
+            return
         }
 
         const newData = {
@@ -142,9 +229,11 @@ export function FormContrato() {
             cliente_id: cliente?.id,
             assinatura_cliente: assinaturaCliente,
             assinatura_user: assinaturaUser,
-            servicos: servicos
+            subcontas: subcontas
         }
 
+        console.log(newData);
+       
         created.mutate(newData, {
             onSuccess: (response) => {
                 toast.success('Contrato criado com sucesso!');
@@ -153,22 +242,24 @@ export function FormContrato() {
                     exact: false,
                 });
                 const documentoId = response?.data?.id;
-                //route.push('/contract');
+
                 gerarPdfDocumento(documentoId);
-                setCliente(null);
-                setServicos([
-                    { id: "", nome: "", valor: 0, valor_externo: 0, tipo: '' }
-                ]);
-                setValue("nota", "");
-                setValue("desconto", 0);
-                setValue("valor_por_pagar", 0);
-                setValue("valor_pago", '0');
-                setValue("tipo_pagamento", "");
-                setValue("data_inicio", new Date().toISOString().split('T')[0]);
-                setValue("assinatura_cliente", "");
-                setValue("assinatura_user", "");
-                setSelectedTermo(null);
-                setOpenModalTermo(false);
+                // setCliente(null);
+                // setServicos([
+                //     { id: "", nome: "", valor: 0, valor_externo: 0, tipo: '' }
+                // ]);
+                progress.start();
+                router.push('/contract');
+                // setValue("nota", "");
+                // setValue("desconto", '0');
+                // setValue("valor_por_pagar", 0);
+                // setValue("valor_pago", '0');
+                // setValue("tipo_pagamento", "");
+                // setValue("data_inicio", new Date().toISOString().split('T')[0]);
+                // setValue("assinatura_cliente", "");
+                // setValue("assinatura_user", "");
+                // setSelectedTermo(null);
+                // setOpenModalTermo(false);
             },
             onError: (error) => {
                 toast.error('Erro ao criar contrato');
@@ -181,11 +272,21 @@ export function FormContrato() {
         if (validacaoForm(data)) {
             return;
         }
+
+        const erros = validarSubcontas(subcontas)
+
+        if (erros.length > 0) {
+            erros.forEach(item => {
+                toast.error(item);
+            })
+            return
+        }
+
         const newData = {
             ...data,
             termo_id: data.termo_id,
             cliente_id: cliente?.id,
-            servicos: servicos
+            subcontas: subcontas
         }
         previewPdfDocumento(newData);
     }
@@ -208,17 +309,6 @@ export function FormContrato() {
         if (data.tipo_pagamento === "") {
             toast.error('Informe o tipo de pagamento');
             return true;
-        }
-
-        const servSeleted = servicos.every((servico) => String(servico.id) !== '');
-        if (!servSeleted) {
-            if (servicos.length > 1) {
-                toast.error('Informe todos os serviços');
-                return true;
-            } else {
-                toast.error('Informe o serviço');
-                return true;
-            }
         }
 
         if (!data.termo_id) {
@@ -301,6 +391,28 @@ export function FormContrato() {
         }
     }
 
+
+    // Função de validação
+    const validarSubcontas = (subcontas: SubcontaType[]): string[] => {
+        const erros: string[] = []
+
+        subcontas.forEach((sub, i) => {
+            // 1- Subconta sem serviço
+            if (sub.servicos.length === 0) {
+                erros.push(`A subconta ${i + 1} (${sub.nome}) deve ter ao menos 1 serviço.`)
+            }
+
+            // 2- Serviço sem seleção
+            sub.servicos.forEach((serv: ServiceType, j: number) => {
+                if (!serv.id || String(serv.id).trim() === "") {
+                    erros.push(`O serviço ${j + 1} da subconta ${i + 1} (${sub.nome}) não foi selecionado.`)
+                }
+            })
+        })
+
+        return erros
+    }
+
     useEffect(() => {
         setSelectedTermo(termoSelecionado || null);
     }, [termoSelecionado]);
@@ -325,21 +437,26 @@ export function FormContrato() {
                             />
                         </div>
 
-                        <div className="col-span-3 ">
+                        <div className="col-span-6 md:col-span-3 ">
                             <Label>Termo</Label>
-                            <Controller
-                                name="termo_id"
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        options={opcoesTermos || []}
-                                        placeholder="Selecione um termo"
-                                        value={String(field.value)}
-                                        onChange={field.onChange}
-                                        name={field.name}
-                                    />
-                                )}
-                            />
+                            <div className="flex items-center gap-2">
+                                <Controller
+                                    name="termo_id"
+                                    control={control}
+                                    render={({ field }) => (
+                                        <Select
+                                            options={opcoesTermos || []}
+                                            placeholder="Selecione um termo"
+                                            value={String(field.value)}
+                                            onChange={field.onChange}
+                                            name={field.name}
+                                        />
+                                    )}
+                                />
+                                <button className="cursor-pointer" onClick={handleSubmit(onSubmitPreviewPdf)}>
+                                    <File />
+                                </button>
+                            </div>
 
                             {errors.termo_id && (
                                 <p className="mt-1.5 text-xs text-error-500">
@@ -348,7 +465,7 @@ export function FormContrato() {
                             )}
                         </div>
 
-                        <div className="col-span-3">
+                        <div className="col-span-6 md:col-span-3">
                             <Label>Desconto</Label>
                             <Input type="text"
                                 placeholder="Nome"
@@ -362,10 +479,10 @@ export function FormContrato() {
                             )}
                         </div>
 
-                        <div className="col-span-3 ">
+                        <div className="col-span-6 md:col-span-3 ">
                             <Label>Valor por pagar</Label>
                             <Input type="text"
-                                placeholder="Descrição"
+                                placeholder="Valor por se pagar"
                                 name="valor_por_pagar"
                                 register={register}
                                 disabled={true}
@@ -377,10 +494,10 @@ export function FormContrato() {
                             )}
                         </div>
 
-                        <div className="col-span-3 ">
+                        <div className="col-span-6 md:col-span-3 ">
                             <Label>Valor Pago</Label>
                             <Input type="text"
-                                placeholder="Descrição"
+                                placeholder="Valor total pago"
                                 name="valor_pago"
                                 register={register}
                             />
@@ -391,7 +508,7 @@ export function FormContrato() {
                             )}
                         </div>
 
-                        <div className="col-span-3 ">
+                        <div className="col-span-6 md:col-span-3 ">
                             <Label>Tipo de Pagamento</Label>
                             <Controller
                                 name="tipo_pagamento"
@@ -413,7 +530,7 @@ export function FormContrato() {
                             )}
                         </div>
 
-                        <div className="col-span-3 ">
+                        <div className="col-span-6 md:col-span-3 ">
                             <Controller
                                 name="data_inicio"
                                 control={control}
@@ -462,93 +579,196 @@ export function FormContrato() {
                             )}
                         </div>
 
-                        <div className="cols-span-6">
-                            <div className="flex flex-col xl:flex-row gap-2">
-                                <AssinaturaCliente />
-                                <AssinaturaUser />
-                            </div>
-                        </div>
-
-
-                    </div>
-
-                    <div className="w-[300px] flex flex-col gap-2 border-l pl-2 border-gray-500">
-                        {servicos.map((servico, index) => (
-                            <div key={index} className="flex items-end gap-1">
-                                <div className="flex-1">
-                                    <label
-                                        className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
-                                    >Serviço {servicos.length > 1 ? `(${index + 1})` : ''}</label>
-                                    <SelectServices
-                                        value={servico.id!}
-                                        onChange={(val) => updateServico(index, val)}
-                                        opcoesServicos={opcoesServicos!}
-                                        placeholder="Selecione um serviço"
-                                    />
-
-                                </div>
-
-                                <div className="w-[20px]">
-                                    {servicos.length > 1 && (
+                        <div className="col-span-6">
+                            <Tabs value={activeTab} onValueChange={setActiveTab}>
+                                <TabsList className="flex flex-wrap items-center">
+                                    {subcontas.map((subconta) => (
+                                        <TabsTrigger key={subconta.id} value={subconta.id}>
+                                            {subconta.nome && `${subconta.nome}`}
+                                        </TabsTrigger>
+                                    ))}
+                                    <div className={`flex items-center gap-1`}>
                                         <button
                                             type="button"
-                                            onClick={() => removeServico(index)}
-                                            className={`text-red-600 ml-2 ${index === 0 && 'hidden'}`}
+                                            onClick={removeSubconta}
+                                            className={`
+                                    ml-2 p-2 rounded-md
+             bg-red-100 text-red-700
+             hover:bg-red-200
+             dark:bg-red-900 dark:text-red-300
+             dark:hover:bg-red-800
+             transition-colors shadow-sm
+             ${subcontas.length === 1 ? 'hidden' : ''}
+                                    `}
                                         >
-                                            <Trash size={20} />
+                                            <Trash2 size={15} />
                                         </button>
-                                    )}
+                                        <button
+                                            type="button"
+                                            onClick={addSubconta}
+                                            className={`
+                                        px-3 py-1.5 rounded-md text-sm font-medium
+             bg-gray-200 text-gray-700
+             hover:bg-gray-300
+             dark:bg-gray-700 dark:text-gray-200
+             dark:hover:bg-gray-600
+             transition-colors shadow-sm
+             ${subcontas.length === 1 && 'ml-2'}
+                                        `}
+                                        >
+                                            + Subconta
+                                        </button>
+                                    </div>
+                                </TabsList>
+
+                                {subcontas.map((s) => (
+                                    <TabsContent key={s.id} value={s.id} className="space-y-3 border p-4 rounded-md mt-3">
+                                        <TabsContent value={s.id} key={s.id} className="space-y-3  border p-4 rounded-md mt-3">
+                                            <h3 className="font-semibold">{s.nome}</h3>
+                                            <div className="mb-3">
+                                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                    Nome da Subconta
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={s.nome}
+                                                    onChange={(e) => updateSubcontaNome(s.id, e.target.value)}
+                                                    placeholder="Digite o nome da subconta"
+                                                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                                                />
+                                            </div>
+
+                                            {s.servicos.map((servico, index) => (
+                                                <div key={index} className="flex flex-col gap-0">
+                                                    <label className="mb-1.5 block text-sm font-medium">
+                                                        Serviço {s.servicos.length > 1 ? `(${index + 1})` : ""}
+                                                    </label>
+                                                    <div className="flex items-center gap-1">
+                                                        <div className="flex-1">
+                                                            <SelectServices
+                                                                value={servico.id!}
+                                                                onChange={(val) => updateServico(s.id, index, val)}
+                                                                opcoesServicos={opcoesServicos!}
+                                                                placeholder="Selecione um serviço"
+                                                            />
+                                                        </div>
+
+                                                        <div className="flex gap-2">
+                                                            {index === 0 && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => addServico(s.id)}
+                                                                    className="text-green-600"
+                                                                >
+                                                                    +
+                                                                </button>
+                                                            )}
+                                                            {index > 0 && (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => removeServico(s.id, index)}
+                                                                    className="text-red-600"
+                                                                >
+                                                                    x
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+
+                                            <button
+                                                type="button"
+                                                onClick={() => addServico(s.id)}
+                                                className="text-blue-600 mt-2"
+                                            >
+                                                + Adicionar Serviço
+                                            </button>
+                                            <div>
+                                                <span className="font-medium text-sm">Total: </span>
+                                                <span className="font-medium text-sm">{totalPorSubconta(s.id)}</span>
+                                            </div>
+                                        </TabsContent>
+
+
+                                        {/* {servicos.map((servico, index) => (
+                                    <div className="flex flex-col gap-0">
+                                        <label
+                                            className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
+                                        >Serviço {servicos.length > 1 ? `(${index + 1})` : ''}</label>
+                                        <div key={index} className="flex items-cenetr gap-1">
+                                            <div className="flex-1">
+                                                <SelectServices
+                                                    value={servico.id!}
+                                                    onChange={(val) => updateServico(index, val)}
+                                                    opcoesServicos={opcoesServicos!}
+                                                    placeholder="Selecione um serviço"
+                                                />
+                                            </div>
+                                            <div className="w-[20px] flex gap-2">
+
+                                                <button
+                                                    type="button"
+                                                    onClick={addServico}
+                                                    className={` text-green-600 cursor-pointer ${index !== 0 && 'hidden'}`}>
+                                                    <Plus />
+                                                </button>
+
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeServico(index)}
+                                                    className={`text-red-600 ml-2 ${index === 0 && 'hidden'}`}
+                                                >
+                                                    <Trash2 size={20} />
+                                                </button>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                ))}
+
+                                <div className="flex gap-3">
+                                    <Input type="number" placeholder="Valor" className="w-32" />
                                 </div>
-                            </div>
-                        ))}
-                        <div className="flex w-full justify-end">
-                            <button
-                                type="button"
-                                onClick={addServico}
-                                className="bg-green-600 text-white p-1 rounded-md cursor-pointer"><Plus /></button>
+
+                                <Button size="sm" variant="outline">
+                                    + Adicionar Serviço
+                                </Button> */}
+                                    </TabsContent>
+                                ))}
+                            </Tabs>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between w-full gap-3 mt-8">
-                    <Button
+
+                <div className="flex flex-col md:flex-row items-center md:justify-between w-full gap-3 mt-8">
+                    {/* <Button
                         onClick={handleSubmit(onSubmitPreviewPdf)}
                         size="sm"
                         className="bg-orange-600 text-white hover:bg-orange-500"
                         startIcon={<File size={14} />}
                     >
                         {`${loadingPreviewPdf ? 'Carregando...' : 'Ver PDf'}`}
+                    </Button> */}
+                    <Button className="w-full md:w-auto" onClick={() => setOpenOffCanvas(true)} size="sm" type="button" variant="outline">
+                        + Adicionar Assinatura
                     </Button>
-                    <div className="flex gap-2">
-                        <Link href={"/client"}>
-                            <Button size="sm" variant="outline">
+
+                    <div className="flex gap-2 w-full md:w-auto">
+                        <Link href={"/contract"} className="w-full md:w-auto">
+                            <Button size="sm" variant="outline" className="w-full">
                                 Voltar
                             </Button>
                         </Link>
-                        <Button size="sm" variant="primary">
+                        <Button className="w-full md:w-auto" size="sm" variant="primary" type="submit">
                             Salvar
                         </Button>
                     </div>
                 </div>
 
             </form>
-            <ModalTermo />
-            <div className="p-6">
-
-                {/* <button
-                    onClick={() => setShowPreview(true)}
-                    className="px-4 py-2 bg-blue-600 text-white rounded"
-                >
-                    Ver PDF 22
-                </button>
-
-                {showPreview && (
-                    <PdfPreview
-                        fileUrl="blob:http://localhost:3000/207727fd-8267-4887-98c4-73d4c1659707"
-                        onClose={() => setShowPreview(false)}
-                    />
-                )} */}
-            </div>
+            <BottomOffCanvas />
         </div>
     )
 }

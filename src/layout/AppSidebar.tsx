@@ -56,6 +56,11 @@ const navItems: NavItem[] = [
     name: "Serviços",
     path: "/service",
   },
+   {
+    icon: <Briefcase />,
+    name: "Tipo de Serviços",
+    path: "/service-type",
+  },
   {
     icon: <FileText />,
     name: "Termos",

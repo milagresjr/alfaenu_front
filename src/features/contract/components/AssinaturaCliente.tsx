@@ -76,19 +76,11 @@ export function AssinaturaCliente() {
 
     // 🔹 Salvar assinatura em localStorage
     const salvar = () => {
-        if (!sigCanvas.current) return;
-
-        const originalCanvas = sigCanvas.current.getCanvas();
-
-        // versão com trim manual
-        const trimmedCanvas = trimCanvasManual(originalCanvas);
-        const trimmedDataURL = trimmedCanvas.toDataURL("image/png");
-
-        // versão completa
-        const fullDataURL = originalCanvas.toDataURL("image/png");
-
-        localStorage.setItem("assinatura-cliente", fullDataURL); // mantém o quadro fixo
-        console.log("Assinatura recortada:", trimmedDataURL);
+         if (!sigCanvas.current) return;
+        const dataURL = sigCanvas.current.getCanvas().toDataURL("image/png");
+        localStorage.setItem("assinatura-cliente", dataURL);
+        setAssinaturaCliente(dataURL);
+        toast.success('Assinatura salva com sucesso!');
     };
 
 
@@ -118,12 +110,11 @@ export function AssinaturaCliente() {
             <SignatureCanvas
                 ref={sigCanvas}
                 penColor="black"
-                canvasProps={{  width: 370, height: 150, className: "bg-white border rounded" }}
+                canvasProps={{ width: 370, height: 150, className: "bg-white border rounded" }}
             />
             <div className="mt-2 flex gap-2">
-                <button type="button" onClick={limpar} className="text-gray-600 dark:text-gray-300">Limpar</button>
-                <span className="text-gray-600 dark:text-gray-300 font-medium">|</span>
-                <button type="button" onClick={salvar} className="text-gray-600 dark:text-gray-300">Salvar</button>
+                <button type="button" onClick={limpar} className="px-2 py-2 bg-gray-600 text-white text-sm rounded-md">Limpar</button>
+                <button type="button" onClick={salvar} className="px-2 py-2 bg-green-600 text-white text-sm rounded-md">Salvar</button>
             </div>
         </div>
     )

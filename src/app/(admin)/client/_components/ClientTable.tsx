@@ -1,7 +1,7 @@
 'use client';
 
 //import { PaginationComponent } from "@/components/ui_old/pagination/Pagination";
-import { useState } from "react";
+
 import { useClientes, useDeleteCliente } from "@/features/client/hooks/useClientsQuery";
 import { useClienteStore } from "@/features/client/store/useClienteStore";
 import { ClienteType } from "@/features/client/types";

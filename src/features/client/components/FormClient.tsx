@@ -3,10 +3,10 @@
 import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { useCreateCliente, useDeleteCliente, useUpdateCliente } from "../hooks/useClientsQuery";
+import { useCreateCliente, useUpdateCliente } from "../hooks/useClientsQuery";
 import { useClienteStore } from "../store/useClienteStore";
 import { toast } from "react-toastify";
-import Button from "@/components/ui/button/Button";
+import Button from "@/components/ui-old/button/Button";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import DatePicker from "@/components/form/date-picker";

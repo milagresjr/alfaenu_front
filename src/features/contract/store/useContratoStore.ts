@@ -5,6 +5,8 @@ import { create } from "zustand";
 type ContratoState = {
     openModalTermo: boolean;
     setOpenModalTermo: (isOpen: boolean) => void;
+    openOffCanvas: boolean;
+    setOpenOffCanvas: (isOpen: boolean) => void;
     selectedTermo: TermoType | null;
     setSelectedTermo: (termo: TermoType | null) => void;
     assinaturaCliente: string | null;
@@ -22,4 +24,6 @@ export const useContratoStore = create<ContratoState>((set) => ({
     setAssinaturaCliente: (assinaturaCliente) => set({ assinaturaCliente }),
     assinaturaUser: null,
     setAssinaturaUser: (assinaturaUser) => set({ assinaturaUser }),
+    openOffCanvas: false,
+    setOpenOffCanvas: (isOpen) => set({openOffCanvas: isOpen})
 }));

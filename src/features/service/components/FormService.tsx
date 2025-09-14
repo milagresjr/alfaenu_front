@@ -4,7 +4,7 @@ import z from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "react-toastify";
-import Button from "@/components/ui/button/Button";
+import Button from "@/components/ui-old/button/Button";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import { useEffect } from "react";
@@ -14,11 +14,13 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useServiceStore } from "../store/useServiceStore";
 import { useCreateServico, useUpdateServico } from "../hooks/useServicesQuery";
 import Select from "@/components/form/Select";
+import { useTipoServicos } from "@/features/service-type/hooks/useServiceTypeQuery";
 
 
 const schema = z.object({
     nome: z.string().min(1, { message: "Campo obrigatório" }),
     tipo: z.string(),
+    categoria_id: z.string(),
     valor: z.string().min(1, { message: "Campo obrigatório" }),
     valor_externo: z.string(),
 }).superRefine((data, ctx) => {
@@ -39,6 +41,7 @@ export function FormService() {
         resolver: zodResolver(schema),
         defaultValues: {
             nome: "",
+            categoria_id: "",
             tipo: "interno",
             valor: "",
             valor_externo: ""
@@ -54,8 +57,9 @@ export function FormService() {
 
     const mode = selectedService ? "edit" : "create";
 
-    const ipoServico = watch("tipo");
+    const { data: dataTipoServicos } = useTipoServicos();
 
+    const ipoServico = watch("tipo");
 
     const queryClient = useQueryClient();
 
@@ -64,12 +68,18 @@ export function FormService() {
         { value: 'externo', label: 'Externo' }
     ];
 
+    const opcoesCategoria = dataTipoServicos?.data.map((tipoService) => ({
+        value: String(tipoService.id),
+        label: tipoService.descricao
+    }))
+
     const onSubmit = (data: FormValues) => {
 
         if (selectedService) {
             update.mutate({
                 id: selectedService.id,
                 nome: data.nome,
+                categoria_id: data.categoria_id,
                 tipo: data.tipo,
                 valor: data.valor,
                 valor_externo: data.valor_externo,
@@ -107,6 +117,7 @@ export function FormService() {
     useEffect(() => {
         if (selectedService) {
             setValue('nome', selectedService.nome);
+            setValue('categoria_id', String(selectedService?.categoria_id));
             setValue("tipo", selectedService.tipo);
             setValue("valor", String(selectedService.valor));
             setValue("valor_externo", String(selectedService?.valor_externo));
@@ -131,6 +142,27 @@ export function FormService() {
                         {errors.nome && (
                             <p className="mt-1.5 text-xs text-error-500">
                                 {errors.nome.message}
+                            </p>
+                        )}
+                    </div>
+
+                     <div className="col-span-6 md:col-span-3 ">
+                        <Label>Categoria</Label>
+                        <Controller
+                            name="categoria_id"
+                            control={control}
+                            render={({ field }) => (
+                                <Select
+                                    options={opcoesCategoria || []}
+                                    value={String(field.value)}
+                                    onChange={field.onChange}
+                                    name={field.name}
+                                />
+                            )}
+                        />
+                        {errors.categoria_id && (
+                            <p className="mt-1.5 text-xs text-error-500">
+                                {errors.categoria_id.message}
                             </p>
                         )}
                     </div>
@@ -199,7 +231,7 @@ export function FormService() {
                         </Button>
                     </Link>
                     <Button size="sm" variant="primary" disabled={create.isPending}>
-                        {create.isPending ? "Salvando..." : "Salvar"}
+                        {create.isPending || update.isPending ? "Salvando..." : "Salvar"}
                     </Button>
                 </div>
 

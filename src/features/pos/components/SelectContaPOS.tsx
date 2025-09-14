@@ -3,18 +3,20 @@
 import { ChevronDown, Plus, Search } from "lucide-react";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useEffect, useRef, useState } from "react";
-import { ClienteType } from "@/features/client/types";
 import { useClientes } from "@/features/client/hooks/useClientsQuery";
+import { ContratoType, SubcontaType } from "@/features/contract/types";
+import { useContratos } from "@/features/contract/hooks/useContractQuery";
+import { usePOSStore } from "../store/usePOSStore";
 
 interface Props {
-    selectedCliente: ClienteType | null;
-    onSelectCliente: (fornecedor: ClienteType | null) => void;
+    selectedSubconta: SubcontaType | null;
+    onSelectSubconta: (contrato: SubcontaType | null) => void;
     error?: boolean;
 }
 
 export function SelectContaPOS({
-    selectedCliente,
-    onSelectCliente,
+    selectedSubconta,
+    onSelectSubconta,
 }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState('');
@@ -23,7 +25,15 @@ export function SelectContaPOS({
 
     const debouncedSearch = useDebounce(search, 500);
 
-    const { data, isLoading } = useClientes(page, perPage, debouncedSearch);
+    const { data, isLoading } = useContratos(page, perPage, debouncedSearch);
+
+    const { clienteContrato } = usePOSStore();
+
+
+    const subContasFiltradas = data?.data.filter((contrato) => {
+        return contrato === clienteContrato;
+    });
+
 
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -44,7 +54,7 @@ export function SelectContaPOS({
     }, []);
 
 
-    // 🔥 foca quando o dropdown abrir
+    //foca o input quando o dropdown abrir
     useEffect(() => {
         if (!isOpen) return;
         const id = requestAnimationFrame(() => {
@@ -66,10 +76,13 @@ export function SelectContaPOS({
                 </label>
                 <div
                     className={`relative h-11 w-full flex items-center text-sm pl-4 pr-8 rounded-lg shadow-theme-xs dark:text-white/90 dark:bg-gray-900 border border-gray-300 dark:border-gray-600
-                        `}
-                    onClick={() => setIsOpen((item) => (!item))}
+                        ${(!clienteContrato) && 'bg-gray-300 cursor-not-allowed'}`}
+                    onClick={() => {
+                        if (!clienteContrato) return; // só abre se clienteContrato existir
+                        setIsOpen((prev) => !prev);
+                    }}
                 >
-                    {selectedCliente?.nome}
+                    <span className="text-gray-700 dark:text-gray-300 font-normal select-none cursor-default">{selectedSubconta?.nome || ''}</span>
 
                     {/* Ícone da seta */}
                     <ChevronDown
@@ -103,23 +116,24 @@ export function SelectContaPOS({
                             <>
                                 {/* Lista de clientes */}
                                 <ul className="max-h-48 overflow-y-auto">
-                                    {(data?.data.length ?? 0) > 0 ? (
-                                        data?.data.map((cliente, idx) => (
-                                            <li
-                                                key={idx}
-                                                className="px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded"
-                                                onClick={() => {
-                                                    onSelectCliente(cliente);
-                                                    setIsOpen(false);
-                                                }}
-                                            >
-                                                <strong className="text-gray-700 dark:text-gray-300 font-normal">{cliente.nome || ''}</strong>
-                                                <div className="text-xs text-gray-400">{cliente.n_bi || ''}</div>
-                                            </li>
+                                    {(subContasFiltradas?.length ?? 0) > 0 ? (
+                                        subContasFiltradas?.map((contrato) => (
+                                            contrato.subcontas?.map((subconta, idx) => (
+                                                <li
+                                                    key={idx}
+                                                    className="px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded"
+                                                    onClick={() => {
+                                                        onSelectSubconta(subconta || null);
+                                                        setIsOpen(false);
+                                                    }}
+                                                >
+                                                    <strong className="text-gray-700 dark:text-gray-300 font-normal">{subconta.nome || ''}</strong>
+                                                </li>
+                                            ))
                                         ))
                                     ) : (
                                         <li className="text-sm text-gray-400 px-2">
-                                            Nenhum cliente encontrado
+                                            Nenhuma subconta encontrada
                                         </li>
                                     )}
                                 </ul>

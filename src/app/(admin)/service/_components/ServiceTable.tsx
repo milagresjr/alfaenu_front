@@ -12,6 +12,7 @@ import { Plus } from "lucide-react";
 import { useDeleteServico, useServicos } from "@/features/service/hooks/useServicesQuery";
 import { useServiceStore } from "@/features/service/store/useServiceStore";
 import { ServiceType } from "@/features/service/types";
+import { useProgress } from "@bprogress/next";
 
 export default function ServiceTable() {
 
@@ -27,10 +28,13 @@ export default function ServiceTable() {
 
     const router = useRouter();
 
+    const progress = useProgress();
+
     const deleteService = useDeleteServico();
 
     const handleEdit = (service: ServiceType) => {
         setSelectedService(service);
+        progress.start();
         router.push(`/service/form`);
     };
 
@@ -77,6 +81,14 @@ export default function ServiceTable() {
                     {
                         header: "Nome",
                         accessor: "nome"
+                    },
+                    {
+                        header: "Categoria",
+                        accessor: (service) => (
+                            <span>
+                               { service.categoria?.descricao }
+                            </span>
+                        )
                     },
                     {
                         header: "Tipo",

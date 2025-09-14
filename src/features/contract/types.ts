@@ -1,3 +1,5 @@
+import { ClienteType } from "../client/types";
+import { ServiceType } from "../service/types";
 
 
 export type ServiceContractType = {
@@ -10,13 +12,22 @@ export type ServiceContractType = {
     servico_imagem?: string;
 }
 
+export type SubcontaType = {
+    id: string
+    nome: string
+    contract_id?: number
+    servicos: ServiceType[]
+}
+
 export type ContratoType = {
     id?: number;
+    cliente?: ClienteType | null;
     cliente_id?: number;
     cliente_nome?: string;
     cliente_bi?: string;
     cliente_data_nascimento?: string;
     cliente_endereco?: string;
+    subcontas?: SubcontaType[] | null;
     nota?: string;
     desconto?: number;
     valor_por_pagar?: number;

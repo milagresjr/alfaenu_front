@@ -28,7 +28,7 @@ export default function RootLayout({
                 <ToastContainer
                   position="top-right"
                   style={{ zIndex: '99999999' }}
-                  autoClose={2000}
+                  autoClose={3000}
                   theme="colored"
                 />
               </SidebarProvider>

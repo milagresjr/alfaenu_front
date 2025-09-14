@@ -1,7 +1,7 @@
 "use client";
 
-import Button from "@/components/ui/button/Button";
-import { Modal } from "@/components/ui/modal";
+import Button from "@/components/ui-old/button/Button";
+import { Modal } from "@/components/ui-old/modal";
 import { useEffect, useState } from "react";
 import { useContratoStore } from "../store/useContratoStore";
 import { useRef } from "react";
