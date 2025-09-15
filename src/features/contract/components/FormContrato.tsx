@@ -30,6 +30,14 @@ import { useProgress } from "@bprogress/next";
 import { useRouter } from "next/navigation";
 import { useCreateContrato } from "../hooks/useContractQuery";
 import { gerarPdfContrato } from "@/lib/utils";
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet";
 
 const schemma = z.object({
     nota: z.string(),
@@ -74,6 +82,8 @@ export function FormContrato() {
     const [cliente, setCliente] = useState<ClienteType | null>(null);
 
     const [loadingPreviewPdf, setLoadingPreview] = useState(false);
+
+    const [openSheet, setOpenSheet] = useState(false)
 
     const progress = useProgress();
 
@@ -400,13 +410,18 @@ export function FormContrato() {
 
     return (
         <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-4">
-            <h1 className="text-lg my-3 text-gray-700 dark:text-gray-300">{mode === "create" ? "Criar Contrato" : "Editar Contrato"}</h1>
+            <div className="flex justify-between items-center">
+                <h1 className="text-lg my-3 text-gray-700 dark:text-gray-300">{mode === "create" ? "Criar Contrato" : "Editar Contrato"}</h1>
+                <Button className="w-auto h-[40px]" onClick={() => setOpenSheet(true)} size="sm" type="button" variant="outline">
+                    + Adicionar Serviços
+                </Button>
+            </div>
             <form onSubmit={confirmarCriacaoContrato}>
 
                 <div className="flex gap-2">
                     <div className="flex-1 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2 md:grid-cols-6">
 
-                        <div className="col-span-6">
+                        <div className="col-span-6 md:col-span-3">
                             <SelectClient
                                 selectedCliente={cliente}
                                 onSelectCliente={(clienteSelected) => setCliente(clienteSelected)}
@@ -442,7 +457,44 @@ export function FormContrato() {
                             )}
                         </div>
 
-                        <div className="col-span-6 md:col-span-3">
+                        <div className="col-span-6 md:col-span-3 ">
+                            <Label>Tipo de Pagamento</Label>
+                            <Controller
+                                name="tipo_pagamento"
+                                control={control}
+                                render={({ field }) => (
+                                    <Select
+                                        options={opcoesTipoPagamento || []}
+                                        placeholder="Selecione um tipo de pagamento"
+                                        value={String(field.value)}
+                                        onChange={field.onChange}
+                                        name={field.name}
+                                    />
+                                )}
+                            />
+                            {errors.tipo_pagamento && (
+                                <p className="mt-1.5 text-xs text-error-500">
+                                    {errors.tipo_pagamento.message}
+                                </p>
+                            )}
+                        </div>
+
+
+                        <div className="col-span-6 md:col-span-3 ">
+                            <Label>Valor Pago</Label>
+                            <Input type="text"
+                                placeholder="Valor total pago"
+                                name="valor_pago"
+                                register={register}
+                            />
+                            {errors.valor_pago && (
+                                <p className="mt-1.5 text-xs text-error-500">
+                                    {errors.valor_pago.message}
+                                </p>
+                            )}
+                        </div>
+
+                        <div className="col-span-6 md:col-span-3 hidden">
                             <Label>Desconto</Label>
                             <Input type="text"
                                 placeholder="Nome"
@@ -467,42 +519,6 @@ export function FormContrato() {
                             {errors.valor_por_pagar && (
                                 <p className="mt-1.5 text-xs text-error-500">
                                     {errors.valor_por_pagar.message}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="col-span-6 md:col-span-3 ">
-                            <Label>Valor Pago</Label>
-                            <Input type="text"
-                                placeholder="Valor total pago"
-                                name="valor_pago"
-                                register={register}
-                            />
-                            {errors.valor_pago && (
-                                <p className="mt-1.5 text-xs text-error-500">
-                                    {errors.valor_pago.message}
-                                </p>
-                            )}
-                        </div>
-
-                        <div className="col-span-6 md:col-span-3 ">
-                            <Label>Tipo de Pagamento</Label>
-                            <Controller
-                                name="tipo_pagamento"
-                                control={control}
-                                render={({ field }) => (
-                                    <Select
-                                        options={opcoesTipoPagamento || []}
-                                        placeholder="Selecione um tipo de pagamento"
-                                        value={String(field.value)}
-                                        onChange={field.onChange}
-                                        name={field.name}
-                                    />
-                                )}
-                            />
-                            {errors.tipo_pagamento && (
-                                <p className="mt-1.5 text-xs text-error-500">
-                                    {errors.tipo_pagamento.message}
                                 </p>
                             )}
                         </div>
@@ -542,10 +558,10 @@ export function FormContrato() {
                             )}
                         </div>
 
-                        <div className="col-span-6 ">
+                        <div className="col-span-6 md:col-span-3">
                             <Label>Nota</Label>
                             <TextArea
-                                placeholder="Nota"
+                                placeholder="Descreva uma nota"
                                 name="nota"
                                 register={register}
                             />
@@ -556,7 +572,42 @@ export function FormContrato() {
                             )}
                         </div>
 
-                        <div className="col-span-6">
+                    </div>
+                </div>
+
+
+                <div className="flex flex-col md:flex-row items-center md:justify-between w-full gap-3 mt-8">
+                    {/* <Button
+                        onClick={handleSubmit(onSubmitPreviewPdf)}
+                        size="sm"
+                        className="bg-orange-600 text-white hover:bg-orange-500"
+                        startIcon={<File size={14} />}
+                    >
+                        {`${loadingPreviewPdf ? 'Carregando...' : 'Ver PDf'}`}
+                    </Button> */}
+                    <Button className="w-full md:w-auto bg-red-600 text-white hover:bg-red-500" onClick={() => setOpenOffCanvas(true)} size="sm" type="button">
+                        + Adicionar Assinatura
+                    </Button>
+
+                    <div className="flex gap-2 w-full md:w-auto">
+                        <Link href={"/contract"} className="w-full md:w-auto">
+                            <Button size="sm" variant="outline" className="w-full">
+                                Voltar
+                            </Button>
+                        </Link>
+                        <Button className="w-full md:w-auto" size="sm" variant="primary" type="submit">
+                            Salvar
+                        </Button>
+                    </div>
+                </div>
+
+            </form>
+
+            <Sheet open={openSheet} onOpenChange={setOpenSheet}>
+                <SheetContent className="w-full z-999 dark:bg-gray-900 overflow-y-auto custom-scrollbar">
+                    <SheetHeader>
+                        <SheetTitle className="mb-4 pb-2 border-b">Serviços</SheetTitle>
+                        <SheetDescription asChild className="">
                             <Tabs value={activeTab} onValueChange={setActiveTab}>
                                 <TabsList className="flex flex-wrap items-center">
                                     {subcontas.map((subconta) => (
@@ -599,152 +650,84 @@ export function FormContrato() {
                                 </TabsList>
 
                                 {subcontas.map((s) => (
-                                    <TabsContent key={s.id} value={s.id} className="space-y-3 border p-4 rounded-md mt-3">
-                                        <TabsContent value={s.id} key={s.id} className="space-y-3  border p-4 rounded-md mt-3">
-                                            <h3 className="font-semibold">{s.nome}</h3>
-                                            <div className="mb-3">
-                                                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                                    Nome da Subconta
+                                    <TabsContent value={s.id} key={s.id} className="space-y-3  border p-4 rounded-md mt-3">
+                                        <h3 className="font-semibold">{s.nome}</h3>
+                                        <div className="mb-3">
+                                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                Nome da Subconta
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={s.nome}
+                                                onChange={(e) => updateSubcontaNome(s.id, e.target.value)}
+                                                placeholder="Digite o nome da subconta"
+                                                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
+                                            />
+                                        </div>
+
+                                        {s.servicos.map((servico, index) => (
+                                            <div key={index} className="flex flex-col gap-0">
+                                                <label className="mb-1.5 block text-sm font-medium">
+                                                    Serviço {s.servicos.length > 1 ? `(${index + 1})` : ""}
                                                 </label>
-                                                <input
-                                                    type="text"
-                                                    value={s.nome}
-                                                    onChange={(e) => updateSubcontaNome(s.id, e.target.value)}
-                                                    placeholder="Digite o nome da subconta"
-                                                    className="mt-1 w-full rounded-md border border-gray-300 px-3 py-2 text-sm dark:border-gray-600 dark:bg-gray-900 dark:text-white"
-                                                />
-                                            </div>
+                                                <div className="flex items-center gap-1">
+                                                    <div className="flex-1">
+                                                        <SelectServices
+                                                            value={servico.id!}
+                                                            onChange={(val) => updateServico(s.id, index, val)}
+                                                            opcoesServicos={opcoesServicos!}
+                                                            placeholder="Selecione um serviço"
+                                                        />
+                                                    </div>
 
-                                            {s.servicos.map((servico, index) => (
-                                                <div key={index} className="flex flex-col gap-0">
-                                                    <label className="mb-1.5 block text-sm font-medium">
-                                                        Serviço {s.servicos.length > 1 ? `(${index + 1})` : ""}
-                                                    </label>
-                                                    <div className="flex items-center gap-1">
-                                                        <div className="flex-1">
-                                                            <SelectServices
-                                                                value={servico.id!}
-                                                                onChange={(val) => updateServico(s.id, index, val)}
-                                                                opcoesServicos={opcoesServicos!}
-                                                                placeholder="Selecione um serviço"
-                                                            />
-                                                        </div>
-
-                                                        <div className="flex gap-2">
-                                                            {index === 0 && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => addServico(s.id)}
-                                                                    className="text-green-600"
-                                                                >
-                                                                    +
-                                                                </button>
-                                                            )}
-                                                            {index > 0 && (
-                                                                <button
-                                                                    type="button"
-                                                                    onClick={() => removeServico(s.id, index)}
-                                                                    className="text-red-600"
-                                                                >
-                                                                    x
-                                                                </button>
-                                                            )}
-                                                        </div>
+                                                    <div className="flex gap-2">
+                                                        {index === 0 && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => addServico(s.id)}
+                                                                className="text-green-600"
+                                                            >
+                                                                +
+                                                            </button>
+                                                        )}
+                                                        {index > 0 && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => removeServico(s.id, index)}
+                                                                className="text-red-600"
+                                                            >
+                                                                x
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 </div>
-                                            ))}
-
-                                            <button
-                                                type="button"
-                                                onClick={() => addServico(s.id)}
-                                                className="text-blue-600 mt-2"
-                                            >
-                                                + Adicionar Serviço
-                                            </button>
-                                            <div>
-                                                <span className="font-medium text-sm">Total: </span>
-                                                <span className="font-medium text-sm">{totalPorSubconta(s.id)}</span>
                                             </div>
-                                        </TabsContent>
+                                        ))}
 
-
-                                        {/* {servicos.map((servico, index) => (
-                                    <div className="flex flex-col gap-0">
-                                        <label
-                                            className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-400"
-                                        >Serviço {servicos.length > 1 ? `(${index + 1})` : ''}</label>
-                                        <div key={index} className="flex items-cenetr gap-1">
-                                            <div className="flex-1">
-                                                <SelectServices
-                                                    value={servico.id!}
-                                                    onChange={(val) => updateServico(index, val)}
-                                                    opcoesServicos={opcoesServicos!}
-                                                    placeholder="Selecione um serviço"
-                                                />
-                                            </div>
-                                            <div className="w-[20px] flex gap-2">
-
-                                                <button
-                                                    type="button"
-                                                    onClick={addServico}
-                                                    className={` text-green-600 cursor-pointer ${index !== 0 && 'hidden'}`}>
-                                                    <Plus />
-                                                </button>
-
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeServico(index)}
-                                                    className={`text-red-600 ml-2 ${index === 0 && 'hidden'}`}
-                                                >
-                                                    <Trash2 size={20} />
-                                                </button>
-                                            </div>
-
+                                        <button
+                                            type="button"
+                                            onClick={() => addServico(s.id)}
+                                            className="text-blue-600 mt-2"
+                                        >
+                                            + Adicionar Serviço
+                                        </button>
+                                        <div>
+                                            <span className="font-medium text-sm">Total: </span>
+                                            <span className="font-medium text-sm">{totalPorSubconta(s.id)}</span>
                                         </div>
-                                    </div>
-                                ))}
-
-                                <div className="flex gap-3">
-                                    <Input type="number" placeholder="Valor" className="w-32" />
-                                </div>
-
-                                <Button size="sm" variant="outline">
-                                    + Adicionar Serviço
-                                </Button> */}
                                     </TabsContent>
                                 ))}
                             </Tabs>
-                        </div>
-                    </div>
-                </div>
+                        </SheetDescription>
+                    </SheetHeader>
 
-
-                <div className="flex flex-col md:flex-row items-center md:justify-between w-full gap-3 mt-8">
-                    {/* <Button
-                        onClick={handleSubmit(onSubmitPreviewPdf)}
-                        size="sm"
-                        className="bg-orange-600 text-white hover:bg-orange-500"
-                        startIcon={<File size={14} />}
-                    >
-                        {`${loadingPreviewPdf ? 'Carregando...' : 'Ver PDf'}`}
+                    {/* Botão pra fechar */}
+                    {/* <Button variant="outline" onClick={() => setOpenSheet(false)} className="mt-4 w-fit absolute right-4 bottom-2">
+                        Fechar
                     </Button> */}
-                    <Button className="w-full md:w-auto" onClick={() => setOpenOffCanvas(true)} size="sm" type="button" variant="outline">
-                        + Adicionar Assinatura
-                    </Button>
+                </SheetContent>
+            </Sheet>
 
-                    <div className="flex gap-2 w-full md:w-auto">
-                        <Link href={"/contract"} className="w-full md:w-auto">
-                            <Button size="sm" variant="outline" className="w-full">
-                                Voltar
-                            </Button>
-                        </Link>
-                        <Button className="w-full md:w-auto" size="sm" variant="primary" type="submit">
-                            Salvar
-                        </Button>
-                    </div>
-                </div>
-
-            </form>
             <BottomOffCanvas />
         </div>
     )

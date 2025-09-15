@@ -52,15 +52,23 @@ const navItems: NavItem[] = [
     path: "/pos",
   },
   {
-    icon: <Briefcase />,
     name: "Serviços",
-    path: "/service",
-  },
-   {
     icon: <Briefcase />,
-    name: "Tipo de Serviços",
-    path: "/service-type",
+    subItems: [
+      { name: "Serviços", path: "/service", pro: false },
+      { name: "Categoria", path: "/service-type", pro: false },
+    ],
   },
+  // {
+  //   icon: <Briefcase />,
+  //   name: "Serviços",
+  //   path: "/service",
+  // },
+  //  {
+  //   icon: <Briefcase />,
+  //   name: "Tipo de Serviços",
+  //   path: "/service-type",
+  // },
   {
     icon: <FileText />,
     name: "Termos",

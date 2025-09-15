@@ -109,12 +109,14 @@ export function ServicesCard() {
                 </Carousel>
             </div>
             <hr className="" />
-            <div className="grid grid-cols-4 auto-rows-max gap-3 h-[calc(100vh-350px)] px-4 overflow-auto custom-scrollbar">
-                {
-                    dataServicosFiltered?.map((servico) => (
-                        <CardService key={servico.id} service={servico} onClick={() => handleServiceClik(servico)} />
-                    ))
-                }
+            <div className="grid grid-cols-4 gap-3 h-[calc(100vh-400px)] px-4 overflow-auto custom-scrollbar">
+                {dataServicosFiltered?.map((servico) => (
+                    <CardService
+                        key={servico.id}
+                        service={servico}
+                        onClick={() => handleServiceClik(servico)}
+                    />
+                ))}
             </div>
         </div>
     )
