@@ -29,6 +29,7 @@ import BottomOffCanvas from "./BottonOffCanvas";
 import { useProgress } from "@bprogress/next";
 import { useRouter } from "next/navigation";
 import { useCreateContrato } from "../hooks/useContractQuery";
+import { gerarPdfContrato } from "@/lib/utils";
 
 const schemma = z.object({
     nota: z.string(),
@@ -232,8 +233,9 @@ export function FormContrato() {
             subcontas: subcontas
         }
 
-        console.log(newData);
-       
+        //  console.log(newData);
+        // return;
+
         created.mutate(newData, {
             onSuccess: (response) => {
                 toast.success('Contrato criado com sucesso!');
@@ -243,7 +245,7 @@ export function FormContrato() {
                 });
                 const documentoId = response?.data?.id;
 
-                gerarPdfDocumento(documentoId);
+                gerarPdfContrato(documentoId);
                 // setCliente(null);
                 // setServicos([
                 //     { id: "", nome: "", valor: 0, valor_externo: 0, tipo: '' }
@@ -334,31 +336,6 @@ export function FormContrato() {
 
         if (confirmado) {
             handleSubmit(onSubmit, onError)(e);
-        }
-    }
-
-    async function gerarPdfDocumento(documentoId: number | undefined) {
-        try {
-            const response = await api.get(`contract/${documentoId}/gerar-pdf`, {
-                responseType: 'blob', // ⚠️ Muito importante para PDFs
-            });
-
-            if (response.status !== 200) {
-                console.error("Erro ao gerar PDF:", response);
-                throw new Error("Erro ao gerar PDF");
-            }
-
-            // Cria uma URL temporária do PDF
-            const file = new Blob([response.data], { type: 'application/pdf' });
-            const fileURL = URL.createObjectURL(file);
-
-            // Abre o PDF numa nova aba
-            window.open(fileURL, "_blank");
-
-            toast.success("PDF gerado com sucesso!");
-        } catch (error) {
-            toast.error("Erro ao gerar PDF.");
-            console.error(error);
         }
     }
 

@@ -6,11 +6,9 @@ import { ContratoType } from "@/features/contract/types";
 import { TableMain } from "@/components/table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { alert } from "@/lib/alert";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "react-toastify";
-import { Plus } from "lucide-react";
+import { File, Loader2, Plus } from "lucide-react";
 import { useContratos, useDeleteContrato } from "@/features/contract/hooks/useContractQuery";
+import { gerarPdfContrato } from "@/lib/utils";
 
 export default function ContractTable() {
 
@@ -22,7 +20,9 @@ export default function ContractTable() {
 
     const { data, isLoading, isError } = useContratos();
 
-   // const { selectedCliente, set } = useContratoStore();
+    const [loadingId, setLoadingId] = useState<number | null>(null);
+
+    // const { selectedCliente, set } = useContratoStore();
 
     const router = useRouter();
 
@@ -36,11 +36,11 @@ export default function ContractTable() {
     // const queryClient = useQueryClient();
 
     // const handleDelete = async (cliente: ContratoType) => {
-     
+
     //     const confirmed = await alert.confirm('Confirmar', 'Tem certeza que deseja excluir este cliente?', 'Sim', 'Não');
-        
+
     //     if (confirmed) {
-            
+
     //         deleteContrato.mutate(cliente.id, {
     //             onSuccess: () => {
     //                 queryClient.invalidateQueries({
@@ -55,6 +55,15 @@ export default function ContractTable() {
     //         });
     //     }
     // };
+
+    async function handlePdfClick(contrato: ContratoType) {
+        try {
+            setLoadingId(Number(contrato.id)); // ativa loading só nesse contrato
+            await gerarPdfContrato(contrato.id);
+        } finally {
+            setLoadingId(null); // volta ao normal
+        }
+    }
 
     if (isError) {
         return <div>Erro ao carregar contratos</div>;
@@ -102,13 +111,24 @@ export default function ContractTable() {
                     //         </span>
                     //     )
                     // },
-                    // {
-                    //     header: "Ações",
-                    //     accessor: (contrato) => (
-                    //         <div className="flex gap-2">
-                    //         </div>
-                    //     ),
-                    // }
+                    {
+                        header: "Ações",
+                        accessor: (contrato) => (
+                            <div className="flex gap-2">
+                                <button
+                                    className="cursor-pointer"
+                                    onClick={() => handlePdfClick(contrato)}
+                                    disabled={loadingId === contrato.id} // opcional: desativa botão
+                                >
+                                    {loadingId === contrato.id ? (
+                                        <Loader2 className="animate-spin" />
+                                    ) : (
+                                        <File />
+                                    )}
+                                </button>
+                            </div>
+                        ),
+                    }
                 ]}
             />
 

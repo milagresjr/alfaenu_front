@@ -11,9 +11,12 @@ import EditorConteudo from "./EditorConteudo";
 import { useCreateTermo, useUpdateTermo } from "../hooks/useTermosQuery";
 import { useQueryClient } from "@tanstack/react-query";
 import { alert } from "@/lib/alert";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
+import Button from "@/components/ui-old/button/Button";
+import { Modal } from "@/components/ui-old/modal";
+import Link from "next/link";
 
 const schemma = z.object({
     titulo: z.string().min(1, { message: "Campo obrigatório" }),
@@ -29,6 +32,8 @@ export function FormTermo() {
             titulo: "",
         }
     });
+
+    const [openModal, setOpenModal] = useState(false);
 
     const { conteudoTermo, selectedTermo, setSelectedTermo, setConteudoTermo } = useTermoStore();
 
@@ -85,6 +90,14 @@ export function FormTermo() {
 
     }
 
+    function openullscreenModal() {
+        setOpenModal(true);
+    }
+
+    function closeFullscreenModal() {
+        setOpenModal(false);
+    }
+
     useEffect(() => {
         if (selectedTermo) {
             setValue("titulo", selectedTermo.titulo);
@@ -99,7 +112,15 @@ export function FormTermo() {
         <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] ">
             <form onSubmit={handleSubmit(onSubmit)}>
 
-                <div className="mt-4 mx-2 p-2">
+                <div className="mt-4 mx-2 p-2 flex gap-2 justify-between items-center">
+                    <Link href={'/term'} className="text-blue-600 cursor-pointer">Voltar</Link>
+                    <div className="flex gap-2">
+                        <Button onClick={openullscreenModal} size="sm" variant="outline" type="button">Preview</Button>
+                        <Button size="sm" type="submit">Salvar</Button>
+                    </div>
+                </div>
+
+                <div className="mx-2 p-2">
                     <Label>Título</Label>
                     <Input
                         name="titulo"
@@ -114,10 +135,33 @@ export function FormTermo() {
 
                 <EditorConteudo />
 
-                <div className=" mx-4 p-2 flex justify-end">
-                    <button type="submit" className="bg-orange-600 text-white px-3 py-2 rounded-sm">Salvar</button>
-                </div>
             </form>
+
+            <Modal
+                isOpen={openModal}
+                onClose={closeFullscreenModal}
+                isFullscreen={true}
+                showCloseButton={true}
+            >
+                <div className="fixed top-0 left-0 flex flex-col justify-between w-full h-screen p-6 overflow-x-hidden overflow-y-auto bg-white dark:bg-gray-900 lg:p-10">
+                    <div>
+                        <h4 className="font-semibold text-gray-800 mb-7 text-title-sm dark:text-white/90">
+                            {selectedTermo?.titulo || 'Sem titulo'}
+                        </h4>
+
+                        <div className="mt-4 p-2 bg-gray-100 rounded mx-auto h-[800px]">
+                            <div dangerouslySetInnerHTML={{ __html: conteudoTermo }} />
+                        </div>
+
+                    </div>
+                    <div className="flex items-center justify-end w-full gap-3 mt-8">
+                        <Button size="sm" variant="outline" onClick={closeFullscreenModal}>
+                            Fechar
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
+
         </div>
     )
 }

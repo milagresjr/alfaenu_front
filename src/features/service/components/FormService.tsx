@@ -82,7 +82,7 @@ export function FormService() {
                 categoria_id: data.categoria_id,
                 tipo: data.tipo,
                 valor: data.valor,
-                valor_externo: data.valor_externo,
+                valor_externo: data.valor_externo == 'null' ? '0' : data.valor_externo,
             }, {
                 onSuccess: () => {
                     queryClient.invalidateQueries({

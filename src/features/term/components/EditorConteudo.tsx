@@ -52,10 +52,6 @@ export default function EditorConteudo() {
                 formats={formats}
             />
 
-            <div className="mt-4 p-2 bg-gray-100 rounded">
-                <strong>Preview:</strong>
-                <div dangerouslySetInnerHTML={{ __html: conteudoTermo }} />
-            </div>
         </div>
     );
 }

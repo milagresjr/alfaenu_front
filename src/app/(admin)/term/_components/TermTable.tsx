@@ -28,6 +28,7 @@ export default function TermTable() {
     const progress = useProgress();
 
     const router = useRouter();
+
     const deleteTermo = useDeleteTermo();
     
     const handleEdit = (termo: TermoType) => {
@@ -42,9 +43,9 @@ export default function TermTable() {
     const handleNewTerm = () => {
         setSelectedTermo(null);
         setConteudoTermo('');
+        progress.start();
         router.push(`/term/form`);
     };
-
 
     const handleDelete = async (termo: TermoType) => {
         setSelectedTermo(termo);
