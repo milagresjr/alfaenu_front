@@ -24,7 +24,7 @@ export function ClientSection() {
 
     return (
         <div className="flex flex-col gap-2 px-4 pt-2 bg-white dark:bg-transparent rounded-t-md border border-gray-300 border-b-0">
-            <div className="flex gap-2">
+            <div className="flex flex-col md:flex-row gap-2">
                 <SelectClientPOS
                     selectedClienteContrato={clienteContrato}
                     onSelectClienteContrato={(clienteContratoSelected) =>

@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { File, Loader2, Plus } from "lucide-react";
 import { useContratos, useDeleteContrato } from "@/features/contract/hooks/useContractQuery";
 import { gerarPdfContrato } from "@/lib/utils";
+import { formatarDataLong } from "@/lib/helpers";
 
 export default function ContractTable() {
 
@@ -111,6 +112,14 @@ export default function ContractTable() {
                     //         </span>
                     //     )
                     // },
+                    {
+                        header: "Data de Criação",
+                        accessor: (term: any) => (
+                            <span>
+                                {formatarDataLong(term.created_at)}
+                            </span>
+                        )
+                    },
                     {
                         header: "Ações",
                         accessor: (contrato) => (

@@ -35,7 +35,7 @@ export function ServicesCard() {
 
     const { data: dataCategoriaServico } = useTipoServicos();
 
-    const { categoriaSelected, subContaContrato } = usePOSStore();
+    const { totalPago, categoriaSelected, subContaContrato } = usePOSStore();
 
     const dataServicosFiltered =
         !categoriaSelected || categoriaSelected.id === "all"
@@ -55,8 +55,15 @@ export function ServicesCard() {
             return;
         }
 
+
         const confirmed = await alert.confirm("Adicionar servico a subconta?");
+
         if (confirmed) {
+
+            if (Number(service.valor) > Number(totalPago)) {
+                toast.error("Saldo insuficiente para realização deste serviço!");
+                return;
+            }
 
             const data = {
                 contract_id: Number(subContaContrato.contract_id),
@@ -109,7 +116,7 @@ export function ServicesCard() {
                 </Carousel>
             </div>
             <hr className="" />
-            <div className="grid grid-cols-4 gap-3 h-[calc(100vh-400px)] px-4 overflow-auto custom-scrollbar">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 h-[calc(100vh-400px)] px-4 overflow-auto custom-scrollbar">
                 {dataServicosFiltered?.map((servico) => (
                     <CardService
                         key={servico.id}

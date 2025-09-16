@@ -12,6 +12,7 @@ import { TermoType } from "@/features/term/types";
 import { useTermoStore } from "@/features/term/store/useTermoStore";
 import { useDeleteTermo, useTermos } from "@/features/term/hooks/useTermosQuery";
 import { useProgress } from "@bprogress/next";
+import { formatarDataLong } from "@/lib/helpers";
 
 export default function TermTable() {
 
@@ -95,6 +96,14 @@ export default function TermTable() {
                         accessor: (term) => (
                             <span className={`px-2 py-1 rounded-full text-xs ${term.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                 {term.status ? 'Ativo' : 'Inativo'}
+                            </span>
+                        )
+                    },
+                    {
+                        header: "Data de Criação",
+                        accessor: (term: any) => (
+                            <span>
+                                {formatarDataLong(term.created_at)}
                             </span>
                         )
                     },

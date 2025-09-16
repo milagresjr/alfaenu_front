@@ -114,8 +114,23 @@ export function FormClient() {
 
     return (
         <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-4">
-            <h1 className="text-lg my-3 text-gray-700 dark:text-gray-300">{mode === "create" ? "Criar Cliente" : "Editar Cliente"}</h1>
             <form onSubmit={handleSubmit(onSubmit)}>
+
+                <div className="flex justify-between items-center">
+                    <h1 className="text-lg my-3 text-gray-700 dark:text-gray-300">{mode === "create" ? "Criar Cliente" : "Editar Cliente"}</h1>
+
+                    <div className="flex items-center gap-2">
+                        <Link href={"/client"}>
+                            <Button size="sm" variant="outline">
+                                Voltar
+                            </Button>
+                        </Link>
+                        <Button size="sm" variant="primary" disabled={(create.isPending || update.isPending)}>
+                            {(create.isPending || update.isPending) ? 'Salvando...' : 'Salvar'}
+                        </Button>
+                    </div>
+                </div>
+
                 <div className="grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2 md:grid-cols-6">
                     <div className="col-span-2">
                         <Label>Nome</Label>
@@ -210,17 +225,6 @@ export function FormClient() {
                             </p>
                         )}
                     </div>
-                </div>
-
-                <div className="flex items-center justify-end w-full gap-3 mt-8">
-                    <Link href={"/client"}>
-                        <Button size="sm" variant="outline">
-                            Voltar
-                        </Button>
-                    </Link>
-                    <Button size="sm" variant="primary">
-                        Salvar
-                    </Button>
                 </div>
 
             </form>

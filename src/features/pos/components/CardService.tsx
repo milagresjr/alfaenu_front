@@ -1,5 +1,6 @@
 // CardService.tsx
 import { ServiceType } from "@/features/service/types";
+import { formatarMoeda } from "@/lib/helpers";
 import { ImageIcon } from "lucide-react";
 
 interface CardServiceProps {
@@ -28,7 +29,7 @@ export function CardService({ service, onClick }: CardServiceProps) {
             {service.nome}
           </span>
         </div>
-        <h2 className="text-blue-600 font-bold text-sm">{service.valor}</h2>
+        <h2 className="text-blue-600 font-bold text-sm">{formatarMoeda(Number(service.valor))}</h2>
       </div>
     </div>
   );

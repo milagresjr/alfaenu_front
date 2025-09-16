@@ -1,5 +1,6 @@
 import { Trash } from "lucide-react";
 import { ItemServicContratoType } from "../types";
+import { formatarMoeda } from "@/lib/helpers";
 
 interface ServiceItemCartProps {
     item: ItemServicContratoType;
@@ -17,7 +18,7 @@ export function ServiceItemCart({ item, onClickDelete }: ServiceItemCartProps) {
                 <span className="text-sm text-gray-500">{ item.servico_nome }</span>
             </div>
             <div className="flex gap-2 items-center">
-                <span className="text-sm">{ item.servico_valor }</span>
+                <span className="text-sm dark:text-gray-700">{ formatarMoeda(Number(item.servico_valor)) }</span>
                 <Trash onClick={onClickDelete} size={14} className="text-red-600 cursor-pointer" />
             </div>
         </div>

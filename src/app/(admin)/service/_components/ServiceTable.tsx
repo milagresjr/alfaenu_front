@@ -13,6 +13,7 @@ import { useDeleteServico, useServicos } from "@/features/service/hooks/useServi
 import { useServiceStore } from "@/features/service/store/useServiceStore";
 import { ServiceType } from "@/features/service/types";
 import { useProgress } from "@bprogress/next";
+import { formatarDataLong } from "@/lib/helpers";
 
 export default function ServiceTable() {
 
@@ -86,7 +87,7 @@ export default function ServiceTable() {
                         header: "Categoria",
                         accessor: (service) => (
                             <span>
-                               { service.categoria?.descricao }
+                                {service.categoria?.descricao}
                             </span>
                         )
                     },
@@ -110,6 +111,14 @@ export default function ServiceTable() {
                     //         </span>
                     //     )
                     // },
+                    {
+                        header: "Data de Criação",
+                        accessor: (term: any) => (
+                            <span>
+                                {formatarDataLong(term.created_at)}
+                            </span>
+                        )
+                    },
                     {
                         header: "Ações",
                         accessor: (cliente) => (

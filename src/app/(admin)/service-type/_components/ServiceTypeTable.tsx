@@ -16,6 +16,7 @@ import { useTipoServicos } from "@/features/service-type/hooks/useServiceTypeQue
 import { useServiceTypeStore } from "@/features/service-type/store/useServiceTypeStore";
 import { ServiceTypeType } from "@/features/service-type/types";
 import { useProgress } from "@bprogress/next";
+import { formatarDataLong } from "@/lib/helpers";
 
 export default function ServiceTypeTable() {
 
@@ -93,6 +94,14 @@ export default function ServiceTypeTable() {
                     //         </span>
                     //     )
                     // },
+                    {
+                        header: "Data de Criação",
+                        accessor: (term: any) => (
+                            <span>
+                                {formatarDataLong(term.created_at)}
+                            </span>
+                        )
+                    },
                     {
                         header: "Ações",
                         accessor: (serviceType) => (

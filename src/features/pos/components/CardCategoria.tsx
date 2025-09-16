@@ -26,7 +26,10 @@ export function CardCategoria({ categoria, selected = false }: CardCategoriaProp
                 }
   `}
         >
-            <span className="text-sm font-medium">{categoria.descricao}</span>
+            <span className="text-sm font-medium truncate block max-w-[200px]">
+                {categoria.descricao}
+            </span>
+
         </div>
 
     )

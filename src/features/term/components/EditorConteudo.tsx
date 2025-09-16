@@ -3,55 +3,83 @@
 import dynamic from "next/dynamic";
 import "react-quill-new/dist/quill.snow.css";
 import { useTermoStore } from "../store/useTermoStore";
+import { useState } from "react";
+import { Maximize, Minimize } from "lucide-react";
 
 // import dinâmico
 const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 export default function EditorConteudo() {
-
     const { conteudoTermo, setConteudoTermo } = useTermoStore();
+    const [fullscreen, setFullscreen] = useState(false);
 
     const modules = {
         toolbar: [
-            [{ font: [] }], // fontes
-            [{ size: [] }], // tamanhos de texto
-            ["bold", "italic", "underline", "strike"], // estilos básicos
-            [{ color: [] }, { background: [] }], // cores
-            [{ script: "sub" }, { script: "super" }], // sobrescrito/subscrito
-            [{ header: 1 }, { header: 2 }], // cabeçalhos
-            [{ list: "ordered" }, { list: "bullet" }], // listas
-            [{ indent: "-1" }, { indent: "+1" }], // identação
-            [{ align: [] }], // alinhamento
-            ["blockquote", "code-block"], // citação e código
-            ["link", "image", "video"], // mídia
-            ["clean"], // limpar formatação
+            [{ font: [] }],
+            [{ size: [] }],
+            ["bold", "italic", "underline", "strike"],
+            [{ color: [] }, { background: [] }],
+            [{ script: "sub" }, { script: "super" }],
+            [{ header: 1 }, { header: 2 }],
+            [{ list: "ordered" }, { list: "bullet" }],
+            [{ indent: "-1" }, { indent: "+1" }],
+            [{ align: [] }],
+            ["blockquote", "code-block"],
+            ["link", "image", "video"],
+            ["clean"],
         ],
     };
 
     const formats = [
-        "font", "size",
-        "bold", "italic", "underline", "strike",
-        "color", "background",
+        "font",
+        "size",
+        "bold",
+        "italic",
+        "underline",
+        "strike",
+        "color",
+        "background",
         "script",
         "header",
         "list",
         "align",
-        "blockquote", "code-block",
-        "link", "image", "video",
+        "blockquote",
+        "code-block",
+        "link",
+        "image",
+        "video",
     ];
 
     return (
-        <div className="p-4">
+        <div
+            className={`${fullscreen
+                    ? "fixed inset-0 z-[9999] bg-white dark:bg-gray-900 p-4"
+                    : "p-4"
+                } transition-all`}
+        >
+            {/* Botão de expandir/fechar tela cheia */}
+            <div className="flex justify-end mb-2">
+                <button
+                    type="button"
+                    onClick={() => setFullscreen(!fullscreen)}
+                    className="px-3 py-1 rounded bg-gray-700 text-white text-sm hover:bg-gray-800"
+                >
+                    {fullscreen ? <Minimize size={18} /> : <Maximize size={18} />}
+                </button>
+            </div>
+
             <ReactQuill
                 theme="snow"
                 value={conteudoTermo}
-                onChange={(content) => setConteudoTermo(content)} // 👈 importante
+                onChange={(content) => setConteudoTermo(content)}
                 placeholder="Escreva algo..."
-                className="bg-white rounded-lg quill-dark"
+                className="rounded-lg quill-dark placeholder:dark:text-gray-200"
                 modules={modules}
                 formats={formats}
+                style={{
+                    height: fullscreen ? "90vh" : "", // altura muda conforme fullscreen
+                }}
             />
-
         </div>
     );
 }

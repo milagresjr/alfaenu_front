@@ -12,6 +12,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Plus } from "lucide-react";
 import Link from "next/link";
+import { formatarDataLong } from "@/lib/helpers";
 
 export default function ClientTable() {
 
@@ -106,6 +107,14 @@ export default function ClientTable() {
                     //         </span>
                     //     )
                     // },
+                    {
+                        header: "Data de Criação",
+                        accessor: (term: any) => (
+                            <span>
+                                {formatarDataLong(term.created_at)}
+                            </span>
+                        )
+                    },
                     {
                         header: "Ações",
                         accessor: (cliente) => (
