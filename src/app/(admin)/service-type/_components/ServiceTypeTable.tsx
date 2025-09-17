@@ -10,23 +10,33 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Plus } from "lucide-react";
 import { useDeleteServico, useServicos } from "@/features/service/hooks/useServicesQuery";
-import { useServiceStore } from "@/features/service/store/useServiceStore";
-import { ServiceType } from "@/features/service/types";
 import { useTipoServicos } from "@/features/service-type/hooks/useServiceTypeQuery";
 import { useServiceTypeStore } from "@/features/service-type/store/useServiceTypeStore";
 import { ServiceTypeType } from "@/features/service-type/types";
 import { useProgress } from "@bprogress/next";
 import { formatarDataLong } from "@/lib/helpers";
+import { Input } from "@/components/ui/input";
+import { useDebounce } from "@uidotdev/usehooks";
+import { PaginationComponent } from "@/components/pagination/Pagination";
+import { EstadoCell } from "@/features/service-type/components/EstadoCell";
+import { useMemo } from "react";
+import { ClipboardList, Wrench, Ban } from "lucide-react";
+import { StatCard } from "@/components/StatCard/stat-card";
+
 
 export default function ServiceTypeTable() {
 
-    // const [search, setSearch] = useState('')
-    // const [page, setPage] = useState(1);
-    // const [perPage, setPerPage] = useState(15);
+    const [search, setSearch] = useState('')
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(15);
 
-    //const debouncedSearch = useDebounce(search, 500);
+    const debouncedSearch = useDebounce(search, 500);
 
-    const { data, isLoading, isError } = useTipoServicos();
+    const [selected, setSelected] = useState<"ativos" | "inativos" | "todos">(
+        "todos"
+    );
+
+    const { data, isLoading, isError } = useTipoServicos({ page, per_page: perPage, search: debouncedSearch });
 
     const { setSelectedServiceType } = useServiceTypeStore();
 
@@ -68,8 +78,61 @@ export default function ServiceTypeTable() {
         return <div>Erro ao carregar Tipo Serviços</div>;
     }
 
+    const totalServicosAtivo = data?.data.filter(servico => servico.estado === 'ativo').length || 0;
+    const totalServicosInativo = data?.data.filter(servico => servico.estado === 'inativo').length || 0;
+    const totalServicos = totalServicosAtivo + totalServicosInativo;
+
+    const cards = [
+        {
+            key: "todos",
+            title: "Total de Categoria",
+            value: totalServicos.toString(),
+            change: "",
+            icon: <ClipboardList className="w-6 h-6 text-primary" />, // lista de serviços
+        },
+        {
+            key: "ativos",
+            title: "Categoria Ativas",
+            value: totalServicosAtivo.toString(),
+            change: "",
+            icon: <Wrench className="w-6 h-6 text-green-500" />, // serviços em atividade
+        },
+        {
+            key: "inativos",
+            title: "Categoria Inativas",
+            value: totalServicosInativo.toString(),
+            change: "",
+            icon: <Ban className="w-6 h-6 text-red-500" />, // serviços suspensos/inativos
+        },
+    ];
+
+    const tipoServicoFiltrados = useMemo(() => {
+        if (selected === "ativos") {
+            return data?.data.filter(tipoServico => tipoServico.estado === "ativo");
+        } else if (selected === "inativos") {
+            return data?.data.filter(tipoServico => tipoServico.estado === "inativo");
+        }
+        return data?.data;
+    }, [selected, data]);
+
     return (
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-4 h-[calc(100vh-120px)]">
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-4 min-h-[calc(100vh-120px)]">
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {cards.map((stat) => (
+                    <StatCard
+                        key={stat.key}
+                        title={stat.title}
+                        value={stat.value}
+                        change={stat.change}
+                        icon={stat.icon}
+                        isActive={selected === stat.key}
+                        onClick={() => setSelected(stat.key as typeof selected)}
+                    />
+                ))}
+            </div>
+
+
             <div className="flex justify-between items-center my-2">
                 <h1 className="text-lg text-gray-700 dark:text-gray-300 font-semibold">Tipo de Serviços</h1>
                 <Link href="/service-type/form" className="bg-blue-600 px-4 py-1 rounded-md text-white flex gap-1">
@@ -77,8 +140,16 @@ export default function ServiceTypeTable() {
                     Novo
                 </Link>
             </div>
+            <div className="my-2 flex justify-start gap-2">
+                <Input
+                    placeholder='Buscar categorias..'
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-1/3"
+                />
+            </div>
             <TableMain
-                data={data?.data || []}
+                data={tipoServicoFiltrados || []}
                 isLoading={isLoading}
                 emptyMessage="Nenhum tipo de serviço encontrado."
                 columns={[
@@ -86,14 +157,10 @@ export default function ServiceTypeTable() {
                         header: "Nome",
                         accessor: "descricao"
                     },
-                    // {
-                    //     header: "Estado",
-                    //     accessor: (estado) => (
-                    //         <span className={`px-2 py-1 rounded-full text-xs ${estado = ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                    //             {estado == '1' ? 'Ativo' : 'Inativo'}
-                    //         </span>
-                    //     )
-                    // },
+                    {
+                        header: "Estado",
+                        accessor: (serviceType: ServiceTypeType) => <EstadoCell servicoType={serviceType} />,
+                    },
                     {
                         header: "Data de Criação",
                         accessor: (term: any) => (
@@ -119,7 +186,7 @@ export default function ServiceTypeTable() {
             />
 
             {/* Paginação */}
-            {/* {data && (
+            {data && (
                 <PaginationComponent
                     currentPage={data.current_page}
                     itemsPerPage={data.per_page}
@@ -131,7 +198,7 @@ export default function ServiceTypeTable() {
                         setPerPage(value)
                     }}
                 />
-            )} */}
+            )}
         </div>
     );
 }

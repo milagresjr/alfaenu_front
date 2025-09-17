@@ -48,6 +48,16 @@ export const createContrato = async (Contrato: Omit<ContratoType, 'id'>): Promis
     }
 };
 
+//Alterar o estado do contrato
+export const alterarEstadoContrato = async (
+  id: number,
+  estado: string
+): Promise<ContratoType> => {
+  const response = await api.post<ContratoType>(`${API_URL}/${id}/estado`, { estado });
+  return response.data;
+};
+
+
 // Atualizar um Contrato existente
 export const updateContrato = async (id: number | undefined, Contrato: Omit<ContratoType, 'id'>): Promise<ContratoType> => {
     try {

@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ContratoType } from "../types";
-import { createContrato, getContratoById, getAllContrato, updateContrato, deleteContrato  } from "../api/contractApi";
+import { createContrato, getContratoById, getAllContrato, updateContrato, deleteContrato, alterarEstadoContrato  } from "../api/contractApi";
 
 export const useContratos = (page = 1, per_page = 15, search = '') => {
     const { data, isLoading, isError } = useQuery({
@@ -25,6 +25,15 @@ export const useCreateContrato = () => {
     });
 
     return mutation;
+};
+
+export const useAlterarEstadoContrato = () => {
+
+  return useMutation({
+    mutationFn: ({ id, estado }: { id: number; estado: string }) =>
+      alterarEstadoContrato(id, estado)
+  });
+
 };
 
 export const useUpdateContrato = () => {

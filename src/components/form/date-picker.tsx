@@ -33,6 +33,7 @@ export default function DatePicker({
       monthSelectorType: "static",
       dateFormat: "d-m-Y",
       defaultDate,
+      maxDate: new Date(),
       onChange,
     });
 

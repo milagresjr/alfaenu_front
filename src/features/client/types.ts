@@ -6,4 +6,7 @@ export type ClienteType = {
   data_nascimento?: string;
   endereco?: string;
   n_bi?: string;
+  estado?: 'ativo' | 'inativo';
+  created_at?: string;
+  updated_at?: string;
 };

@@ -24,6 +24,23 @@ export function ClientSection() {
 
     return (
         <div className="flex flex-col gap-2 px-4 pt-2 bg-white dark:bg-transparent rounded-t-md border border-gray-300 border-b-0">
+            <div className="flex gap-2 items-center justify-end">
+                Estado: 
+                <span
+                    className={`
+      px-3 py-1 rounded-full text-sm font-medium
+      ${clienteContrato?.estado === "ativo" ? "bg-green-100 text-green-700" :
+                            clienteContrato?.estado === "suspenso" ? "bg-yellow-100 text-yellow-700" :
+                                clienteContrato?.estado === "finalizado" ? "bg-blue-100 text-blue-700" :
+                                    clienteContrato?.estado === "cancelado" ? "bg-red-100 text-red-700" :
+                                        "bg-gray-100 text-gray-700"
+                        }
+    `}
+                >
+                    {clienteContrato?.estado || ""}
+                </span>
+            </div>
+
             <div className="flex flex-col md:flex-row gap-2">
                 <SelectClientPOS
                     selectedClienteContrato={clienteContrato}

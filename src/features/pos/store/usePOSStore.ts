@@ -15,6 +15,10 @@ type POStoState = {
     setTotalSaida: (total: number) => void;
     totalPorPagar: number;
     setTotalPorPagar: (total: number) => void;
+    saldoAtual: number;
+    setSaldoAtual: (total: number) => void;
+
+    updateEstado: (estado: string) => void;
 }
 
 export const usePOSStore = create<POStoState>((set) => ({
@@ -30,6 +34,13 @@ export const usePOSStore = create<POStoState>((set) => ({
     setTotalSaida: (total) => set({totalSaida: total}),
     totalPorPagar: 0,
     setTotalPorPagar: (total) => set({totalPorPagar: total}),
+    saldoAtual: 0,
+    setSaldoAtual: (total) => set({saldoAtual: total}),
+    updateEstado: (estado) => set((state) =>
+      state.clienteContrato
+        ? { clienteContrato: { ...state.clienteContrato, estado } }
+        : state
+    ),
 }));
 
     

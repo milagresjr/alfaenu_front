@@ -12,10 +12,10 @@ export interface PaginatedServico {
 const API_URL = '/services'; // URL base para a API de Marcas
 
 // Obter todas as Marcas
-export const getAllServico = async (per_page: number, page: number, search?: string): Promise<PaginatedServico> => {
+export const getAllServico = async (per_page: number, page: number, search?: string, estado?: string): Promise<PaginatedServico> => {
     try {
         const response = await api.get<PaginatedServico>(API_URL, {
-            params: { per_page, page, search },
+            params: { per_page, page, search, estado },
         });
 
         return response.data; 
@@ -47,6 +47,16 @@ export const createServico = async (Servico: Omit<ServiceType, 'id'>): Promise<S
         throw error;
     }
 };
+
+//Ativar e Inativar Servico
+export const alterarEstadoServico = async (
+  id: number,
+  estado: 'ativo' | 'inativo'
+): Promise<ServiceType> => {
+  const response = await api.post<ServiceType>(`${API_URL}/${id}/estado`, { estado });
+  return response.data;
+};
+
 
 // Atualizar um Servico existente
 export const updateServico = async (id: number | undefined, Servico: Omit<ServiceType, 'id'>): Promise<ServiceType> => {

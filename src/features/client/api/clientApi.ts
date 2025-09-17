@@ -12,13 +12,13 @@ export interface PaginatedCliente {
 const API_URL = '/clients'; // URL base para a API de Clientes
 
 // Obter todas as Clientes
-export const getAllCliente = async (per_page: number, page: number, search?: string): Promise<PaginatedCliente> => {
+export const getAllCliente = async (per_page: number, page: number, search?: string, estado?: string): Promise<PaginatedCliente> => {
     try {
         const response = await api.get<PaginatedCliente>(API_URL, {
-            params: { per_page, page, search },
+            params: { per_page, page, search , estado},
         });
 
-        return response.data; 
+        return response.data;
     } catch (error) {
         console.error('Erro ao buscar Clientes:', error);
         throw error;
@@ -47,6 +47,16 @@ export const createCliente = async (Cliente: Omit<ClienteType, 'id'>): Promise<C
         throw error;
     }
 };
+
+//Ativar e Inativar Cliente
+export const alterarEstadoCliente = async (
+  id: number,
+  estado: 'ativo' | 'inativo'
+): Promise<ClienteType> => {
+  const response = await api.post<ClienteType>(`/clients/${id}/estado`, { estado });
+  return response.data;
+};
+
 
 // Atualizar um Cliente existente
 export const updateCliente = async (id: number | undefined, Cliente: Omit<ClienteType, 'id'>): Promise<ClienteType> => {

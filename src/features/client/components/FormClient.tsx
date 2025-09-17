@@ -14,6 +14,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 
 
 const schema = z.object({
@@ -26,8 +27,8 @@ const schema = z.object({
         }),
     data_nascimento: z.string(),
     endereco: z.string(),
-    n_bi: z.string().regex(/^\d{9}[A-Z]{2}\d{3}$/, "Número de BI inválido").or(z.literal(""))
-
+    // n_bi: z.string().regex(/^\d{9}[A-Z]{2}\d{3}$/, "Número de BI inválido").or(z.literal(""))
+    n_bi: z.string(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -68,6 +69,7 @@ export function FormClient() {
                 data_nascimento: data.data_nascimento,
                 endereco: data.endereco,
                 n_bi: data.n_bi,
+                estado: selectedCliente.estado
             }, {
                 onSuccess: () => {
                     queryClient.invalidateQueries({
@@ -83,7 +85,7 @@ export function FormClient() {
                 }
             });
         } else {
-            create.mutate(data, {
+            create.mutate({...data, estado: "ativo"}, {
                 onSuccess: () => {
                     queryClient.invalidateQueries({
                         queryKey: ["clientes"],
@@ -92,8 +94,14 @@ export function FormClient() {
                     toast.success("Cliente criado com sucesso");
                     route.push("/client");
                 },
-                onError: () => {
-                    toast.error("Erro ao criar cliente");
+                onError: (error: any) => {
+                    if (error.response?.status === 422) {
+                        const errors = error.response.data.errors;
+                        const firstError = (Object.values(errors) as string[][])[0][0];
+                        toast.error(firstError);
+                    } else {
+                        toast.error("Erro ao criar cliente");
+                    }
                 }
             });
         }
@@ -178,9 +186,9 @@ export function FormClient() {
                     </div>
 
                     <div className="col-span-2 ">
-                        <Label>Nº BI</Label>
+                        <Label>Nº BI/Passaporte</Label>
                         <Input type="text"
-                            placeholder="Descrição"
+                            placeholder="Informe o BI ou Passaporte"
                             name="n_bi"
                             register={register}
                             error={errors.n_bi ? true : false}
@@ -200,11 +208,28 @@ export function FormClient() {
                                 <DatePicker
                                     id="data_nascimento"
                                     label="Data de Nascimento"
-                                    defaultDate={field.value}
-                                    onChange={(dates) => field.onChange(dates[0].toISOString().split('T')[0])} // pega só a primeira data
+                                    key={field.value}
+                                    defaultDate={field.value ? new Date(field.value) : undefined}
+                                    onChange={(dates) => {
+                                        if (dates && dates[0]) {
+                                            const d = dates[0];
+                                            // Formata manualmente YYYY-MM-DD sem timezone
+                                            const formatted = [
+                                                d.getFullYear(),
+                                                String(d.getMonth() + 1).padStart(2, "0"),
+                                                String(d.getDate()).padStart(2, "0"),
+                                            ].join("-");
+                                            field.onChange(formatted);
+                                        } else {
+                                            field.onChange("");
+                                        }
+                                    }}
                                 />
                             )}
                         />
+
+
+
                         {errors.data_nascimento && (
                             <p className="mt-1.5 text-xs text-error-500">
                                 {errors.data_nascimento.message}

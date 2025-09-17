@@ -60,8 +60,11 @@ export function SelectClientPOS({
 
     function handleItemSelectClick(contrato: ContratoType) {
         onSelectClienteContrato(contrato);
-        if (clienteContrato !== contrato) {
+        if (clienteContrato?.id !== contrato.id) {
             setSubContaContrato(null);
+            console.log("entrou aqui porra");
+            console.log("Contrato selecionado: ",clienteContrato?.id);
+            console.log("Contrato clicado: ",contrato.id);
         }
         setIsOpen(false);
     }
@@ -82,7 +85,9 @@ export function SelectClientPOS({
                         `}
                     onClick={() => setIsOpen((item) => (!item))}
                 >
-                    <span className="text-gray-700 dark:text-gray-300 font-normal select-none cursor-default">{selectedClienteContrato?.cliente?.nome || ''}</span>
+                    <span className="text-gray-700 dark:text-gray-300 font-normal select-none cursor-default">
+                        {selectedClienteContrato?.cliente?.nome || ''} {selectedClienteContrato?.tipo_pagamento ? `(${selectedClienteContrato?.tipo_pagamento})` : ''}
+                    </span>
 
                     {/* Ícone da seta */}
                     <ChevronDown
@@ -125,7 +130,7 @@ export function SelectClientPOS({
                                             >
                                                 <div className="flex flex-col">
                                                     <strong className="text-gray-700 dark:text-gray-300 font-normal">{contrato.cliente?.nome || ''}</strong>
-                                                    <div className="text-xs text-gray-400">{contrato.cliente?.n_bi || ''}</div>
+                                                    <div className="text-xs text-gray-400">{contrato.tipo_pagamento || ''}</div>
                                                 </div>
                                                 <div className="flex flex-col text-right">
                                                     <strong className="text-gray-700 dark:text-gray-300 font-normal ">Data</strong>

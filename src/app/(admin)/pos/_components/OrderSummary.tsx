@@ -7,11 +7,12 @@ import { ItemServicContratoType } from "@/features/pos/types";
 import { alert } from "@/lib/alert";
 import { formatarMoeda } from "@/lib/helpers";
 import { useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { toast } from "react-toastify";
 
 export function OrderSummary() {
 
-    const { totalPago, totalPorPagar, totalSaida, subContaContrato, clienteContrato } = usePOSStore();
+    const { totalPago, totalPorPagar, subContaContrato, clienteContrato, setSaldoAtual } = usePOSStore();
 
     const { data: dataItensServiceContrato, isLoading: isLoadingItensServiceContrato } = useItensServiceContrato();
 
@@ -19,12 +20,21 @@ export function OrderSummary() {
         (item) => (item.subconta_id === subContaContrato?.id && item.contract_id === clienteContrato?.id)
     );
 
+    const itensServicoContratoFiltradoPorCliente = dataItensServiceContrato?.filter(
+        (item) => (item.contract_id === clienteContrato?.id)
+    );
+
+    const Totalsaida = itensServicoContratoFiltradoPorCliente?.reduce(
+        (acc, item) => acc + Number(item.servico_valor),
+        0
+    );
+
     const saida = itensServicoContratoFiltrado?.reduce(
         (acc, item) => acc + Number(item.servico_valor),
         0
     );
 
-    const saldoTotal = Number(totalPago) - Number(saida);
+    const saldoTotal = Number(totalPago) - Number(Totalsaida);
 
     const deleteItemServico = useDeleteItensServiceContrato();
 
@@ -47,6 +57,10 @@ export function OrderSummary() {
             });
         }
     };
+
+    useEffect(() => {
+        setSaldoAtual(saldoTotal);
+    }, [saldoTotal]);
 
     return (
         <div className="w-full bg-gray-200 flex flex-col gap-2 justify-between h-[calc(100vh-400px)] md:h-[calc(100vh-142px)] md:w-[300px] rounded-md">
@@ -72,7 +86,11 @@ export function OrderSummary() {
                         <span className="text-gray-700 font-medium text-sm">{formatarMoeda(Number(totalPago))}</span>
                     </div>
                     <div className="flex justify-between items-center">
-                        <span className="text-gray-500 text-sm">Saída</span>
+                        <span className="text-gray-500 text-sm">Total de Saída</span>
+                        <span className="font-medium text-sm dark:text-gray-700">{formatarMoeda(Number(Totalsaida)) || 0}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                        <span className="text-gray-500 text-sm">Saída p/Subconta</span>
                         <span className="font-medium text-sm dark:text-gray-700">{formatarMoeda(Number(saida)) || 0}</span>
                     </div>
                 </div>

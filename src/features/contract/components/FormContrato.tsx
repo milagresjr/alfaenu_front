@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { ClienteType } from "@/features/client/types";
 import { useTermos } from "@/features/term/hooks/useTermosQuery";
 import { useServicos } from "@/features/service/hooks/useServicesQuery";
-import { File, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronLeft, File, Trash2 } from "lucide-react";
 import { ServiceType } from "@/features/service/types";
 import { toast } from "react-toastify";
 import { useContratoStore } from "../store/useContratoStore";
@@ -31,12 +31,29 @@ import { useRouter } from "next/navigation";
 import { useCreateContrato } from "../hooks/useContractQuery";
 import { gerarPdfContrato } from "@/lib/utils";
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog";
+import {
     Sheet,
     SheetContent,
     SheetDescription,
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet";
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { formatarMoeda } from "@/lib/helpers";
 
 const schemma = z.object({
     nota: z.string(),
@@ -82,14 +99,15 @@ export function FormContrato() {
 
     const [loadingPreviewPdf, setLoadingPreview] = useState(false);
 
-    const [openSheet, setOpenSheet] = useState(false)
+    const [openSheet, setOpenSheet] = useState(false);
+    const [openModalNota, setOpenModalNota] = useState(false);
 
     const progress = useProgress();
 
     const router = useRouter();
 
     const { data: termos } = useTermos();
-    const { data: servicosData } = useServicos();
+    const { data: servicosData } = useServicos({estado: "ativo"});
 
     const { setOpenModalTermo, setSelectedTermo, assinaturaCliente, assinaturaUser, setOpenOffCanvas } = useContratoStore();
 
@@ -409,15 +427,49 @@ export function FormContrato() {
 
     return (
         <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-4">
-            <div className="flex justify-between items-center">
-                <h1 className="text-lg my-3 text-gray-700 dark:text-gray-300">{mode === "create" ? "Criar Contrato" : "Editar Contrato"}</h1>
-                <Button className="w-auto h-[40px]" onClick={() => setOpenSheet(true)} size="sm" type="button" variant="outline">
-                    + Adicionar Serviços
-                </Button>
+
+            <div className="flex justify-start">
+                <Link href={'/contract'} className="text-blue-600 cursor-pointer flex items-center ga-2">
+                    <ChevronLeft size={18} />
+                    <span>Voltar</span>
+                </Link>
             </div>
+
             <form onSubmit={confirmarCriacaoContrato}>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap justify-between items-center mb-3">
+                    <h1 className="text-lg my-3 text-gray-700 dark:text-gray-300">{mode === "create" ? "Criar Contrato" : "Editar Contrato"}</h1>
+
+                    <div className="flex flex-wrap gap-2">
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <button className="h-[40px] flex items-center gap-2 border px-3
+                                bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 
+                                dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] 
+                                dark:hover:text-gray-300 font-medium rounded-lg transition
+                                ">
+                                    Opções <ChevronDown />
+                                </button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuLabel>Mais opções</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={() => setOpenModalNota(true)}>
+                                    Adicionar Notas
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <Button className="h-[40px]" onClick={() => setOpenSheet(true)} size="sm" type="button" variant="outline">
+                            + Adicionar Serviços
+                        </Button>
+                        <Button className="w-auto h-[40px]" size="sm" variant="primary" type="submit">
+                            Salvar
+                        </Button>
+                    </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row gap-2">
                     <div className="flex-1 grid grid-cols-1 gap-x-6 gap-y-5 sm:grid-cols-2 md:grid-cols-6">
 
                         <div className="col-span-6 md:col-span-3">
@@ -493,7 +545,7 @@ export function FormContrato() {
                             )}
                         </div>
 
-                        <div className="col-span-6 md:col-span-3 hidden">
+                        <div className="col-span-6 md:col-span-3">
                             <Label>Desconto</Label>
                             <Input type="text"
                                 placeholder="Nome"
@@ -507,7 +559,7 @@ export function FormContrato() {
                             )}
                         </div>
 
-                        <div className="col-span-6 md:col-span-3 ">
+                        <div className="col-span-6 md:col-span-3 hidden">
                             <Label>Valor por pagar</Label>
                             <Input type="text"
                                 placeholder="Valor por se pagar"
@@ -557,48 +609,85 @@ export function FormContrato() {
                             )}
                         </div>
 
-                        <div className="col-span-6 md:col-span-3">
-                            <Label>Nota</Label>
-                            <TextArea
-                                placeholder="Descreva uma nota"
-                                name="nota"
-                                register={register}
-                            />
-                            {errors.nota && (
-                                <p className="mt-1.5 text-xs text-error-500">
-                                    {errors.nota.message}
-                                </p>
-                            )}
-                        </div>
-
                     </div>
+
+                    {/* 👉 Summary na direita */}
+                    <div className="w-full md:w-40 lg:w-66">
+                        <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] shadow-sm p-5 flex flex-col gap-4">
+                            <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
+                                Resumo do Pagamento
+                            </h2>
+
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-600 dark:text-gray-300">Valor Total</span>
+                                <span className="font-medium text-gray-800 dark:text-gray-100">
+                                    {formatarMoeda(totalAPagar) || 0}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-600 dark:text-gray-300">Desconto</span>
+                                <span className="font-medium text-red-600 dark:text-red-400">
+                                    {formatarMoeda(Number(desconto)) || 0}
+                                </span>
+                            </div>
+
+                            <div className="flex items-center justify-between text-sm">
+                                <span className="text-gray-600 dark:text-gray-300">Valor Pago</span>
+                                <span className="font-medium text-green-600 dark:text-green-400">
+                                    {formatarMoeda(Number(watch("valor_pago"))) || 0}
+                                </span>
+                            </div>
+
+                            <div className="border-t border-gray-200 dark:border-white/[0.08] pt-3 flex items-center justify-between">
+                                <span className="text-sm font-semibold text-gray-700 dark:text-gray-200">
+                                    Valor por Pagar
+                                </span>
+                                <span className="text-base font-bold text-indigo-600 dark:text-indigo-400">
+                                  {(
+                                        formatarMoeda(totalComDesconto) ||
+                                        0
+                                    )}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
                 </div>
 
 
                 <div className="flex flex-col md:flex-row items-center md:justify-between w-full gap-3 mt-8">
-                    {/* <Button
-                        onClick={handleSubmit(onSubmitPreviewPdf)}
-                        size="sm"
-                        className="bg-orange-600 text-white hover:bg-orange-500"
-                        startIcon={<File size={14} />}
-                    >
-                        {`${loadingPreviewPdf ? 'Carregando...' : 'Ver PDf'}`}
-                    </Button> */}
                     <Button className="w-full md:w-auto bg-red-600 text-white hover:bg-red-500" onClick={() => setOpenOffCanvas(true)} size="sm" type="button">
                         + Adicionar Assinatura
                     </Button>
 
-                    <div className="flex gap-2 w-full md:w-auto">
-                        <Link href={"/contract"} className="w-full md:w-auto">
-                            <Button size="sm" variant="outline" className="w-full">
-                                Voltar
-                            </Button>
-                        </Link>
-                        <Button className="w-full md:w-auto" size="sm" variant="primary" type="submit">
-                            Salvar
-                        </Button>
-                    </div>
                 </div>
+
+
+                <Dialog
+                    open={openModalNota}
+                    onOpenChange={setOpenModalNota}
+                >
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Nota</DialogTitle>
+                            <DialogDescription asChild>
+                                <div className="col-span-6 md:col-span-3">
+                                    <TextArea
+                                        placeholder="Descreva uma nota"
+                                        name="nota"
+                                        register={register}
+                                    />
+                                    {/* {errors.nota && (
+                                        <p className="mt-1.5 text-xs text-error-500">
+                                            {errors.nota.message}
+                                        </p>
+                                    )} */}
+                                </div>
+                            </DialogDescription>
+                        </DialogHeader>
+                    </DialogContent>
+                </Dialog>
 
             </form>
 

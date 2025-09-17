@@ -13,16 +13,19 @@ import { useTermoStore } from "@/features/term/store/useTermoStore";
 import { useDeleteTermo, useTermos } from "@/features/term/hooks/useTermosQuery";
 import { useProgress } from "@bprogress/next";
 import { formatarDataLong } from "@/lib/helpers";
+import { Input } from "@/components/ui/input";
+import { useDebounce } from "@uidotdev/usehooks";
+import { PaginationComponent } from "@/components/pagination/Pagination";
 
 export default function TermTable() {
 
-    // const [search, setSearch] = useState('')
-    // const [page, setPage] = useState(1);
-    // const [perPage, setPerPage] = useState(15);
+    const [search, setSearch] = useState('')
+    const [page, setPage] = useState(1);
+    const [perPage, setPerPage] = useState(15);
 
-    //const debouncedSearch = useDebounce(search, 500);
+    const debouncedSearch = useDebounce(search, 500);
 
-    const { data, isLoading, isError } = useTermos();
+    const { data, isLoading, isError } = useTermos(page,perPage,debouncedSearch);
 
     const { setSelectedTermo, setConteudoTermo } = useTermoStore();
 
@@ -31,7 +34,7 @@ export default function TermTable() {
     const router = useRouter();
 
     const deleteTermo = useDeleteTermo();
-    
+
     const handleEdit = (termo: TermoType) => {
         progress.start();
         setSelectedTermo(termo);
@@ -82,6 +85,14 @@ export default function TermTable() {
                     Novo
                 </button>
             </div>
+            <div className="my-2 flex justify-start gap-2">
+                <Input
+                    placeholder='Buscar contrato..'
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    className="w-1/3"
+                />
+            </div>
             <TableMain
                 data={data?.data || []}
                 isLoading={isLoading}
@@ -124,7 +135,7 @@ export default function TermTable() {
             />
 
             {/* Paginação */}
-            {/* {data && (
+            {data && (
                 <PaginationComponent
                     currentPage={data.current_page}
                     itemsPerPage={data.per_page}
@@ -136,7 +147,7 @@ export default function TermTable() {
                         setPerPage(value)
                     }}
                 />
-            )} */}
+            )}
         </div>
     );
 }

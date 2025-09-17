@@ -1,6 +1,7 @@
 import { Trash } from "lucide-react";
 import { ItemServicContratoType } from "../types";
 import { formatarMoeda } from "@/lib/helpers";
+import { usePOSStore } from "../store/usePOSStore";
 
 interface ServiceItemCartProps {
     item: ItemServicContratoType;
@@ -8,6 +9,8 @@ interface ServiceItemCartProps {
 }
 
 export function ServiceItemCart({ item, onClickDelete }: ServiceItemCartProps) {
+
+    const { clienteContrato } = usePOSStore();
 
     return (
         <div className="flex flex-wrap gap-2 p-3 bg-white rounded-lg justify-between items-center border-l-2 border-blue-600">
@@ -19,7 +22,7 @@ export function ServiceItemCart({ item, onClickDelete }: ServiceItemCartProps) {
             </div>
             <div className="flex gap-2 items-center">
                 <span className="text-sm dark:text-gray-700">{ formatarMoeda(Number(item.servico_valor)) }</span>
-                <Trash onClick={onClickDelete} size={14} className="text-red-600 cursor-pointer" />
+                <Trash onClick={onClickDelete} size={14} className={`text-red-600 cursor-pointer ${clienteContrato?.estado !== 'ativo' ? 'hidden':''}`} />
             </div>
         </div>
     )

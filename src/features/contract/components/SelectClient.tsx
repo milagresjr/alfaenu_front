@@ -23,7 +23,7 @@ export function SelectClient({
 
     const debouncedSearch = useDebounce(search, 500);
 
-    const { data, isLoading } = useClientes(page, perPage, debouncedSearch);
+    const { data, isLoading } = useClientes(page, perPage, debouncedSearch, 'ativo');
 
     const dropdownRef = useRef<HTMLDivElement>(null);
 

@@ -1,22 +1,36 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ServiceTypeType } from "../types";
-import { createTipoServico, deleteTipoServico, getAllTipoServico, updateTipoServico } from "../api/serviceTypeApi";
+import { alterarEstadoServiceType, createTipoServico, deleteTipoServico, getAllTipoServico, updateTipoServico } from "../api/serviceTypeApi";
 
-export const useTipoServicos = (page = 1, per_page = 15, search = '') => {
-    const { data, isLoading, isError } = useQuery({
-        queryKey: ["tipo-servicos", per_page, page, search],
-        queryFn: () => getAllTipoServico(per_page, page, search),
-        staleTime: 1000 * 60 * 5,
-        networkMode: 'always',
-        //keepPreviousData: true, 
-    });
+// export const useTipoServicos = (page = 1, per_page = 15, search = '', estado = '') => {
+//     const { data, isLoading, isError } = useQuery({
+//         queryKey: ["tipo-servicos", per_page, page, search, estado],
+//         queryFn: () => getAllTipoServico(per_page, page, search, estado),
+//         staleTime: 1000 * 60 * 5,
+//         networkMode: 'always',
+//         //keepPreviousData: true, 
+//     });
 
-    return {
-        data,
-        isLoading,
-        isError,
-    };
+//     return {
+//         data,
+//         isLoading,
+//         isError,
+//     };
+// };
+
+export const useTipoServicos = (
+  { page = 1, per_page = 15, search = '', estado = '' } = {}
+) => {
+  const { data, isLoading, isError } = useQuery({
+    queryKey: ["tipo-servicos", per_page, page, search, estado],
+    queryFn: () => getAllTipoServico(per_page, page, search, estado),
+    staleTime: 1000 * 60 * 5, // cache de 5min
+    networkMode: 'always',
+  });
+
+  return { data, isLoading, isError };
 };
+
 
 
 export const useCreateTipoServico = () => {
@@ -25,6 +39,15 @@ export const useCreateTipoServico = () => {
     });
 
     return mutation;
+};
+
+export const useAlterarEstadoServicoType = () => {
+
+  return useMutation({
+    mutationFn: ({ id, estado }: { id: number; estado: 'ativo' | 'inativo' }) =>
+      alterarEstadoServiceType(id, estado)
+  });
+
 };
 
 export const useUpdateTipoServico = () => {

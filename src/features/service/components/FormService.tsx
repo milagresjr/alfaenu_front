@@ -57,7 +57,7 @@ export function FormService() {
 
     const mode = selectedService ? "edit" : "create";
 
-    const { data: dataTipoServicos } = useTipoServicos();
+    const { data: dataTipoServicos } = useTipoServicos({estado: "ativo"});
 
     const ipoServico = watch("tipo");
 

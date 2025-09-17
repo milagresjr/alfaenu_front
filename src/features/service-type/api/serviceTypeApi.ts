@@ -12,13 +12,13 @@ export interface PaginatedTipoServico {
 const API_URL = '/services-type'; // URL base para a API de Marcas
 
 // Obter todas as Marcas
-export const getAllTipoServico = async (per_page: number, page: number, search?: string): Promise<PaginatedTipoServico> => {
+export const getAllTipoServico = async (per_page: number, page: number, search?: string, estado?: string): Promise<PaginatedTipoServico> => {
     try {
         const response = await api.get<PaginatedTipoServico>(API_URL, {
-            params: { per_page, page, search },
+            params: { per_page, page, search, estado },
         });
 
-        return response.data; 
+        return response.data;
     } catch (error) {
         console.error('Erro ao buscar tipo serviços:', error);
         throw error;
@@ -47,6 +47,15 @@ export const createTipoServico = async (TipoServico: Omit<ServiceTypeType, 'id'>
         throw error;
     }
 };
+
+export const alterarEstadoServiceType = async (
+    id: number,
+    estado: 'ativo' | 'inativo'
+): Promise<ServiceTypeType> => {
+    const response = await api.post<ServiceTypeType>(`${API_URL}/${id}/estado`, { estado });
+    return response.data;
+};
+
 
 // Atualizar um TipoServico existente
 export const updateTipoServico = async (id: number | undefined, TipoServico: Omit<ServiceTypeType, 'id'>): Promise<ServiceTypeType> => {

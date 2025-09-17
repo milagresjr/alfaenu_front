@@ -6,13 +6,14 @@ import { ImageIcon } from "lucide-react";
 interface CardServiceProps {
   service: ServiceType;
   onClick?: () => void;
+  disabled?: boolean;
 }
 
-export function CardService({ service, onClick }: CardServiceProps) {
+export function CardService({ service, onClick, disabled }: CardServiceProps) {
   return (
     <div
       onClick={onClick}
-      className="rounded-md bg-white border border-gray-300 cursor-pointer flex flex-col min-h-[200px]"
+      className={`rounded-md bg-white border border-gray-300 flex flex-col min-h-[200px] ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}`}
     >
       {/* topo fixo */}
       <div className="flex justify-center items-center h-24 bg-gray-300">

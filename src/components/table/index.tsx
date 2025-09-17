@@ -22,17 +22,16 @@ export function TableMain<T>({
   const showEmpty = !isLoading && data.length === 0;
 
   return (
-    <div className="overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
-      {/* wrapper para scroll horizontal */}
-      <div className="overflow-x-auto w-full">
-        <table className="min-w-full border-collapse">
+    <div className="w-full">
+      {/* scroll só no mobile */}
+      <div className="overflow-x-auto md:overflow-x-visible">
+        <table className="w-full md:table-fixed border-collapse">
           <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
             <tr>
               {columns.map((col, index) => (
                 <th
                   key={index}
-                  className={`px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-nowrap ${col.className || ""
-                    }`}
+                  className={`px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-normal break-words ${col.className || ""}`}
                 >
                   {col.header}
                 </th>
@@ -44,26 +43,9 @@ export function TableMain<T>({
               <tr>
                 <td colSpan={columns.length} className="text-center py-8">
                   <div className="flex flex-col items-center gap-2 text-gray-500 dark:text-gray-400">
-                    <svg
-                      className="w-6 h-6 animate-spin"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={2}
-                      viewBox="0 0 24 24"
-                    >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                      />
-                      <path
-                        className="opacity-75"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M12 2a10 10 0 000 20V2z"
-                      />
+                    <svg className="w-6 h-6 animate-spin" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" />
+                      <path className="opacity-75" strokeLinecap="round" strokeLinejoin="round" d="M12 2a10 10 0 000 20V2z" />
                     </svg>
                     <span>Carregando...</span>
                   </div>
@@ -71,23 +53,10 @@ export function TableMain<T>({
               </tr>
             ) : showEmpty ? (
               <tr>
-                <td
-                  colSpan={columns.length}
-                  className="text-center py-10 text-sm text-gray-500"
-                >
+                <td colSpan={columns.length} className="text-center py-10 text-sm text-gray-500">
                   <div className="flex flex-col items-center gap-2">
-                    <svg
-                      className="w-10 h-10 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth={1.5}
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M3 7h18M3 12h18M3 17h18"
-                      />
+                    <svg className="w-10 h-10 text-gray-400" fill="none" stroke="currentColor" strokeWidth={1.5} viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M3 7h18M3 12h18M3 17h18" />
                     </svg>
                     {emptyMessage}
                   </div>
@@ -98,8 +67,8 @@ export function TableMain<T>({
                 <tr
                   key={rowIndex}
                   className={`transition-colors ${rowIndex % 2 === 0
-                      ? "bg-white dark:bg-gray-900"
-                      : "bg-gray-50 dark:bg-gray-800"
+                    ? "bg-white dark:bg-gray-900"
+                    : "bg-gray-50 dark:bg-gray-800"
                     } hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer`}
                 >
                   {columns.map((col, colIndex) => {
@@ -111,8 +80,7 @@ export function TableMain<T>({
                     return (
                       <td
                         key={colIndex}
-                        className={`px-4 py-3 text-sm text-gray-800 dark:text-gray-200 whitespace-nowrap ${col.className || ""
-                          }`}
+                        className={`px-4 py-3 text-sm text-gray-800 dark:text-gray-200 whitespace-normal break-words ${col.className || ""}`}
                       >
                         {value as React.ReactNode}
                       </td>
@@ -125,5 +93,6 @@ export function TableMain<T>({
         </table>
       </div>
     </div>
+
   );
 }

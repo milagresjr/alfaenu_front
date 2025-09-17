@@ -20,6 +20,7 @@ import { alert } from "@/lib/alert";
 import { toast } from "react-toastify";
 import { useCreateItensServiceContrato } from "@/features/pos/hooks/usePOSQuery";
 import { useQueryClient } from "@tanstack/react-query";
+import { Skeleton } from "@/components/ui/skeleton"
 
 
 export function ServicesCard() {
@@ -31,11 +32,11 @@ export function ServicesCard() {
 
     const searchDebounce = useDebounce(search, 300);
 
-    const { data: dataServicos } = useServicos(page, perPage, searchDebounce);
+    const { data: dataServicos, isLoading: loadingServicos } = useServicos({page, per_page: perPage, search: searchDebounce});
 
-    const { data: dataCategoriaServico } = useTipoServicos();
+    const { data: dataCategoriaServico, isLoading: loadingCategoriaServico } = useTipoServicos();
 
-    const { totalPago, categoriaSelected, subContaContrato } = usePOSStore();
+    const { totalPago, categoriaSelected, subContaContrato, saldoAtual, clienteContrato } = usePOSStore();
 
     const dataServicosFiltered =
         !categoriaSelected || categoriaSelected.id === "all"
@@ -50,8 +51,13 @@ export function ServicesCard() {
 
     async function handleServiceClik(service: ServiceType) {
 
+        
         if (!subContaContrato) {
             toast.error("Selecione uma subconta!");
+            return;
+        }
+
+        if(clienteContrato?.estado !== "ativo") {
             return;
         }
 
@@ -60,7 +66,7 @@ export function ServicesCard() {
 
         if (confirmed) {
 
-            if (Number(service.valor) > Number(totalPago)) {
+            if (Number(service.valor) > Number(totalPago) || Number(service.valor) > Number(saldoAtual)) {
                 toast.error("Saldo insuficiente para realização deste serviço!");
                 return;
             }
@@ -102,14 +108,22 @@ export function ServicesCard() {
                                 <CardCategoria selected={(!categoriaSelected || categoriaSelected?.id === "all")} categoria={{ id: "all", descricao: "Todas" }} />
                             </div>
                         </CarouselItem>
-
-                        {dataCategoriaServico?.data.map((categoria, index) => (
-                            <CarouselItem key={index} className="pl-1 md:basis-1/2 lg:basis-1/3">
-                                <div className="p-1">
-                                    <CardCategoria selected={categoria == categoriaSelected} categoria={categoria} />
-                                </div>
-                            </CarouselItem>
-                        ))}
+                        {
+                            loadingCategoriaServico ? (
+                                Array.from({ length: 4 }).map((_, index) => (
+                                    <CarouselItem key={index} className="pl-1 md:basis-1/2 lg:basis-1/3">
+                                        <Skeleton className="h-[40px] rounded-md" />
+                                    </CarouselItem>
+                                ))
+                            ) :
+                                dataCategoriaServico?.data.map((categoria, index) => (
+                                    <CarouselItem key={index} className="pl-1 md:basis-1/2 lg:basis-1/3">
+                                        <div className="p-1">
+                                            <CardCategoria selected={categoria == categoriaSelected} categoria={categoria} />
+                                        </div>
+                                    </CarouselItem>
+                                ))
+                        }
                     </CarouselContent>
                     <CarouselPrevious />
                     <CarouselNext />
@@ -117,13 +131,23 @@ export function ServicesCard() {
             </div>
             <hr className="" />
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 h-[calc(100vh-400px)] px-4 overflow-auto custom-scrollbar">
-                {dataServicosFiltered?.map((servico) => (
-                    <CardService
-                        key={servico.id}
-                        service={servico}
-                        onClick={() => handleServiceClik(servico)}
-                    />
-                ))}
+                {
+                    loadingServicos ? (
+                        Array.from({ length: 4 }).map((_, index) => (
+                            <Skeleton key={index} className="h-[200px] rounded-md" />
+                        ))
+                    ) : (
+                        dataServicosFiltered?.map((servico) => (
+                            <CardService
+                                key={servico.id}
+                                service={servico}
+                                onClick={() => handleServiceClik(servico)}
+                                disabled={clienteContrato?.estado !== "ativo"}
+                            />
+                        ))
+                    )
+                }
+
             </div>
         </div>
     )

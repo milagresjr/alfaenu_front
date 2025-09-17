@@ -39,4 +39,5 @@ export type ContratoType = {
     assinatura_cliente?: string;
     services?: ServiceContractType[];
     data?: ContratoType;
+    estado?: string;
 }

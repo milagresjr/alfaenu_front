@@ -2,9 +2,8 @@
 
 import { ChevronDown, Plus, Search } from "lucide-react";
 import { useDebounce } from "@uidotdev/usehooks";
-import { useEffect, useRef, useState } from "react";
-import { useClientes } from "@/features/client/hooks/useClientsQuery";
-import { ContratoType, SubcontaType } from "@/features/contract/types";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { SubcontaType } from "@/features/contract/types";
 import { useContratos } from "@/features/contract/hooks/useContractQuery";
 import { usePOSStore } from "../store/usePOSStore";
 
@@ -30,10 +29,10 @@ export function SelectContaPOS({
     const { clienteContrato } = usePOSStore();
 
 
-    const subContasFiltradas = data?.data.filter((contrato) => {
-        return contrato === clienteContrato;
-    });
-
+    const subContasFiltradas = useMemo(() => {
+        if (!data?.data || !clienteContrato) return [];
+        return data.data.filter((contrato) => contrato.id === clienteContrato.id);
+    }, [clienteContrato, data?.data]);
 
     const dropdownRef = useRef<HTMLDivElement>(null);
 
