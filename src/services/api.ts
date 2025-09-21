@@ -1,8 +1,8 @@
 import axios from 'axios';
 import Cookies from 'js-cookie';
 
-//const urlBase = "http://127.0.0.1:8000/api/";
-const urlBase = 'https://app.soenu.com/api/';
+const urlBase = "http://127.0.0.1:8000/api/";
+//const urlBase = 'https://app.soenu.com/api/';
 
 export const api = axios.create(
     {

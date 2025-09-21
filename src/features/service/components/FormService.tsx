@@ -134,7 +134,7 @@ export function FormService() {
                     <h1 className="text-lg my-3 text-gray-700 dark:text-gray-300">{mode === "create" ? "Criar Serviço" : "Editar Serviço"}</h1>
 
                     <div className="flex items-center gap-2">
-                        <Link href={"/client"}>
+                        <Link href={"/service"}>
                             <Button size="sm" variant="outline">
                                 Voltar
                             </Button>

@@ -9,7 +9,7 @@ import Button from "@/components/ui-old/button/Button";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Link from "next/link";
 import { Controller, useForm } from "react-hook-form";
-import z from "zod";
+import z, { set } from "zod";
 import { SelectClient } from "./SelectClient";
 import { useEffect, useState } from "react";
 import { ClienteType } from "@/features/client/types";
@@ -73,7 +73,7 @@ const schemma = z.object({
 
 export function FormContrato() {
 
-    const { register, handleSubmit, formState: { errors }, control, setValue, watch } = useForm<z.infer<typeof schemma>>({
+    const { register, handleSubmit, formState: { errors }, control, setValue, watch, getValues } = useForm<z.infer<typeof schemma>>({
         resolver: zodResolver(schemma),
         defaultValues: {
             nota: "",
@@ -93,6 +93,9 @@ export function FormContrato() {
     const [subcontas, setSubcontas] = useState<SubcontaType[]>([
         { id: "1", nome: "Subconta 1", servicos: [] }
     ]);
+    const [subcontasSalvas, setSubcontasSalvas] = useState<SubcontaType[]>([
+        { id: "1", nome: "Subconta 1", servicos: [] }
+    ]);
     const [activeTab, setActiveTab] = useState("1")
 
     const [cliente, setCliente] = useState<ClienteType | null>(null);
@@ -102,12 +105,17 @@ export function FormContrato() {
     const [openSheet, setOpenSheet] = useState(false);
     const [openModalNota, setOpenModalNota] = useState(false);
 
+    const [notaSalva, setNotaSalva] = useState<string>("");
+    const [notaSaved, setNotaSaved] = useState(false);
+
+    const [servicosSaved, setServicosSaved] = useState(false);
+
     const progress = useProgress();
 
     const router = useRouter();
 
     const { data: termos } = useTermos();
-    const { data: servicosData } = useServicos({estado: "ativo"});
+    const { data: servicosData } = useServicos({ estado: "ativo" });
 
     const { setOpenModalTermo, setSelectedTermo, assinaturaCliente, assinaturaUser, setOpenOffCanvas } = useContratoStore();
 
@@ -140,8 +148,6 @@ export function FormContrato() {
     const removeSubconta = () => {
         setSubcontas((prev) => prev.slice(0, -1));
     };
-
-
 
     // Adicionar serviço numa subconta
     const addServico = (subcontaId: string) => {
@@ -253,6 +259,7 @@ export function FormContrato() {
 
         const newData = {
             ...data,
+            nota: notaSalva,
             termo_id: data.termo_id,
             cliente_id: cliente?.id,
             assinatura_cliente: assinaturaCliente,
@@ -260,7 +267,7 @@ export function FormContrato() {
             subcontas: subcontas
         }
 
-        //  console.log(newData);
+        // console.log(newData);
         // return;
 
         created.mutate(newData, {
@@ -322,6 +329,52 @@ export function FormContrato() {
 
     const onError = (errors: any) => {
         console.error("❌ Erros de validação:", errors);
+    }
+
+    function salvarServicos() {
+        const erros = validarSubcontas(subcontas)
+
+        if (erros.length > 0) {
+            erros.forEach(item => {
+                toast.error(item);
+            })
+            return
+        }
+        setSubcontasSalvas([...subcontas]);
+        setServicosSaved(true);
+        toast.success('Serviços salvos com sucesso!');
+        setOpenSheet(false);
+    }
+
+    function handleOpenSheetServicos() {
+        setOpenSheet(true);
+        if (servicosSaved) {
+            setSubcontas(subcontasSalvas);
+        }
+    }
+
+    function handleCloseSheetServicos(open: boolean) {
+        setOpenSheet(open);
+        if (!servicosSaved) {
+            setSubcontas([
+                { id: "1", nome: "Subconta 1", servicos: [] }
+            ]);
+        }
+    }
+
+    function handleOpenDialogNota() {
+        setOpenModalNota(true);
+        if (notaSaved) {
+            setValue("nota", notaSalva);
+        }
+    }
+
+    function handleCloseDialogNota(open: boolean) {
+        setOpenModalNota(open);
+        if (!notaSaved) {
+            console.log("nota n foi salva");
+            setValue("nota", "");
+        }
     }
 
     function validacaoForm(data: any) {
@@ -395,7 +448,6 @@ export function FormContrato() {
         }
     }
 
-
     // Função de validação
     const validarSubcontas = (subcontas: SubcontaType[]): string[] => {
         const erros: string[] = []
@@ -454,13 +506,13 @@ export function FormContrato() {
                             <DropdownMenuContent>
                                 <DropdownMenuLabel>Mais opções</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => setOpenModalNota(true)}>
+                                <DropdownMenuItem onClick={handleOpenDialogNota}>
                                     Adicionar Notas
                                 </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        <Button className="h-[40px]" onClick={() => setOpenSheet(true)} size="sm" type="button" variant="outline">
+                        <Button className="h-[40px]" onClick={handleOpenSheetServicos} size="sm" type="button" variant="outline">
                             + Adicionar Serviços
                         </Button>
                         <Button className="w-auto h-[40px]" size="sm" variant="primary" type="submit">
@@ -611,7 +663,7 @@ export function FormContrato() {
 
                     </div>
 
-                    {/* 👉 Summary na direita */}
+                    {/* Summary na direita */}
                     <div className="w-full md:w-40 lg:w-66">
                         <div className="rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] shadow-sm p-5 flex flex-col gap-4">
                             <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-200">
@@ -644,7 +696,7 @@ export function FormContrato() {
                                     Valor por Pagar
                                 </span>
                                 <span className="text-base font-bold text-indigo-600 dark:text-indigo-400">
-                                  {(
+                                    {(
                                         formatarMoeda(totalComDesconto) ||
                                         0
                                     )}
@@ -664,25 +716,37 @@ export function FormContrato() {
                 </div>
 
 
-                <Dialog
-                    open={openModalNota}
-                    onOpenChange={setOpenModalNota}
-                >
-                    <DialogContent>
+                <Dialog open={openModalNota} onOpenChange={handleCloseDialogNota}>
+                    <DialogContent className="z-9999">
                         <DialogHeader>
                             <DialogTitle>Nota</DialogTitle>
                             <DialogDescription asChild>
-                                <div className="col-span-6 md:col-span-3">
-                                    <TextArea
-                                        placeholder="Descreva uma nota"
-                                        name="nota"
-                                        register={register}
-                                    />
-                                    {/* {errors.nota && (
-                                        <p className="mt-1.5 text-xs text-error-500">
+                                <div className="flex flex-col gap-2">
+                                    <div className="col-span-6 md:col-span-3">
+                                        <TextArea
+                                            placeholder="Descreva uma nota"
+                                            name="nota" register={register}
+                                        />
+                                        {/* {errors.nota && (
+                                            <p className="mt-1.5 text-xs text-error-500">
                                             {errors.nota.message}
-                                        </p>
-                                    )} */}
+                                            </p>
+                                        )} */}
+                                    </div>
+                                    <div className="flex justify-end">
+                                        <button
+                                            type="button"
+                                            onClick={handleSubmit((data) => {
+                                                console.log("Nota salva:", data.nota);
+                                                setNotaSalva(data.nota);
+                                                setNotaSaved(true);
+                                                setOpenModalNota(false);
+                                            })}
+                                            className="px-2 py-2 bg-green-600 text-white text-sm rounded-md"
+                                        >
+                                            Salvar
+                                        </button>
+                                    </div>
                                 </div>
                             </DialogDescription>
                         </DialogHeader>
@@ -691,7 +755,7 @@ export function FormContrato() {
 
             </form>
 
-            <Sheet open={openSheet} onOpenChange={setOpenSheet}>
+            <Sheet open={openSheet} onOpenChange={handleCloseSheetServicos}>
                 <SheetContent className="w-full z-999 dark:bg-gray-900 overflow-y-auto custom-scrollbar">
                     <SheetHeader>
                         <SheetTitle className="mb-4 pb-2 border-b">Serviços</SheetTitle>
@@ -813,6 +877,15 @@ export function FormContrato() {
                     {/* <Button variant="outline" onClick={() => setOpenSheet(false)} className="mt-4 w-fit absolute right-4 bottom-2">
                         Fechar
                     </Button> */}
+                    <div className="flex justify-end pr-3">
+                        <button
+                            type="button"
+                            onClick={salvarServicos}
+                            className="px-2 py-2 bg-green-600 text-white text-sm rounded-md"
+                        >
+                            Salvar
+                        </button>
+                    </div>
                 </SheetContent>
             </Sheet>
 

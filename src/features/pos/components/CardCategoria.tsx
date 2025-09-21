@@ -22,15 +22,15 @@ export function CardCategoria({ categoria, selected = false }: CardCategoriaProp
     px-3 py-2 rounded-md cursor-pointer transition-colors duration-200
     ${selected
                     ? "bg-blue-600 text-white shadow-sm"
-                    : "bg-blue-100 text-blue-700 hover:bg-blue-200"
+                    : "bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
                 }
   `}
         >
             <span className="text-sm font-medium truncate block max-w-[200px]">
                 {categoria.descricao}
             </span>
-
         </div>
+
 
     )
 }

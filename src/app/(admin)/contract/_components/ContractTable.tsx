@@ -1,12 +1,12 @@
 'use client';
 
 //import { PaginationComponent } from "@/components/ui_old/pagination/Pagination";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ContratoType } from "@/features/contract/types";
 import { TableMain } from "@/components/table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { File, FileText, Loader2, Plus } from "lucide-react";
+import { File, FileText, Loader2, Plus, Search } from "lucide-react";
 import { useContratos, useDeleteContrato } from "@/features/contract/hooks/useContractQuery";
 import { gerarPdfContrato } from "@/lib/utils";
 import { formatarDataLong } from "@/lib/helpers";
@@ -15,6 +15,7 @@ import { useDebounce } from "@uidotdev/usehooks";
 import { PaginationComponent } from "@/components/pagination/Pagination";
 import { Users, UserCheck, CheckCircle2, PauseCircle, XCircle } from "lucide-react";
 import { StatCard } from "@/components/StatCard/stat-card";
+import { useProgress } from "@bprogress/next";
 
 export default function ContractTable() {
 
@@ -24,7 +25,6 @@ export default function ContractTable() {
 
     const debouncedSearch = useDebounce(search, 500);
 
-    const { data, isLoading, isError } = useContratos(page, perPage, debouncedSearch);
 
     const [loadingId, setLoadingId] = useState<number | null>(null);
 
@@ -34,7 +34,11 @@ export default function ContractTable() {
         "todos"
     );
 
+    const { data, isLoading, isError } = useContratos(page, perPage, debouncedSearch, selected !== 'todos' ? selected : undefined);
+
     const router = useRouter();
+
+    const progress = useProgress();
 
     const deleteContrato = useDeleteContrato();
 
@@ -75,50 +79,49 @@ export default function ContractTable() {
         }
     }
 
+    const handleNewContrato = () => {
+        progress.start();
+        router.push(`/contract/form`);
+    };
+
     if (isError) {
         return <div>Erro ao carregar contratos</div>;
     }
 
-    const ContratosAtivo = data?.data.filter(contrato => contrato.estado === 'ativo').length || 0;
-    const ContratosFinalizado = data?.data.filter(contrato => contrato.estado === 'finalizado').length || 0;
-    const ContratosSuspenso = data?.data.filter(contrato => contrato.estado === 'suspenso').length || 0;
-    const ContratosCancelado = data?.data.filter(contrato => contrato.estado === 'cancelado').length || 0;
-
-    const totalContratos = ContratosAtivo + ContratosFinalizado + ContratosSuspenso + ContratosCancelado;
-
+ 
     const stats = [
         {
             key: "todos",
             title: "Total de Contratos",
-            value: totalContratos.toString(),
+            value: data?.total_geral.toString(),
             change: "",
             icon: <FileText className="w-6 h-6 text-primary" />,
         },
         {
             key: "ativos",
             title: "Contratos Ativos",
-            value: ContratosAtivo.toString(),
+            value: data?.total_ativos.toString(),
             change: "",
             icon: <FileText className="w-6 h-6 text-green-500" />, // Ativo → confirmado
         },
         {
             key: "finalizados",
             title: "Contratos Finalizados",
-            value: ContratosFinalizado.toString(),
+            value: data?.total_finalizados.toString(),
             change: "",
             icon: <CheckCircle2 className="w-6 h-6 text-blue-500" />, // Finalizado → concluído
         },
         {
             key: "suspensos",
             title: "Contratos Suspensos",
-            value: ContratosSuspenso.toString(),
+            value: data?.total_suspensos.toString(),
             change: "",
             icon: <PauseCircle className="w-6 h-6 text-yellow-500" />, // Suspenso → pausado
         },
         {
             key: "cancelados",
             title: "Contratos Cancelados",
-            value: ContratosCancelado.toString(),
+            value: data?.total_cancelados.toString(),
             change: "",
             icon: <XCircle className="w-6 h-6 text-red-500" />, // Cancelado → erro/cancelado
         },
@@ -137,15 +140,26 @@ export default function ContractTable() {
         return data?.data;
     }, [selected, data]);
 
+    useEffect(() => {
+        setPage(1);
+    }, [selected]);
+
+
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-4 min-h-[calc(100vh-120px)]">
 
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            <div className="flex justify-start items-center my-4">
+                <h1 className="text-2xl text-gray-700 dark:text-gray-300 font-semibold">
+                    Contratos
+                </h1>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
                 {stats.map((stat) => (
                     <StatCard
                         key={stat.key}
                         title={stat.title}
-                        value={stat.value}
+                        value={stat.value!}
                         change={stat.change}
                         icon={stat.icon}
                         isActive={selected === stat.key}
@@ -154,21 +168,22 @@ export default function ContractTable() {
                 ))}
             </div>
 
-            <div className="flex justify-between items-center my-2">
-                <h1 className="text-lg text-gray-700 dark:text-gray-300 font-semibold">Contratos</h1>
-                <Link href="/contract/form" className="bg-blue-600 px-4 py-1 rounded-md text-white flex gap-1">
+            <div className="my-4 flex items-center justify-between gap-2">
+                <div className="relative w-full md:w-1/3">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <Input
+                        placeholder="Buscar cliente..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="pl-10"
+                    />
+                </div>
+                <button onClick={handleNewContrato} className="bg-blue-600 px-4 py-2 rounded-md text-white flex gap-1">
                     <Plus />
-                    Novo Contrato
-                </Link>
+                    Novo
+                </button>
             </div>
-            <div className="my-2 flex justify-start gap-2">
-                <Input
-                    placeholder='Buscar contrato..'
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-1/3"
-                />
-            </div>
+
             <TableMain
                 data={contratosFiltrados || []}
                 isLoading={isLoading}
@@ -213,7 +228,7 @@ export default function ContractTable() {
                         )
                     },
                     {
-                        header: "Data de Criação",
+                        header: "Data",
                         accessor: (term: any) => (
                             <span>
                                 {formatarDataLong(term.created_at)}

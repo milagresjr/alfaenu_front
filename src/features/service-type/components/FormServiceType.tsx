@@ -97,7 +97,7 @@ export function FormServiceType() {
                 <div className="flex justify-between items-center">
                     <h1 className="text-lg my-3 text-gray-700 dark:text-gray-300">{mode === "create" ? "Criar Categoria de Serviço" : "Editar Categoria de Serviço"}</h1>
                     <div className="flex items-center gap-2">
-                        <Link href={"/client"}>
+                        <Link href={"/service-type"}>
                             <Button size="sm" variant="outline">
                                 Voltar
                             </Button>

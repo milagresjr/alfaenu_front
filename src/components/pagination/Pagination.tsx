@@ -55,13 +55,14 @@ export function PaginationComponent({
                     <Select
                         value={String(itemsPerPage)}
                         onValueChange={(value) => onItemsPerPageChange(Number(value))}
+                        defaultValue={String(itemsPerPage)}
                     >
                         <SelectTrigger className="w-20 !text-gray-500 !dark:text-gray-400">
                             <SelectValue placeholder="Itens" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem className="!text-gray-500 !dark:text-gray-400" value="10">10</SelectItem>
-                            <SelectItem className="!text-gray-500 !dark:text-gray-400" value="20">20</SelectItem>
+                            <SelectItem className="!text-gray-500 !dark:text-gray-400" value="15">15</SelectItem>
+                            <SelectItem className="!text-gray-500 !dark:text-gray-400" value="25">25</SelectItem>
                             <SelectItem className="!text-gray-500 !dark:text-gray-400" value="50">50</SelectItem>
                         </SelectContent>
                     </Select>

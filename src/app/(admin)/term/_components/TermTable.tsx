@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation";
 import { alert } from "@/lib/alert";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { Plus } from "lucide-react";
+import { Edit, Plus, Search, Trash } from "lucide-react";
 import { TermoType } from "@/features/term/types";
 import { useTermoStore } from "@/features/term/store/useTermoStore";
 import { useDeleteTermo, useTermos } from "@/features/term/hooks/useTermosQuery";
@@ -16,6 +16,7 @@ import { formatarDataLong } from "@/lib/helpers";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@uidotdev/usehooks";
 import { PaginationComponent } from "@/components/pagination/Pagination";
+import { DropdownActions } from "@/components/dropdown-action-menu/drop-actions-menu";
 
 export default function TermTable() {
 
@@ -25,7 +26,7 @@ export default function TermTable() {
 
     const debouncedSearch = useDebounce(search, 500);
 
-    const { data, isLoading, isError } = useTermos(page,perPage,debouncedSearch);
+    const { data, isLoading, isError } = useTermos(page, perPage, debouncedSearch);
 
     const { setSelectedTermo, setConteudoTermo } = useTermoStore();
 
@@ -78,21 +79,29 @@ export default function TermTable() {
 
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-4 h-[calc(100vh-120px)]">
-            <div className="flex justify-between items-center my-2">
-                <h1 className="text-lg text-gray-700 dark:text-gray-300 font-semibold">Termos</h1>
-                <button onClick={handleNewTerm} className="bg-blue-600 px-4 py-1 rounded-md text-white flex gap-1">
+
+            <div className="flex justify-start items-center my-4">
+                <h1 className="text-2xl text-gray-700 dark:text-gray-300 font-semibold">
+                    Termos
+                </h1>
+            </div>
+
+            <div className="my-4 flex items-center justify-between gap-2">
+                <div className="relative w-full md:w-1/3">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <Input
+                        placeholder="Buscar termos..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="pl-10"
+                    />
+                </div>
+                <button onClick={handleNewTerm} className="bg-blue-600 px-4 py-2 rounded-md text-white flex gap-1">
                     <Plus />
                     Novo
                 </button>
             </div>
-            <div className="my-2 flex justify-start gap-2">
-                <Input
-                    placeholder='Buscar contrato..'
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-1/3"
-                />
-            </div>
+
             <TableMain
                 data={data?.data || []}
                 isLoading={isLoading}
@@ -111,7 +120,7 @@ export default function TermTable() {
                         )
                     },
                     {
-                        header: "Data de Criação",
+                        header: "Data",
                         accessor: (term: any) => (
                             <span>
                                 {formatarDataLong(term.created_at)}
@@ -120,16 +129,27 @@ export default function TermTable() {
                     },
                     {
                         header: "Ações",
-                        accessor: (term) => (
-                            <div className="flex gap-2">
-                                <button onClick={() => handleEdit(term)}>
-                                    Edit
-                                </button>
-                                <button onClick={() => handleDelete(term)} >
-                                    Delete
-                                </button>
-                            </div>
-                        ),
+                        accessor: (termo) => {
+
+                            const actions = [
+                                {
+                                    label: "Editar",
+                                    icon: <Edit />,
+                                    onClick: () => handleEdit(termo),
+                                },
+                                {
+                                    label: "Excluir",
+                                    icon: <Trash />,
+                                    onClick: () => handleDelete(termo),
+                                },
+                                // {
+                                //     label: termo.estado === "ativo" ? "Inativar" : "Ativar",
+                                //     icon: termo.estado === "ativo" ? <Lock /> : <Unlock />,
+                                //     onClick: () => toggleEstado(termo),
+                                // },
+                            ];
+                            return <DropdownActions actions={actions} />
+                        }
                     }
                 ]}
             />

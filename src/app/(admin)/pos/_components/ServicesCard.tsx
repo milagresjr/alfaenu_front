@@ -32,7 +32,7 @@ export function ServicesCard() {
 
     const searchDebounce = useDebounce(search, 300);
 
-    const { data: dataServicos, isLoading: loadingServicos } = useServicos({page, per_page: perPage, search: searchDebounce});
+    const { data: dataServicos, isLoading: loadingServicos } = useServicos({ page, per_page: perPage, search: searchDebounce });
 
     const { data: dataCategoriaServico, isLoading: loadingCategoriaServico } = useTipoServicos();
 
@@ -51,13 +51,13 @@ export function ServicesCard() {
 
     async function handleServiceClik(service: ServiceType) {
 
-        
+
         if (!subContaContrato) {
             toast.error("Selecione uma subconta!");
             return;
         }
 
-        if(clienteContrato?.estado !== "ativo") {
+        if (clienteContrato?.estado !== "ativo") {
             return;
         }
 
@@ -95,7 +95,7 @@ export function ServicesCard() {
     }
 
     return (
-        <div className="flex-1 flex flex-col gap-3 rounded-b-md border border-gray-300 border-t-0">
+        <div className="flex-1 flex flex-col gap-3 rounded-b-md border border-gray-300 dark:border-gray-600 border-t-0">
             <div className="px-4">
                 <SearchItem onChange={(e) => setSearch(e.target.value)} />
             </div>
@@ -129,26 +129,26 @@ export function ServicesCard() {
                     <CarouselNext />
                 </Carousel>
             </div>
+            
             <hr className="" />
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 h-[calc(100vh-400px)] px-4 overflow-auto custom-scrollbar">
-                {
-                    loadingServicos ? (
-                        Array.from({ length: 4 }).map((_, index) => (
-                            <Skeleton key={index} className="h-[200px] rounded-md" />
-                        ))
-                    ) : (
-                        dataServicosFiltered?.map((servico) => (
-                            <CardService
-                                key={servico.id}
-                                service={servico}
-                                onClick={() => handleServiceClik(servico)}
-                                disabled={clienteContrato?.estado !== "ativo"}
-                            />
-                        ))
-                    )
-                }
 
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 pb-4 px-4 items-start max-h-[calc(100vh-385px)] overflow-auto custom-scrollbar">
+                {loadingServicos ? (
+                    Array.from({ length: 4 }).map((_, index) => (
+                        <Skeleton key={index} className="h-[200px] rounded-md" />
+                    ))
+                ) : (
+                    dataServicosFiltered?.map((servico) => (
+                        <CardService
+                            key={servico.id}
+                            service={servico}
+                            onClick={() => handleServiceClik(servico)}
+                            disabled={clienteContrato?.estado !== "ativo"}
+                        />
+                    ))
+                )}
             </div>
+
         </div>
     )
 }

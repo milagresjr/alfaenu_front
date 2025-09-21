@@ -2,10 +2,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ContratoType } from "../types";
 import { createContrato, getContratoById, getAllContrato, updateContrato, deleteContrato, alterarEstadoContrato  } from "../api/contractApi";
 
-export const useContratos = (page = 1, per_page = 15, search = '') => {
+export const useContratos = (page = 1, per_page = 15, search = '', estado = '') => {
     const { data, isLoading, isError } = useQuery({
-        queryKey: ["contratos", per_page, page, search],
-        queryFn: () => getAllContrato(per_page, page, search),
+        queryKey: ["contratos", per_page, page, search, estado],
+        queryFn: () => getAllContrato(per_page, page, search, estado),
         staleTime: 1000 * 60 * 5,
         networkMode: 'always',
         //keepPreviousData: true, 

@@ -7,6 +7,9 @@ export interface PaginatedCliente {
     per_page: number
     total: number
     last_page: number
+    total_geral: number
+    total_ativos: number
+    total_inativos: number
 }
 
 const API_URL = '/clients'; // URL base para a API de Clientes

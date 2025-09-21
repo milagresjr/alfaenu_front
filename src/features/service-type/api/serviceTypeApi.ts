@@ -7,6 +7,9 @@ export interface PaginatedTipoServico {
     per_page: number
     total: number
     last_page: number
+    total_geral: number
+    total_ativos: number
+    total_inativos: number
 }
 
 const API_URL = '/services-type'; // URL base para a API de Marcas

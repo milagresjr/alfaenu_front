@@ -43,7 +43,10 @@ export default function BottomOffCanvas() {
                         </button>
                         <button
                             type="button"
-                            onClick={salvarTudo}
+                            onClick={() => {
+                                salvarTudo();
+                                setOpenOffCanvas(false);
+                            }}
                             className="px-2 py-2 bg-green-600 text-white text-sm rounded-md"
                         >
                             Salvar Assinaturas

@@ -7,15 +7,20 @@ export interface PaginatedContrato {
     per_page: number
     total: number
     last_page: number
+    total_geral: number
+    total_ativos: number
+    total_finalizados: number
+    total_cancelados: number
+    total_suspensos: number
 }
 
 const API_URL = '/contracts'; // URL base para a API de Contratos
 
 // Obter todas as Contratos
-export const getAllContrato = async (per_page: number, page: number, search?: string): Promise<PaginatedContrato> => {
+export const getAllContrato = async (per_page: number, page: number, search?: string, estado?: string): Promise<PaginatedContrato> => {
     try {
         const response = await api.get<PaginatedContrato>(API_URL, {
-            params: { per_page, page, search },
+            params: { per_page, page, search, estado },
         });
 
         return response.data; 

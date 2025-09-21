@@ -41,7 +41,7 @@ export function StatCard({
           <p className="text-xl font-semibold text-gray-900 dark:text-white">
             {value}
           </p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">{title}</p>
+          <p className="text-left text-sm text-gray-500 dark:text-gray-400">{title}</p>
         </div>
       </div>
       <span

@@ -1,15 +1,15 @@
 'use client';
 
 //import { PaginationComponent } from "@/components/ui_old/pagination/Pagination";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { TableMain } from "@/components/table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { alert } from "@/lib/alert";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { Plus } from "lucide-react";
-import { useDeleteServico, useServicos } from "@/features/service/hooks/useServicesQuery";
+import { Edit, Lock, Plus, Search, Trash, Unlock } from "lucide-react";
+import { useAlterarEstadoServico, useDeleteServico, useServicos } from "@/features/service/hooks/useServicesQuery";
 import { useServiceStore } from "@/features/service/store/useServiceStore";
 import { ServiceType } from "@/features/service/types";
 import { useProgress } from "@bprogress/next";
@@ -21,6 +21,7 @@ import { EstadoCell } from "@/features/service/components/EstadoCell";
 import { useMemo } from "react";
 import { ClipboardList, Wrench, Ban } from "lucide-react";
 import { StatCard } from "@/components/StatCard/stat-card";
+import { DropdownActions } from "@/components/dropdown-action-menu/drop-actions-menu";
 
 export default function ServiceTable() {
 
@@ -30,11 +31,11 @@ export default function ServiceTable() {
 
     const debouncedSearch = useDebounce(search, 500);
 
-    const [selected, setSelected] = useState<"ativos" | "inativos" | "todos">(
+    const [selected, setSelected] = useState<"ativo" | "inativo" | "todos">(
         "todos"
     );
 
-    const { data, isLoading, isError } = useServicos({page, per_page: perPage , search: debouncedSearch});
+    const { data, isLoading, isError } = useServicos({ page, per_page: perPage, search: debouncedSearch, estado: selected !== 'todos' ? selected : '' });
 
     const { setSelectedService } = useServiceStore();
 
@@ -43,9 +44,16 @@ export default function ServiceTable() {
     const progress = useProgress();
 
     const deleteService = useDeleteServico();
+    const alterarEstado = useAlterarEstadoServico();
 
     const handleEdit = (service: ServiceType) => {
         setSelectedService(service);
+        progress.start();
+        router.push(`/service/form`);
+    };
+
+    const handleNewService = () => {
+        setSelectedService(null);
         progress.start();
         router.push(`/service/form`);
     };
@@ -72,33 +80,42 @@ export default function ServiceTable() {
         }
     };
 
-    if (isError) {
-        return <div>Erro ao carregar Serviços</div>;
-    }
-
-    const totalServicosAtivo = data?.data.filter(servico => servico.estado === 'ativo').length || 0;
-    const totalServicosInativo = data?.data.filter(servico => servico.estado === 'inativo').length || 0;
-    const totalServicos = totalServicosAtivo + totalServicosInativo;
+    const toggleEstado = (servico: ServiceType) => {
+        alterarEstado.mutate({
+            id: Number(servico.id),
+            estado: servico.estado === "ativo" ? "inativo" : "ativo",
+        },
+            {
+                onSuccess: () => {
+                    queryClient.invalidateQueries({ queryKey: ["servicos"] });
+                    toast.success('Estado alterado com sucesso!');
+                },
+                onError: (error) => {
+                    console.error("Erro ao alterar o estado do cliente:", error);
+                }
+            }
+        );
+    };
 
     const cards = [
         {
             key: "todos",
             title: "Total de Serviços",
-            value: totalServicos.toString(),
+            value: data?.total_geral.toString(),
             change: "",
             icon: <ClipboardList className="w-6 h-6 text-primary" />, // lista de serviços
         },
         {
-            key: "ativos",
+            key: "ativo",
             title: "Serviços Ativos",
-            value: totalServicosAtivo.toString(),
+            value: data?.total_ativos.toString(),
             change: "",
             icon: <Wrench className="w-6 h-6 text-green-500" />, // serviços em atividade
         },
         {
-            key: "inativos",
+            key: "inativo",
             title: "Serviços Inativos",
-            value: totalServicosInativo.toString(),
+            value: data?.total_inativos.toString(),
             change: "",
             icon: <Ban className="w-6 h-6 text-red-500" />, // serviços suspensos/inativos
         },
@@ -106,23 +123,38 @@ export default function ServiceTable() {
 
 
     const servicosFiltrados = useMemo(() => {
-        if (selected === "ativos") {
+        if (selected === "ativo") {
             return data?.data.filter(servico => servico.estado === "ativo");
-        } else if (selected === "inativos") {
+        } else if (selected === "inativo") {
             return data?.data.filter(servico => servico.estado === "inativo");
         }
         return data?.data;
     }, [selected, data]);
 
+    useEffect(() => {
+        setPage(1);
+    }, [selected]);
+
+
+    if (isError) {
+        return <div>Erro ao carregar serviços</div>;
+    }
+
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-4 min-h-[calc(100vh-120px)]">
+
+            <div className="flex justify-start items-center my-4">
+                <h1 className="text-2xl text-gray-700 dark:text-gray-300 font-semibold">
+                    Serviços
+                </h1>
+            </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 {cards.map((stat) => (
                     <StatCard
                         key={stat.key}
                         title={stat.title}
-                        value={stat.value}
+                        value={stat.value!}
                         change={stat.change}
                         icon={stat.icon}
                         isActive={selected === stat.key}
@@ -131,21 +163,22 @@ export default function ServiceTable() {
                 ))}
             </div>
 
-            <div className="flex justify-between items-center my-2">
-                <h1 className="text-lg text-gray-700 dark:text-gray-300 font-semibold">Serviços</h1>
-                <Link href="/service/form" className="bg-blue-600 px-4 py-1 rounded-md text-white flex gap-1">
+            <div className="my-4 flex items-center justify-between gap-2">
+                <div className="relative w-full md:w-1/3">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                    <Input
+                        placeholder="Buscar serviços..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="pl-10"
+                    />
+                </div>
+                <button onClick={handleNewService} className="bg-blue-600 px-4 py-2 rounded-md text-white flex gap-1">
                     <Plus />
                     Novo
-                </Link>
+                </button>
             </div>
-            <div className="my-2 flex justify-start gap-2">
-                <Input
-                    placeholder='Buscar serviço..'
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="w-1/3"
-                />
-            </div>
+
             <TableMain
                 data={servicosFiltrados || []}
                 isLoading={isLoading}
@@ -180,7 +213,7 @@ export default function ServiceTable() {
                         accessor: (service: ServiceType) => <EstadoCell servico={service} />,
                     },
                     {
-                        header: "Data de Criação",
+                        header: "Data",
                         accessor: (term: any) => (
                             <span>
                                 {formatarDataLong(term.created_at)}
@@ -189,16 +222,27 @@ export default function ServiceTable() {
                     },
                     {
                         header: "Ações",
-                        accessor: (cliente) => (
-                            <div className="flex gap-2">
-                                <button onClick={() => handleEdit(cliente)}>
-                                    Edit
-                                </button>
-                                <button onClick={() => handleDelete(cliente)} >
-                                    Delete
-                                </button>
-                            </div>
-                        ),
+                        accessor: (cliente) => {
+
+                            const actions = [
+                                {
+                                    label: "Editar",
+                                    icon: <Edit />,
+                                    onClick: () => handleEdit(cliente),
+                                },
+                                {
+                                    label: "Excluir",
+                                    icon: <Trash />,
+                                    onClick: () => handleDelete(cliente),
+                                },
+                                {
+                                    label: cliente.estado === "ativo" ? "Inativar" : "Ativar",
+                                    icon: cliente.estado === "ativo" ? <Lock /> : <Unlock />,
+                                    onClick: () => toggleEstado(cliente),
+                                }
+                            ];
+                            return <DropdownActions actions={actions} />
+                        }
                     }
                 ]}
             />
