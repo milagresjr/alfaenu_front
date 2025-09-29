@@ -8,6 +8,7 @@ import { useClientes } from "@/features/client/hooks/useClientsQuery";
 import { useContratos } from "@/features/contract/hooks/useContractQuery";
 import { ContratoType } from "@/features/contract/types";
 import { usePOSStore } from "../store/usePOSStore";
+import { formatarMoeda } from "@/lib/helpers";
 
 interface Props {
     selectedClienteContrato: ContratoType | null;
@@ -28,7 +29,7 @@ export function SelectClientPOS({
 
     const { data, isLoading } = useContratos(page, perPage, debouncedSearch);
 
-    const { setSubContaContrato, clienteContrato } = usePOSStore();
+    const { setSubContaContrato, clienteContrato, totalPorPagar, totalPago } = usePOSStore();
 
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -63,8 +64,8 @@ export function SelectClientPOS({
         if (clienteContrato?.id !== contrato.id) {
             setSubContaContrato(null);
             console.log("entrou aqui porra");
-            console.log("Contrato selecionado: ",clienteContrato?.id);
-            console.log("Contrato clicado: ",contrato.id);
+            console.log("Contrato selecionado: ", clienteContrato?.id);
+            console.log("Contrato clicado: ", contrato.id);
         }
         setIsOpen(false);
     }
@@ -77,9 +78,14 @@ export function SelectClientPOS({
     return (
         <div className="w-full" ref={dropdownRef}>
             <div className="relative flex flex-col gap-1 pb-2">
-                <label htmlFor="fornecedor" className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    Cliente<span className="text-red-600">*</span>
-                </label>
+                <div className="flex items-center justify-between">
+                    <label htmlFor="fornecedor" className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                        Cliente (Responsável)<span className="text-red-600">*</span>
+                    </label>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                        <span className="text-blue-600">{formatarMoeda(Number(totalPago))}</span>
+                    </label>
+                </div>
                 <div
                     className={`relative h-11 w-full flex items-center text-sm pl-4 pr-8 rounded-lg shadow-theme-xs dark:text-white/90 dark:bg-gray-900 border border-gray-300 dark:border-gray-600
                         `}

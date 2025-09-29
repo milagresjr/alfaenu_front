@@ -94,13 +94,13 @@ export function SelectClient({
                                 />
                             </div>
 
-                            <button
+                            {/* <button
                                 type="button"
                                 className="text-orange-600 hover:text-orange-800 text-sm flex items-center gap-1"
                                 onClick={() => alert("Criar cliente")}
                             >
                                 <Plus /> Novo Cliente
-                            </button>
+                            </button> */}
                         </div>
 
                         {/* Loading spinner durante busca */}

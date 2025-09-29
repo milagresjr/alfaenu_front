@@ -6,16 +6,21 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { SubcontaType } from "@/features/contract/types";
 import { useContratos } from "@/features/contract/hooks/useContractQuery";
 import { usePOSStore } from "../store/usePOSStore";
+import { formatarMoeda } from "@/lib/helpers";
 
 interface Props {
     selectedSubconta: SubcontaType | null;
     onSelectSubconta: (contrato: SubcontaType | null) => void;
     error?: boolean;
+    totalPorSubConta?: number;
+    saidaPorSubConta?: number;
 }
 
 export function SelectContaPOS({
     selectedSubconta,
     onSelectSubconta,
+    totalPorSubConta = 0,
+    saidaPorSubConta = 0,
 }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState('');
@@ -70,9 +75,16 @@ export function SelectContaPOS({
     return (
         <div className="w-full" ref={dropdownRef}>
             <div className="relative flex flex-col gap-1 pb-2">
-                <label htmlFor="fornecedor" className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-                    Sub-conta<span className="text-red-600">*</span>
-                </label>
+                <div className="flex items-center justify-between">
+                    <label htmlFor="fornecedor" className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                        Sub-conta<span className="text-red-600">*</span>
+                    </label>
+                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-400">
+                        <span className="text-blue-600">{formatarMoeda(Number(totalPorSubConta))}</span>
+                        <span>|</span>
+                        <span  className="text-red-600">{formatarMoeda(Number(saidaPorSubConta))}</span>
+                    </label>
+                </div>
                 <div
                     className={`relative h-11 w-full flex items-center text-sm pl-4 pr-8 rounded-lg shadow-theme-xs dark:text-white/90 dark:bg-gray-900 border border-gray-300 dark:border-gray-600
                         ${(!clienteContrato) && 'bg-gray-300 cursor-not-allowed'}`}

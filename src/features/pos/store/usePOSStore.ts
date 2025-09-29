@@ -26,7 +26,7 @@ export const usePOSStore = create<POStoState>((set) => ({
     setClienteContrato: (cliente) => set({ clienteContrato: cliente }),
     subContaContrato: null,
     setSubContaContrato: (subConta) => set({ subContaContrato: subConta }),
-    categoriaSelected: null,
+    categoriaSelected: { id: "all", descricao: "Todas categoria" },
     setCategoriaSelected: (categoria) => set({categoriaSelected: categoria}),
     totalPago: 0,
     setTotalPago: (total) => set({totalPago: total}),

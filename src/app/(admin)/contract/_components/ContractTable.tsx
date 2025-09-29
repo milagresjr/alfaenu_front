@@ -6,9 +6,9 @@ import { ContratoType } from "@/features/contract/types";
 import { TableMain } from "@/components/table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { File, FileText, Loader2, Plus, Search } from "lucide-react";
+import { File, FileText, Loader2, Plus, Printer, Search } from "lucide-react";
 import { useContratos, useDeleteContrato } from "@/features/contract/hooks/useContractQuery";
-import { gerarPdfContrato } from "@/lib/utils";
+import { gerarPdfContrato, gerarPdfServicosContrato } from "@/lib/utils";
 import { formatarDataLong } from "@/lib/helpers";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@uidotdev/usehooks";
@@ -16,6 +16,11 @@ import { PaginationComponent } from "@/components/pagination/Pagination";
 import { Users, UserCheck, CheckCircle2, PauseCircle, XCircle } from "lucide-react";
 import { StatCard } from "@/components/StatCard/stat-card";
 import { useProgress } from "@bprogress/next";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 export default function ContractTable() {
 
@@ -79,6 +84,15 @@ export default function ContractTable() {
         }
     }
 
+    async function handlePdfServicosClick(contrato: ContratoType) {
+        try {
+            setLoadingId(Number(contrato.id)); // ativa loading só nesse contrato
+            await gerarPdfServicosContrato(contrato.id);
+        } finally {
+            setLoadingId(null); // volta ao normal
+        }
+    }
+
     const handleNewContrato = () => {
         progress.start();
         router.push(`/contract/form`);
@@ -88,7 +102,7 @@ export default function ContractTable() {
         return <div>Erro ao carregar contratos</div>;
     }
 
- 
+
     const stats = [
         {
             key: "todos",
@@ -197,14 +211,14 @@ export default function ContractTable() {
                         header: "Valor por Pagar",
                         accessor: "valor_por_pagar"
                     },
-                    {
-                        header: "Valor Pago",
-                        accessor: "valor_pago"
-                    },
-                    {
-                        header: "Tipo de Pagamento",
-                        accessor: "tipo_pagamento"
-                    },
+                    // {
+                    //     header: "Valor Pago",
+                    //     accessor: "valor_pago"
+                    // },
+                    // {
+                    //     header: "Tipo de Pagamento",
+                    //     accessor: "tipo_pagamento"
+                    // },
                     {
                         header: "Desconto",
                         accessor: "desconto"
@@ -239,17 +253,42 @@ export default function ContractTable() {
                         header: "Ações",
                         accessor: (contrato) => (
                             <div className="flex gap-2">
-                                <button
-                                    className="cursor-pointer"
-                                    onClick={() => handlePdfClick(contrato)}
-                                    disabled={loadingId === contrato.id} // opcional: desativa botão
-                                >
-                                    {loadingId === contrato.id ? (
-                                        <Loader2 className="animate-spin" />
-                                    ) : (
-                                        <File />
-                                    )}
-                                </button>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button
+                                            className="cursor-pointer"
+                                            onClick={() => handlePdfClick(contrato)}
+                                            disabled={loadingId === contrato.id} // opcional: desativa botão
+                                        >
+                                            {loadingId === contrato.id ? (
+                                                <Loader2 className="animate-spin" />
+                                            ) : (
+                                                <File />
+                                            )}
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Imprimir Contrato</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button
+                                            className="cursor-pointer"
+                                            onClick={() => handlePdfServicosClick(contrato)}
+                                            disabled={loadingId === contrato.id} // opcional: desativa botão
+                                        >
+                                            {loadingId === contrato.id ? (
+                                                <Loader2 className="animate-spin" />
+                                            ) : (
+                                                <Printer />
+                                            )}
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Imprimir Serviços do Contrato</p>
+                                    </TooltipContent>
+                                </Tooltip>
                             </div>
                         ),
                     }

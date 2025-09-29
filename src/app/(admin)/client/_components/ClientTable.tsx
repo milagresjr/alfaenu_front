@@ -20,7 +20,7 @@ import { StatCard } from "@/components/StatCard/stat-card";
 import { EstadoCell } from "@/features/client/components/EstadoCell";
 import { useMemo } from "react";
 import { useProgress } from "@bprogress/next";
-import LoadingDialog from "../../pos/_components/LoadingDialog";
+import LoadingDialog from "../../../(full-width-pages)/pos/_components/LoadingDialog";
 import { DropdownActions } from "@/components/dropdown-action-menu/drop-actions-menu";
 import { ClienteDetailDialog } from "./ClienteDetailDialog";
 

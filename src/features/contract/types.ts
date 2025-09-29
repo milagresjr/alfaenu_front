@@ -16,6 +16,7 @@ export type SubcontaType = {
     id: string
     nome: string
     contract_id?: number
+    especificacao?: string
     servicos: ServiceType[]
 }
 
