@@ -6,7 +6,7 @@ import { ContratoType } from "@/features/contract/types";
 import { TableMain } from "@/components/table";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { File, FileText, Loader2, Plus, Printer, Search } from "lucide-react";
+import { File, FileText, Loader2, Plus, Printer, Search, UserCircle2 } from "lucide-react";
 import { useContratos, useDeleteContrato } from "@/features/contract/hooks/useContractQuery";
 import { gerarPdfContrato, gerarPdfServicosContrato } from "@/lib/utils";
 import { formatarDataLong } from "@/lib/helpers";
@@ -287,6 +287,19 @@ export default function ContractTable() {
                                     </TooltipTrigger>
                                     <TooltipContent>
                                         <p>Imprimir Serviços do Contrato</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Link
+                                            className="cursor-pointer"
+                                            href={`/contract/${contrato.id}/subcontas`}
+                                        >
+                                            <UserCircle2 />
+                                        </Link>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Subcontas</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </div>

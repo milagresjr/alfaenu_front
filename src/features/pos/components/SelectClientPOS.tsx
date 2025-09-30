@@ -82,9 +82,9 @@ export function SelectClientPOS({
                     <label htmlFor="fornecedor" className="block text-sm font-medium text-gray-700 dark:text-gray-400">
                         Cliente (Responsável)<span className="text-red-600">*</span>
                     </label>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
+                    {/* <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
                         <span className="text-blue-600">{formatarMoeda(Number(totalPago))}</span>
-                    </label>
+                    </label> */}
                 </div>
                 <div
                     className={`relative h-11 w-full flex items-center text-sm pl-4 pr-8 rounded-lg shadow-theme-xs dark:text-white/90 dark:bg-gray-900 border border-gray-300 dark:border-gray-600

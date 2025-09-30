@@ -59,7 +59,7 @@ export function FormService() {
 
     const { data: dataTipoServicos } = useTipoServicos({estado: "ativo"});
 
-    const ipoServico = watch("tipo");
+    const tipoServico = watch("tipo");
 
     const queryClient = useQueryClient();
 
@@ -219,7 +219,7 @@ export function FormService() {
                     </div>
 
                     {
-                        ipoServico === "externo" && (
+                        tipoServico === "externo" && (
                             <div className="col-span-6 md:col-span-3 ">
                                 <Label>Valor externo</Label>
                                 <Input type="number"

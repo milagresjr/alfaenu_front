@@ -33,11 +33,13 @@ export function SelectContaPOS({
 
     const { clienteContrato } = usePOSStore();
 
-
+    
     const subContasFiltradas = useMemo(() => {
         if (!data?.data || !clienteContrato) return [];
         return data.data.filter((contrato) => contrato.id === clienteContrato.id);
     }, [clienteContrato, data?.data]);
+    
+    console.log("VAMOS VER CRLHO",subContasFiltradas);
 
     const dropdownRef = useRef<HTMLDivElement>(null);
 

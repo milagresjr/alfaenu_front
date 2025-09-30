@@ -7,6 +7,29 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+export async function gerarPdfMovimentoSubconta(documentoId: number | undefined) {
+  try {
+    const response = await api.get(`movimento-subconta/${documentoId}/gerar-pdf-movimento-subconta`, {
+      responseType: 'blob', // ⚠️ Muito importante para PDFs
+    });
+
+    if (response.status !== 200) {
+      console.error("Erro ao gerar PDF:", response);
+      throw new Error("Erro ao gerar PDF");
+    }
+
+    // Cria uma URL temporária do PDF
+    const file = new Blob([response.data], { type: 'application/pdf' });
+    const fileURL = URL.createObjectURL(file);
+
+    // Abre o PDF numa nova aba
+    window.open(fileURL, "_blank");
+
+  } catch (error) {
+    toast.error("Erro ao gerar PDF.");
+    console.error(error);
+  }
+}
 
 export async function gerarPdfContrato(documentoId: number | undefined) {
   try {
