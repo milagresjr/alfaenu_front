@@ -10,6 +10,9 @@ export interface PaginatedMovimentoSubconta {
     total_geral: number
     total_ativos: number
     total_inativos: number
+    saldo_total?: number
+    total_entradas?: number
+    total_saidas?: number
 }
 
 const API_URL = '/movimentos-subconta'; // URL base para a API de Marcas
@@ -21,20 +24,26 @@ export const getAllMovimento = async (per_page: number, page: number, search?: s
             params: { per_page, page, search, estado },
         });
 
-        return response.data; 
+        return response.data;
     } catch (error) {
         console.error('Erro ao buscar movimentos da subcontas:', error);
         throw error;
     }
 };
 
-export const getAllMovimentoBySubconta = async (idSubconta: number | string, per_page: number, page: number, search?: string, estado?: string): Promise<PaginatedMovimentoSubconta> => {
+export const getAllMovimentoBySubconta = async (
+    idSubconta: number | string,
+    per_page: number,
+    page: number,
+    search?: string,
+    filters: any = {}
+): Promise<PaginatedMovimentoSubconta> => {
     try {
         const response = await api.get<PaginatedMovimentoSubconta>(`${API_URL}/subconta/${idSubconta}`, {
-            params: { per_page, page, search, estado },
+            params: { per_page, page, search, ...filters },
         });
 
-        return response.data; 
+        return response.data;
     } catch (error) {
         console.error('Erro ao buscar movimentos da subcontas:', error);
         throw error;

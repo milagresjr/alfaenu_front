@@ -2,25 +2,23 @@
 
 import { ChevronDown, Plus, Search } from "lucide-react";
 import { useDebounce } from "@uidotdev/usehooks";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { SubcontaType } from "@/features/contract/types";
+import { useEffect, useRef, useState } from "react";
+import { ClienteType } from "@/features/client/types";
+import { useClientes } from "@/features/client/hooks/useClientsQuery";
 import { useContratos } from "@/features/contract/hooks/useContractQuery";
-import { usePOSStore } from "../store/usePOSStore";
+import { ContratoType } from "@/features/contract/types";
 import { formatarMoeda } from "@/lib/helpers";
+import { useSubcontaContratoStore } from "@/features/subcontas-contrato/store/useSubcontaContratoStore";
 
 interface Props {
-    selectedSubconta: SubcontaType | null;
-    onSelectSubconta: (contrato: SubcontaType | null) => void;
+    selectedClienteContrato: ContratoType | null;
+    onSelectClienteContrato: (contrato: ContratoType | null) => void;
     error?: boolean;
-    totalPorSubConta?: number;
-    saidaPorSubConta?: number;
 }
 
-export function SelectContaPOS({
-    selectedSubconta,
-    onSelectSubconta,
-    totalPorSubConta = 0,
-    saidaPorSubConta = 0,
+export function SelectClienteContrato({
+    selectedClienteContrato,
+    onSelectClienteContrato,
 }: Props) {
     const [isOpen, setIsOpen] = useState(false);
     const [search, setSearch] = useState('');
@@ -31,13 +29,7 @@ export function SelectContaPOS({
 
     const { data, isLoading } = useContratos(page, perPage, debouncedSearch);
 
-    const { clienteContrato } = usePOSStore();
-
-    
-    const subContasFiltradas = useMemo(() => {
-        if (!data?.data || !clienteContrato) return [];
-        return data.data.filter((contrato) => contrato.id === clienteContrato.id);
-    }, [clienteContrato, data?.data]);
+    const { setSubContaContrato, clienteResponsavelContrato } = useSubcontaContratoStore();
 
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -58,7 +50,7 @@ export function SelectContaPOS({
     }, []);
 
 
-    //foca o input quando o dropdown abrir
+    // foca quando o dropdown abrir
     useEffect(() => {
         if (!isOpen) return;
         const id = requestAnimationFrame(() => {
@@ -66,6 +58,14 @@ export function SelectContaPOS({
         });
         return () => cancelAnimationFrame(id);
     }, [isOpen]);
+
+    function handleItemSelectClick(contrato: ContratoType) {
+        onSelectClienteContrato(contrato);
+        if (clienteResponsavelContrato?.id !== contrato.id) {
+            setSubContaContrato(null);
+        }
+        setIsOpen(false);
+    }
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearch(e.target.value);
@@ -77,23 +77,17 @@ export function SelectContaPOS({
             <div className="relative flex flex-col gap-1 pb-2">
                 <div className="flex items-center justify-between">
                     <label htmlFor="fornecedor" className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-                        Sub-conta<span className="text-red-600">*</span>
-                    </label>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-400">
-                        <span className="text-blue-600">{formatarMoeda(Number(totalPorSubConta))}</span>
-                        <span>|</span>
-                        <span  className="text-red-600">{formatarMoeda(Number(saidaPorSubConta))}</span>
+                        Contrato (Cliente responsável)<span className="text-red-600">*</span>
                     </label>
                 </div>
                 <div
                     className={`relative h-11 w-full flex items-center text-sm pl-4 pr-8 rounded-lg shadow-theme-xs dark:text-white/90 dark:bg-gray-900 border border-gray-300 dark:border-gray-600
-                        ${(!clienteContrato) && 'bg-gray-300 cursor-not-allowed'}`}
-                    onClick={() => {
-                        if (!clienteContrato) return; // só abre se clienteContrato existir
-                        setIsOpen((prev) => !prev);
-                    }}
+                        `}
+                    onClick={() => setIsOpen((item) => (!item))}
                 >
-                    <span className="text-gray-700 dark:text-gray-300 font-normal select-none cursor-default">{selectedSubconta?.nome || ''}</span>
+                    <span className="text-gray-700 dark:text-gray-300 font-normal select-none cursor-default">
+                        {selectedClienteContrato?.cliente?.nome || ''}
+                    </span>
 
                     {/* Ícone da seta */}
                     <ChevronDown
@@ -126,25 +120,27 @@ export function SelectContaPOS({
                         ) : (
                             <>
                                 {/* Lista de clientes */}
-                                <ul className="max-h-48 overflow-y-auto">
-                                    {(subContasFiltradas?.length ?? 0) > 0 ? (
-                                        subContasFiltradas?.map((contrato) => (
-                                            contrato.subcontas?.map((subconta, idx) => (
-                                                <li
-                                                    key={idx}
-                                                    className="px-2 py-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded"
-                                                    onClick={() => {
-                                                        onSelectSubconta(subconta || null);
-                                                        setIsOpen(false);
-                                                    }}
-                                                >
-                                                    <strong className="text-gray-700 dark:text-gray-300 font-normal">{subconta.nome || ''}</strong>
-                                                </li>
-                                            ))
+                                <ul className="max-h-48 overflow-y-auto custom-scrollbar">
+                                    {(data?.data.length ?? 0) > 0 ? (
+                                        data?.data.map((contrato, idx) => (
+                                            <li
+                                                key={idx}
+                                                className="px-2 py-2 flex justify-between items-center hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer rounded"
+                                                onClick={() => handleItemSelectClick(contrato)}
+                                            >
+                                                <div className="flex flex-col">
+                                                    <strong className="text-gray-700 dark:text-gray-300 font-normal">{contrato.cliente?.nome || ''}</strong>
+                                                    <div className="text-xs text-gray-400">{contrato.tipo_pagamento || ''}</div>
+                                                </div>
+                                                <div className="flex flex-col text-right">
+                                                    <strong className="text-gray-700 dark:text-gray-300 font-normal ">Data</strong>
+                                                    <div className="text-xs text-gray-400">{contrato.data_inicio || ''}</div>
+                                                </div>
+                                            </li>
                                         ))
                                     ) : (
                                         <li className="text-sm text-gray-400 px-2">
-                                            Nenhuma subconta encontrada
+                                            Nenhum cliente encontrado
                                         </li>
                                     )}
                                 </ul>

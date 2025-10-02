@@ -529,6 +529,11 @@ export function FormContrato() {
         return erros
     }
 
+    function handleBack() {
+        progress.start();
+        router.back();
+    }
+
     useEffect(() => {
         setSelectedTermo(termoSelecionado || null);
     }, [termoSelecionado]);
@@ -543,10 +548,10 @@ export function FormContrato() {
             <div className="flex-1 rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-4">
 
                 <div className="flex justify-start">
-                    <Link href={'/contract'} className="text-blue-600 cursor-pointer flex items-center ga-2">
+                    <span onClick={handleBack} className="text-blue-600 cursor-pointer flex items-center ga-2">
                         <ChevronLeft size={18} />
                         <span>Voltar</span>
-                    </Link>
+                    </span>
                 </div>
 
                 <form onSubmit={confirmarCriacaoContrato}>

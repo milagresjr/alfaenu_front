@@ -186,44 +186,46 @@ export default function ServiceTable() {
                 columns={[
                     {
                         header: "Nome",
-                        accessor: "nome"
+                        accessor: "nome",
+                        width: "20%", // maior espaço pois o nome pode ser longo
                     },
                     {
                         header: "Categoria",
                         accessor: (service) => (
-                            <span>
-                                {service.categoria?.descricao}
-                            </span>
-                        )
+                            <span>{service.categoria?.descricao}</span>
+                        ),
+                        width: "15%",
                     },
                     {
                         header: "Tipo",
-                        accessor: "tipo"
+                        accessor: "tipo",
+                        width: "10%",
                     },
                     {
                         header: "Valor",
-                        accessor: "valor"
+                        accessor: "valor",
+                        width: "10%",
                     },
                     {
                         header: "Valor Externo",
-                        accessor: "valor_externo"
+                        accessor: "valor_externo",
+                        width: "15%",
                     },
                     {
                         header: "Estado",
                         accessor: (service: ServiceType) => <EstadoCell servico={service} />,
+                        width: "10%",
                     },
                     {
                         header: "Data",
                         accessor: (term: any) => (
-                            <span>
-                                {formatarDataLong(term.created_at)}
-                            </span>
-                        )
+                            <span>{formatarDataLong(term.created_at)}</span>
+                        ),
+                        width: "10%",
                     },
                     {
                         header: "Ações",
                         accessor: (cliente) => {
-
                             const actions = [
                                 {
                                     label: "Editar",
@@ -239,13 +241,16 @@ export default function ServiceTable() {
                                     label: cliente.estado === "ativo" ? "Inativar" : "Ativar",
                                     icon: cliente.estado === "ativo" ? <Lock /> : <Unlock />,
                                     onClick: () => toggleEstado(cliente),
-                                }
+                                },
                             ];
-                            return <DropdownActions actions={actions} />
-                        }
-                    }
+                            return <DropdownActions actions={actions} />;
+                        },
+                        width: "10%",
+                    },
                 ]}
             />
+
+
 
             {/* Paginação */}
             {data && (

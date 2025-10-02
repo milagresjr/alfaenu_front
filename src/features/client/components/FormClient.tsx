@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQueryClient } from "@tanstack/react-query";
 import { AxiosError } from "axios";
+import { useProgress } from "@bprogress/next";
 
 
 const schema = z.object({
@@ -54,6 +55,9 @@ export function FormClient() {
     const create = useCreateCliente();
     const update = useUpdateCliente();
 
+    const progress = useProgress();
+    const router = useRouter();
+
     const mode = selectedCliente ? "edit" : "create";
 
     const queryClient = useQueryClient();
@@ -80,12 +84,18 @@ export function FormClient() {
                     setSelectedCliente(null);
                     route.push("/client");
                 },
-                onError: () => {
-                    toast.error("Erro ao atualizar cliente");
+                onError: (error: any) => {
+                    if (error.response?.status === 422) {
+                        const errors = error.response.data.errors;
+                        const firstError = (Object.values(errors) as string[][])[0][0];
+                        toast.error(firstError);
+                    } else {
+                        toast.error("Erro ao atualizar cliente");
+                    }
                 }
             });
         } else {
-            create.mutate({...data, estado: "ativo"}, {
+            create.mutate({ ...data, estado: "ativo" }, {
                 onSuccess: () => {
                     queryClient.invalidateQueries({
                         queryKey: ["clientes"],
@@ -105,6 +115,11 @@ export function FormClient() {
                 }
             });
         }
+    }
+
+    function handleBack() {
+        progress.start();
+        router.back();
     }
 
     useEffect(() => {
@@ -128,11 +143,9 @@ export function FormClient() {
                     <h1 className="text-lg my-3 text-gray-700 dark:text-gray-300">{mode === "create" ? "Criar Cliente" : "Editar Cliente"}</h1>
 
                     <div className="flex items-center gap-2">
-                        <Link href={"/client"}>
-                            <Button size="sm" variant="outline">
-                                Voltar
-                            </Button>
-                        </Link>
+                        <Button onClick={handleBack} size="sm" variant="outline">
+                            Voltar
+                        </Button>
                         <Button size="sm" variant="primary" disabled={(create.isPending || update.isPending)}>
                             {(create.isPending || update.isPending) ? 'Salvando...' : 'Salvar'}
                         </Button>

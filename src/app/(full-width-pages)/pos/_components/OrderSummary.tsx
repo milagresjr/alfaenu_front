@@ -2,6 +2,7 @@
 
 import { useContratos } from "@/features/contract/hooks/useContractQuery";
 import { ContratoType } from "@/features/contract/types";
+import { useMovimentosBySubconta } from "@/features/movimento-subconta/hooks/useMovimentosQuery";
 import { SelectClientPOS } from "@/features/pos/components/SelectClientPOS";
 import { SelectContaPOS } from "@/features/pos/components/SelectContaPOS";
 import { ServiceItemCart } from "@/features/pos/components/ServiceItemCart";
@@ -30,6 +31,15 @@ export function OrderSummary() {
 
 
     const { data: dataItensServiceContrato, isLoading: isLoadingItensServiceContrato } = useItensServiceContrato();
+
+    const { data, isLoading, isError } = useMovimentosBySubconta({ idSubconta: String(subContaContrato?.id), page: 1, per_page: 1000, search: '', filters: {} });
+
+    const saldoTotalSubconta = data?.saldo_total || 0;
+
+    const totalEntradas = data?.total_entradas || 0;
+
+    const totalSaidas = data?.total_saidas || 0;
+
 
     const itensServicoContratoFiltrado = dataItensServiceContrato?.filter(
         (item) => (item.subconta_id === subContaContrato?.id && item.contract_id === clienteContrato?.id)
@@ -62,21 +72,21 @@ export function OrderSummary() {
     const queryClient = useQueryClient();
 
     const handleDelete = async (service: ItemServicContratoType) => {
-        const confirmed = await alert.confirm('Confirmar', 'Tem certeza que deseja excluir este serviço da lista?', 'Sim', 'Não');
-        if (confirmed) {
-            deleteItemServico.mutate(Number(service.id), {
-                onSuccess: () => {
-                    queryClient.invalidateQueries({
-                        queryKey: ["servicos"],
-                        exact: false,
-                    });
-                    toast.success('Serviço excluído da lista com sucesso!');
-                },
-                onError: (error) => {
-                    console.error("Erro ao excluir o Serviço:", error);
-                },
-            });
-        }
+        // const confirmed = await alert.confirm('Confirmar', 'Tem certeza que deseja excluir este serviço da lista?', 'Sim', 'Não');
+
+        deleteItemServico.mutate(Number(service.id), {
+            onSuccess: () => {
+                queryClient.invalidateQueries({
+                    queryKey: ["servicos"],
+                    exact: false,
+                });
+                toast.success('Serviço excluído da lista com sucesso!');
+            },
+            onError: (error) => {
+                console.error("Erro ao excluir o Serviço:", error);
+            },
+        });
+
     };
 
     useEffect(() => {
@@ -100,42 +110,76 @@ export function OrderSummary() {
                         setSubContaContrato(subContaSelected)
                     }
                     error={!subContaContrato}
-                    totalPorSubConta={totalServicos}
-                    saidaPorSubConta={TotalsaidaPorSubConta}
+                    totalPorSubConta={saldoTotalSubconta}
+                    saidaPorSubConta={totalSaidas}
                 />
             </div>
             <div className="flex flex-col gap-2 overflow-auto custom-scrollbar p-2">
                 {isLoadingItensServiceContrato ? (
                     <p className="text-center text-gray-700 dark:text-gray-300">Carregando...</p>
                 ) : (
-                    <table className="w-full border-collapse rounded-xl overflow-hidden shadow-md">
-                        <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
-                            <tr>
-                                <th className="p-2 text-sm text-left">Nome</th>
-                                <th className="p-2 text-sm text-center">Qtd</th>
-                                <th className="p-2 text-sm text-right">Total</th>
-                                <th className="p-2 text-sm text-center">Ações</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {itensServicoContratoFiltrado?.map((item) => (
-                                <tr
-                                    key={item.id}
-                                    className="border-b last:border-0 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 transition"
-                                >
-                                    <td className="p-2 text-sm text-gray-900 dark:text-gray-100">{item.servico_nome}</td>
-                                    <td className="p-2 text-sm text-center text-gray-900 dark:text-gray-100">{item.qtd}</td>
-                                    <td className="p-2 text-sm text-right text-gray-900 dark:text-gray-100">
-                                        {formatarMoeda(Number(item.total))}
-                                    </td>
-                                    <td className="p-2 text-sm flex justify-center gap-2">
-                                        <Edit2 className="text-blue-500 cursor-pointer hover:text-blue-600 transition" size={15} />
-                                        <Trash2  onClick={() => handleDelete(item)} className="text-red-500 cursor-pointer hover:text-red-600 transition" size={15} />
-                                    </td>
+                    <>
+                        <table className="w-full border-collapse rounded-xl overflow-hidden shadow-md">
+                            <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
+                                <tr>
+                                    <th className="p-2 text-sm text-left">Nome</th>
+                                    <th className="p-2 text-sm text-center">Qtd</th>
+                                    <th className="p-2 text-sm text-right">Total</th>
+                                    <th className="p-2 text-sm text-center">Ações</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {itensServicoContratoFiltrado?.map((item) => (
+                                    <tr
+                                        key={item.id}
+                                        className="border-b last:border-0 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 transition"
+                                    >
+                                        <td className="p-2 text-sm text-gray-900 dark:text-gray-100">{item.servico_nome}</td>
+                                        <td className="p-2 text-sm text-center text-gray-900 dark:text-gray-100">{item.qtd}</td>
+                                        <td className="p-2 text-sm text-right text-gray-900 dark:text-gray-100">
+                                            {formatarMoeda(Number(item.total))}
+                                        </td>
+                                        <td className="p-2 text-sm flex justify-center gap-2">
+                                            <Trash2
+                                                onClick={() => handleDelete(item)}
+                                                className="text-red-500 cursor-pointer hover:text-red-600 transition"
+                                                size={15}
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+
+                        </table>
+                        {
+                            (itensServicoContratoFiltrado && itensServicoContratoFiltrado.length > 0) && (
+                                <div className="w-full flex justify-end mt-2">
+                                    <div className="text-right">
+                                        <div className="text-sm text-gray-900 dark:text-gray-100">
+                                            Qtd Total:{" "}
+                                            <span className="font-semibold">
+                                                {itensServicoContratoFiltrado?.reduce(
+                                                    (acc, item) => acc + Number(item.qtd || 0),
+                                                    0
+                                                )}
+                                            </span>
+                                        </div>
+                                        <div className="text-sm text-gray-900 dark:text-gray-100">
+                                            Total Geral:{" "}
+                                            <span className="font-semibold">
+                                                {formatarMoeda(
+                                                    itensServicoContratoFiltrado?.reduce(
+                                                        (acc, item) => acc + Number(item.total || 0),
+                                                        0
+                                                    ) || 0
+                                                )}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            )
+                        }
+                    </>
                 )}
             </div>
 

@@ -109,7 +109,8 @@ export default function TermTable() {
                 columns={[
                     {
                         header: "Titulo",
-                        accessor: "titulo"
+                        accessor: "titulo",
+                        width: "40%",
                     },
                     {
                         header: "Estado",
@@ -117,7 +118,8 @@ export default function TermTable() {
                             <span className={`px-2 py-1 rounded-full text-xs ${term.status ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
                                 {term.status ? 'Ativo' : 'Inativo'}
                             </span>
-                        )
+                        ),
+                        width: "13%",
                     },
                     {
                         header: "Data",
@@ -125,7 +127,8 @@ export default function TermTable() {
                             <span>
                                 {formatarDataLong(term.created_at)}
                             </span>
-                        )
+                        ),
+                        width: "20%",
                     },
                     {
                         header: "Ações",
@@ -149,13 +152,14 @@ export default function TermTable() {
                                 // },
                             ];
                             return <DropdownActions actions={actions} />
-                        }
+                        },
+                        width: "15%",
                     }
                 ]}
             />
 
             {/* Paginação */}
-            {data && (
+            {(data && data.total > 10) && (
                 <PaginationComponent
                     currentPage={data.current_page}
                     itemsPerPage={data.per_page}

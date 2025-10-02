@@ -35,7 +35,7 @@ export const useSubcontasByContract = (
   { idContract = '', page = 1, per_page = 15, search = '', estado = '' } = {}
 ) => {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["subcontas", per_page, page, search, estado],
+    queryKey: ["subcontas", idContract, per_page, page, search, estado],
     queryFn: () => getAllSubcontaByContrato(idContract, per_page, page, search, estado),
     staleTime: 1000 * 60 * 5, // cache de 5min
     networkMode: 'always',

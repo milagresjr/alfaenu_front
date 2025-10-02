@@ -5,8 +5,8 @@ import { useDebounce } from "@uidotdev/usehooks";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SubcontaType } from "@/features/contract/types";
 import { useContratos } from "@/features/contract/hooks/useContractQuery";
-import { usePOSStore } from "../store/usePOSStore";
 import { formatarMoeda } from "@/lib/helpers";
+import { useSubcontaContratoStore } from "@/features/subcontas-contrato/store/useSubcontaContratoStore";
 
 interface Props {
     selectedSubconta: SubcontaType | null;
@@ -16,7 +16,7 @@ interface Props {
     saidaPorSubConta?: number;
 }
 
-export function SelectContaPOS({
+export function SelectSubcontaContrato({
     selectedSubconta,
     onSelectSubconta,
     totalPorSubConta = 0,
@@ -31,13 +31,14 @@ export function SelectContaPOS({
 
     const { data, isLoading } = useContratos(page, perPage, debouncedSearch);
 
-    const { clienteContrato } = usePOSStore();
+    const { clienteResponsavelContrato } = useSubcontaContratoStore();
 
     
     const subContasFiltradas = useMemo(() => {
-        if (!data?.data || !clienteContrato) return [];
-        return data.data.filter((contrato) => contrato.id === clienteContrato.id);
-    }, [clienteContrato, data?.data]);
+        if (!data?.data || !clienteResponsavelContrato) return [];
+        return data.data.filter((contrato) => contrato.id === clienteResponsavelContrato.id);
+    }, [clienteResponsavelContrato, data?.data]);
+    
 
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -75,21 +76,16 @@ export function SelectContaPOS({
     return (
         <div className="w-full" ref={dropdownRef}>
             <div className="relative flex flex-col gap-1 pb-2">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-start">
                     <label htmlFor="fornecedor" className="block text-sm font-medium text-gray-700 dark:text-gray-400">
                         Sub-conta<span className="text-red-600">*</span>
-                    </label>
-                    <label className="flex items-center gap-2 text-sm font-medium text-gray-700 dark:text-gray-400">
-                        <span className="text-blue-600">{formatarMoeda(Number(totalPorSubConta))}</span>
-                        <span>|</span>
-                        <span  className="text-red-600">{formatarMoeda(Number(saidaPorSubConta))}</span>
                     </label>
                 </div>
                 <div
                     className={`relative h-11 w-full flex items-center text-sm pl-4 pr-8 rounded-lg shadow-theme-xs dark:text-white/90 dark:bg-gray-900 border border-gray-300 dark:border-gray-600
-                        ${(!clienteContrato) && 'bg-gray-300 cursor-not-allowed'}`}
+                        ${(!clienteResponsavelContrato) && 'bg-gray-300 cursor-not-allowed'}`}
                     onClick={() => {
-                        if (!clienteContrato) return; // só abre se clienteContrato existir
+                        if (!clienteResponsavelContrato) return; // só abre se clienteResponsavelContrato existir
                         setIsOpen((prev) => !prev);
                     }}
                 >

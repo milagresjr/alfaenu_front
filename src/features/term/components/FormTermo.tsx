@@ -25,6 +25,7 @@ import {
     SheetHeader,
     SheetTitle,
 } from "@/components/ui/sheet";
+import { useProgress } from "@bprogress/next";
 
 const schemma = z.object({
     titulo: z.string().min(1, { message: "Campo obrigatório" }),
@@ -46,6 +47,7 @@ export function FormTermo() {
 
     const { conteudoTermo, selectedTermo, setSelectedTermo, setConteudoTermo } = useTermoStore();
 
+    const progress = useProgress();
     const router = useRouter();
 
     const create = useCreateTermo();
@@ -107,6 +109,11 @@ export function FormTermo() {
         setOpenModal(false);
     }
 
+    function handleBack() {
+        progress.start();
+        router.back();
+    }
+
     useEffect(() => {
         if (selectedTermo) {
             setValue("titulo", selectedTermo.titulo);
@@ -122,10 +129,10 @@ export function FormTermo() {
             <form onSubmit={handleSubmit(onSubmit)}>
 
                 <div className="mt-4 mx-2 p-2 flex gap-2 justify-between items-center">
-                    <Link href={'/term'} className="text-blue-600 cursor-pointer flex items-center ga-2">
+                    <span onClick={handleBack} className="text-blue-600 cursor-pointer flex items-center ga-2">
                         <ChevronLeft size={18} />
                         <span>Voltar</span>
-                    </Link>
+                    </span>
                     <div className="flex gap-2">
                         <Button onClick={openullscreenModal} size="sm" variant="outline" type="button">Preview</Button>
                         <Button onClick={() => setOpenSheet(true)} size="sm" type="button" className="bg-orange-900 hover:bg-orange-800 text-white">Variáveis</Button>

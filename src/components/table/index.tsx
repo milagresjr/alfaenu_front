@@ -4,6 +4,7 @@ type Column<T> = {
   header: string;
   accessor: keyof T | ((item: T) => React.ReactNode);
   className?: string;
+  width?: string; // 👈 nova prop
 };
 
 type TableProps<T> = {
@@ -31,6 +32,7 @@ export function TableMain<T>({
               {columns.map((col, index) => (
                 <th
                   key={index}
+                  style={col.width ? { width: col.width } : undefined} // 👈 aplica width
                   className={`px-4 py-3 text-left text-sm font-semibold text-gray-700 dark:text-gray-300 whitespace-normal break-words ${col.className || ""}`}
                 >
                   {col.header}
@@ -80,6 +82,7 @@ export function TableMain<T>({
                     return (
                       <td
                         key={colIndex}
+                        style={col.width ? { width: col.width } : undefined} // 👈 aplica width
                         className={`px-4 py-3 text-sm text-gray-800 dark:text-gray-200 whitespace-normal break-words ${col.className || ""}`}
                       >
                         {value as React.ReactNode}
@@ -93,6 +96,5 @@ export function TableMain<T>({
         </table>
       </div>
     </div>
-
   );
 }

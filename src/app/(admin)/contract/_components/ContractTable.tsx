@@ -205,49 +205,47 @@ export default function ContractTable() {
                 columns={[
                     {
                         header: "Cliente",
-                        accessor: "cliente_nome"
+                        accessor: "cliente_nome",
+                        width: "30%", // mais espaço
                     },
                     {
                         header: "Valor por Pagar",
-                        accessor: "valor_por_pagar"
+                        accessor: "valor_por_pagar",
+                        width: "20%",
                     },
-                    // {
-                    //     header: "Valor Pago",
-                    //     accessor: "valor_pago"
-                    // },
-                    // {
-                    //     header: "Tipo de Pagamento",
-                    //     accessor: "tipo_pagamento"
-                    // },
                     {
                         header: "Desconto",
-                        accessor: "desconto"
+                        accessor: "desconto",
+                        width: "10%",
                     },
                     {
                         header: "Estado",
                         accessor: (contrato) => (
                             <span
                                 className={`
-      px-3 py-1 rounded-full text-sm font-medium
-      ${contrato?.estado === "ativo" ? "bg-green-100 text-green-700" :
-                                        contrato?.estado === "suspenso" ? "bg-yellow-100 text-yellow-700" :
-                                            contrato?.estado === "finalizado" ? "bg-blue-100 text-blue-700" :
-                                                contrato?.estado === "cancelado" ? "bg-red-100 text-red-700" :
-                                                    "bg-gray-100 text-gray-700"
-                                    }
-    `}
+            px-3 py-1 rounded-full text-sm font-medium
+            ${contrato?.estado === "ativo"
+                                        ? "bg-green-100 text-green-700"
+                                        : contrato?.estado === "suspenso"
+                                            ? "bg-yellow-100 text-yellow-700"
+                                            : contrato?.estado === "finalizado"
+                                                ? "bg-blue-100 text-blue-700"
+                                                : contrato?.estado === "cancelado"
+                                                    ? "bg-red-100 text-red-700"
+                                                    : "bg-gray-100 text-gray-700"}
+          `}
                             >
                                 {contrato?.estado || ""}
                             </span>
-                        )
+                        ),
+                        width: "13%",
                     },
                     {
                         header: "Data",
                         accessor: (term: any) => (
-                            <span>
-                                {formatarDataLong(term.created_at)}
-                            </span>
-                        )
+                            <span>{formatarDataLong(term.created_at)}</span>
+                        ),
+                        width: "15%",
                     },
                     {
                         header: "Ações",
@@ -258,7 +256,7 @@ export default function ContractTable() {
                                         <button
                                             className="cursor-pointer"
                                             onClick={() => handlePdfClick(contrato)}
-                                            disabled={loadingId === contrato.id} // opcional: desativa botão
+                                            disabled={loadingId === contrato.id}
                                         >
                                             {loadingId === contrato.id ? (
                                                 <Loader2 className="animate-spin" />
@@ -276,7 +274,7 @@ export default function ContractTable() {
                                         <button
                                             className="cursor-pointer"
                                             onClick={() => handlePdfServicosClick(contrato)}
-                                            disabled={loadingId === contrato.id} // opcional: desativa botão
+                                            disabled={loadingId === contrato.id}
                                         >
                                             {loadingId === contrato.id ? (
                                                 <Loader2 className="animate-spin" />
@@ -304,9 +302,11 @@ export default function ContractTable() {
                                 </Tooltip>
                             </div>
                         ),
-                    }
+                        width: "15%", // ações com espaço suficiente pros botões
+                    },
                 ]}
             />
+
 
             {/* Paginação */}
             {data && (

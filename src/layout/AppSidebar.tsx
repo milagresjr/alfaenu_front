@@ -17,6 +17,11 @@ import {
   Briefcase,
   ArrowLeftRight
 } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 type NavItem = {
   name: string;
@@ -39,7 +44,10 @@ const navItems: NavItem[] = [
   {
     icon: <FileText />,
     name: "Contratos",
-    path: "/contract",
+    subItems: [
+      { name: "Contratos", path: "/contract", pro: false },
+      { name: "Subcontas", path: "/contract/subcontas", pro: false },
+    ],
   },
   {
     icon: <ArrowLeftRight />,
@@ -168,7 +176,7 @@ const AppSidebar: React.FC = () => {
                 <ChevronDownIcon
                   className={`ml-auto w-5 h-5 transition-transform duration-200  ${openSubmenu?.type === menuType &&
                     openSubmenu?.index === index
-                    ? "rotate-180 text-brand-500"
+                    ? "rotate-180 text-orange-500"
                     : ""
                     }`}
                 />
@@ -189,9 +197,11 @@ const AppSidebar: React.FC = () => {
                 >
                   {nav.icon}
                 </span>
+
                 {(isExpanded || isHovered || isMobileOpen) && (
                   <span className="menu-item-text">{nav.name}</span>
                 )}
+
               </Link>
             )
           )}
@@ -323,11 +333,11 @@ const AppSidebar: React.FC = () => {
           ? "w-[290px]"
           : isHovered
             ? "w-[290px]"
-            : "w-[90px] bg-red-700"
+            : "w-[90px]"
         }
         ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
         lg:translate-x-0`}
-      onMouseEnter={() => !isExpanded && setIsHovered(true)}
+      onMouseEnter={() => !isExpanded && setIsHovered(false)}
       onMouseLeave={() => setIsHovered(false)}
     >
       <div

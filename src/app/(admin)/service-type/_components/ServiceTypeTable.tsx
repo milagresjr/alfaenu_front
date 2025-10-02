@@ -185,11 +185,13 @@ export default function ServiceTypeTable() {
                 columns={[
                     {
                         header: "Nome",
-                        accessor: "descricao"
+                        accessor: "descricao",
+                        width: "40%",
                     },
                     {
                         header: "Estado",
                         accessor: (serviceType: ServiceTypeType) => <EstadoCell servicoType={serviceType} />,
+                        width: "13%",
                     },
                     {
                         header: "Data",
@@ -197,7 +199,8 @@ export default function ServiceTypeTable() {
                             <span>
                                 {formatarDataLong(term.created_at)}
                             </span>
-                        )
+                        ),
+                        width: "20%",
                     },
                     {
                         header: "Ações",
@@ -221,7 +224,8 @@ export default function ServiceTypeTable() {
                                 },
                             ];
                             return <DropdownActions actions={actions} />
-                        }
+                        },
+                        width: "15%",
                     }
                 ]}
             />

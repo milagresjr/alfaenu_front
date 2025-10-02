@@ -30,10 +30,10 @@ export const useMovimentos = ({ page = 1, per_page = 15, search = '', estado = '
 };
 
 
-export const useMovimentosBySubconta = ({ idSubconta = '', page = 1, per_page = 15, search = '', estado = '' } = {}) => {
+export const useMovimentosBySubconta = ({ idSubconta = '', page = 1, per_page = 15, search = '', filters = {} } = {}) => {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["movimentos-subconta", per_page, page, search, estado],
-    queryFn: () => getAllMovimentoBySubconta(idSubconta, per_page, page, search, estado),
+    queryKey: ["movimentos-subconta", idSubconta, per_page, page, search, filters],
+    queryFn: () => getAllMovimentoBySubconta(idSubconta, per_page, page, search, filters),
     staleTime: 1000 * 60 * 5,
     networkMode: 'always',
   });

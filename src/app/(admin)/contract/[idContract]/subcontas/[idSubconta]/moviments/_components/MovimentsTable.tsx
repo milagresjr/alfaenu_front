@@ -54,39 +54,12 @@ export default function MovimentsTable() {
 
     const { idContract, idSubconta } = useParams();
 
-    const { data, isLoading, isError } = useMovimentosBySubconta({ idSubconta: String(idSubconta), page, per_page: perPage, search: debouncedSearch, estado: selected === 'todos' ? '' : selected });
+    const { data, isLoading, isError } = useMovimentosBySubconta({ idSubconta: String(idSubconta), page, per_page: perPage, search: debouncedSearch, filters: {} });
 
     const { openDialogFormMovimentoSubconta, setOpenDialogFormMovimentoSubconta } = useMovimentoSubcontaStore();
 
     const [loadingPrint,setLoadingPrint] = useState(false);
 
-    // const handleEdit = (cliente: ContratoType) => {
-    //     //setSelectedCliente(cliente);
-    //     router.push(`/client/form`);
-    // };
-
-    // const queryClient = useQueryClient();
-
-    // const handleDelete = async (cliente: ContratoType) => {
-
-    //     const confirmed = await alert.confirm('Confirmar', 'Tem certeza que deseja excluir este cliente?', 'Sim', 'Não');
-
-    //     if (confirmed) {
-
-    //         deleteContrato.mutate(cliente.id, {
-    //             onSuccess: () => {
-    //                 queryClient.invalidateQueries({
-    //                     queryKey: ["clientes"],
-    //                     exact: false,
-    //                 });
-    //                 toast.success('Cliente excluído com sucesso!');
-    //             },
-    //             onError: (error) => {
-    //                 console.error("Erro ao excluir a marca:", error);
-    //             },
-    //         });
-    //     }
-    // };
 
     async function handlePrintClick(idMovimento: number) {
         try {
@@ -219,7 +192,7 @@ export default function MovimentsTable() {
             />
 
             {/* Paginação */}
-            {data && (
+            {( data && data.total > 10) && (
                 <PaginationComponent
                     currentPage={data.current_page}
                     itemsPerPage={data.per_page}

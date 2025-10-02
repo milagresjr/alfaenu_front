@@ -32,7 +32,7 @@ export default function ClientTable() {
 
     const debouncedSearch = useDebounce(search, 500);
 
-    const [openDialogDetail,setOpenDialogDetail] = useState(false);
+    const [openDialogDetail, setOpenDialogDetail] = useState(false);
 
     const { setSelectedCliente } = useClienteStore();
 
@@ -193,7 +193,7 @@ export default function ClientTable() {
                     Novo
                 </button>
             </div>
-            
+
             <TableMain
                 data={clientesFiltrados || []}
                 isLoading={isLoading}
@@ -201,32 +201,34 @@ export default function ClientTable() {
                 columns={[
                     {
                         header: "Nome",
-                        accessor: "nome"
+                        accessor: "nome",
+                        width: "30%", // ocupa a maior parte
                     },
                     {
                         header: "Telefone",
-                        accessor: "telefone"
+                        accessor: "telefone",
+                        width: "15%",
                     },
                     {
                         header: "Nº de BI/Passaporte",
-                        accessor: "n_bi"
+                        accessor: "n_bi",
+                        width: "20%",
                     },
                     {
                         header: "Estado",
                         accessor: (cliente: ClienteType) => <EstadoCell cliente={cliente} />,
+                        width: "10%",
                     },
                     {
                         header: "Data",
                         accessor: (term: any) => (
-                            <span>
-                                {formatarDataLong(term.created_at)}
-                            </span>
-                        )
+                            <span>{formatarDataLong(term.created_at)}</span>
+                        ),
+                        width: "15%",
                     },
                     {
                         header: "Ações",
                         accessor: (cliente) => {
-
                             const actions = [
                                 {
                                     label: "Editar",
@@ -249,11 +251,13 @@ export default function ClientTable() {
                                     onClick: () => handleDetalhes(cliente),
                                 },
                             ];
-                            return <DropdownActions actions={actions} />
-                        }
-                    }
+                            return <DropdownActions actions={actions} />;
+                        },
+                        width: "10%", // só precisa de pouco espaço
+                    },
                 ]}
             />
+
 
             {/* Paginação */}
             {data && (

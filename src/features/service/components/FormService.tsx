@@ -15,6 +15,8 @@ import { useServiceStore } from "../store/useServiceStore";
 import { useCreateServico, useUpdateServico } from "../hooks/useServicesQuery";
 import Select from "@/components/form/Select";
 import { useTipoServicos } from "@/features/service-type/hooks/useServiceTypeQuery";
+import { progress } from "framer-motion";
+import { useProgress } from "@bprogress/next";
 
 
 const schema = z.object({
@@ -50,14 +52,15 @@ export function FormService() {
 
     const { selectedService, setSelectedService } = useServiceStore();
 
-    const route = useRouter();
+    const progress = useProgress();
+    const router = useRouter();
 
     const create = useCreateServico();
     const update = useUpdateServico();
 
     const mode = selectedService ? "edit" : "create";
 
-    const { data: dataTipoServicos } = useTipoServicos({estado: "ativo"});
+    const { data: dataTipoServicos } = useTipoServicos({ estado: "ativo" });
 
     const tipoServico = watch("tipo");
 
@@ -91,7 +94,7 @@ export function FormService() {
                     });
                     toast.success("Serviço atualizado com sucesso");
                     setSelectedService(null);
-                    route.push("/service");
+                    router.push("/service");
                 },
                 onError: () => {
                     toast.error("Erro ao atualizar Serviço");
@@ -105,13 +108,18 @@ export function FormService() {
                         exact: false,
                     });
                     toast.success("Serviço criado com sucesso");
-                    route.push("/service");
+                    router.push("/service");
                 },
                 onError: () => {
                     toast.error("Erro ao criar Serviço");
                 }
             });
         }
+    }
+
+    function handleBack() {
+        progress.start();
+        router.back();
     }
 
     useEffect(() => {
@@ -134,11 +142,9 @@ export function FormService() {
                     <h1 className="text-lg my-3 text-gray-700 dark:text-gray-300">{mode === "create" ? "Criar Serviço" : "Editar Serviço"}</h1>
 
                     <div className="flex items-center gap-2">
-                        <Link href={"/service"}>
-                            <Button size="sm" variant="outline">
-                                Voltar
-                            </Button>
-                        </Link>
+                        <Button onClick={handleBack} size="sm" variant="outline">
+                            Voltar
+                        </Button>
                         <Button size="sm" variant="primary" disabled={(create.isPending || update.isPending)}>
                             {(create.isPending || update.isPending) ? 'Salvando...' : 'Salvar'}
                         </Button>

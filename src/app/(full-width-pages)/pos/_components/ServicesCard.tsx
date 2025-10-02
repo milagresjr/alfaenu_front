@@ -109,6 +109,7 @@ export function ServicesCard() {
                 servico_valor_externo: service.valor_externo,
                 servico_valor: service.valor
             }
+            console.log(data);
 
             create.mutate(data, {
                 onSuccess: () => {
@@ -117,6 +118,10 @@ export function ServicesCard() {
                         exact: false,
                     });
                     toast.success("Serviço inserido com sucesso!");
+                },
+                onError: (error) => {
+                    toast.error("Erro ao adicionar serviço!");
+                    console.log(error);
                 }
             })
 

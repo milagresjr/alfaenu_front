@@ -31,6 +31,58 @@ export async function gerarPdfMovimentoSubconta(documentoId: number | undefined)
   }
 }
 
+export async function gerarPdfMovimentoSubcontaByPOS(payload: any) {
+  try {
+    const response = await api.post(
+      `movimento-subconta/gerar-pdf-movimento-subconta-pos`,
+      payload, // 👉 aqui vai o payload (body da requisição)
+      {
+        responseType: "blob", // ⚠️ muito importante para PDFs
+      }
+    );
+
+    if (response.status !== 200) {
+      console.error("Erro ao gerar PDF:", response);
+      throw new Error("Erro ao gerar PDF");
+    }
+
+    // Cria uma URL temporária do PDF
+    const file = new Blob([response.data], { type: "application/pdf" });
+    const fileURL = URL.createObjectURL(file);
+
+    // Abre o PDF numa nova aba
+    window.open(fileURL, "_blank");
+  } catch (error) {
+    toast.error("Erro ao gerar PDF.");
+    console.error(error);
+  }
+}
+
+export async function gerarPdfMovimentoSubcontaAllMov(search = '', filters = {}) {
+  try {
+    const response = await api.get(`movimento-subconta/gerar-pdf-movimento-subconta`, {
+      responseType: 'blob', // ⚠️ Muito importante para PDFs
+      params: { search, ...filters }
+    });
+
+    if (response.status !== 200) {
+      console.error("Erro ao gerar PDF:", response);
+      throw new Error("Erro ao gerar PDF");
+    }
+
+    // Cria uma URL temporária do PDF
+    const file = new Blob([response.data], { type: 'application/pdf' });
+    const fileURL = URL.createObjectURL(file);
+
+    // Abre o PDF numa nova aba
+    window.open(fileURL, "_blank");
+
+  } catch (error) {
+    toast.error("Erro ao gerar PDF.");
+    console.error(error);
+  }
+}
+
 export async function gerarPdfContrato(documentoId: number | undefined) {
   try {
     const response = await api.get(`contract/${documentoId}/gerar-pdf`, {
