@@ -119,6 +119,36 @@ export function OrderSummary() {
                     <p className="text-center text-gray-700 dark:text-gray-300">Carregando...</p>
                 ) : (
                     <>
+                        {/* Resumo Totais */}
+                        {itensServicoContratoFiltrado && itensServicoContratoFiltrado.length > 0 && (
+                            <div className="w-full flex items-center justify-end">
+                                <div className="flex items-center gap-2 p-2">
+                                    <div className="text-sm text-gray-900 dark:text-gray-100">
+                                        Qtd Total:{" "}
+                                        <span className="font-semibold">
+                                            {itensServicoContratoFiltrado.reduce(
+                                                (acc, item) => acc + Number(item.qtd || 0),
+                                                0
+                                            )}
+                                        </span>
+                                    </div>
+                                    <span className="mx-1">|</span>
+                                    <div className="text-sm text-gray-900 dark:text-gray-100">
+                                        Total Geral:{" "}
+                                        <span className="font-semibold">
+                                            {formatarMoeda(
+                                                itensServicoContratoFiltrado.reduce(
+                                                    (acc, item) => acc + Number(item.total || 0),
+                                                    0
+                                                ) || 0
+                                            )}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Tabela */}
                         <table className="w-full border-collapse rounded-xl overflow-hidden shadow-md">
                             <thead className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300">
                                 <tr>
@@ -134,8 +164,12 @@ export function OrderSummary() {
                                         key={item.id}
                                         className="border-b last:border-0 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 transition"
                                     >
-                                        <td className="p-2 text-sm text-gray-900 dark:text-gray-100">{item.servico_nome}</td>
-                                        <td className="p-2 text-sm text-center text-gray-900 dark:text-gray-100">{item.qtd}</td>
+                                        <td className="p-2 text-sm text-gray-900 dark:text-gray-100">
+                                            {item.servico_nome}
+                                        </td>
+                                        <td className="p-2 text-sm text-center text-gray-900 dark:text-gray-100">
+                                            {item.qtd}
+                                        </td>
                                         <td className="p-2 text-sm text-right text-gray-900 dark:text-gray-100">
                                             {formatarMoeda(Number(item.total))}
                                         </td>
@@ -149,37 +183,9 @@ export function OrderSummary() {
                                     </tr>
                                 ))}
                             </tbody>
-
                         </table>
-                        {
-                            (itensServicoContratoFiltrado && itensServicoContratoFiltrado.length > 0) && (
-                                <div className="w-full flex justify-end mt-2">
-                                    <div className="text-right">
-                                        <div className="text-sm text-gray-900 dark:text-gray-100">
-                                            Qtd Total:{" "}
-                                            <span className="font-semibold">
-                                                {itensServicoContratoFiltrado?.reduce(
-                                                    (acc, item) => acc + Number(item.qtd || 0),
-                                                    0
-                                                )}
-                                            </span>
-                                        </div>
-                                        <div className="text-sm text-gray-900 dark:text-gray-100">
-                                            Total Geral:{" "}
-                                            <span className="font-semibold">
-                                                {formatarMoeda(
-                                                    itensServicoContratoFiltrado?.reduce(
-                                                        (acc, item) => acc + Number(item.total || 0),
-                                                        0
-                                                    ) || 0
-                                                )}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )
-                        }
                     </>
+
                 )}
             </div>
 

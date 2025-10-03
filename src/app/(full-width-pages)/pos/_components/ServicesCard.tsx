@@ -131,10 +131,10 @@ export function ServicesCard() {
     return (
         <>
             <div className="flex-1 flex flex-col gap-3 rounded-b-md border border-gray-300 dark:border-gray-600 border-t-0">
-                <div className="flex items-center justify-between gap-2 p-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-4">
                     <SearchItem onChange={(e) => setSearch(e.target.value)} />
                     <Select value={String(categoriaSelected?.id)} onValueChange={handleChangeCategoria}>
-                        <SelectTrigger className="w-[50%]">
+                        <SelectTrigger className="w-full md:w-[50%]">
                             <SelectValue placeholder="Selecione uma categoria" />
                         </SelectTrigger>
                         <SelectContent>

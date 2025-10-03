@@ -115,7 +115,7 @@ export function SubContaTable() {
     router.back();
   }
 
-  
+
 
   async function handlePrintClick(idMovimento: number) {
     try {
@@ -158,7 +158,7 @@ export function SubContaTable() {
     if (subContaContrato) {
       setLoadingId(-1);
       try {
-        await gerarPdfMovimentoSubcontaAllMov(search,filters);
+        await gerarPdfMovimentoSubcontaAllMov(search, filters);
       } finally {
         setLoadingId(null);
         handleLimparFiltros();
@@ -199,7 +199,7 @@ export function SubContaTable() {
         </h1>
       </div>
 
-      <div className="flex justify-between items-center gap-3 my-3">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-3 my-3">
         <SelectClienteContrato
           selectedClienteContrato={clienteResponsavelContrato}
           onSelectClienteContrato={(clienteContratoSelected) =>
@@ -230,7 +230,7 @@ export function SubContaTable() {
         ))}
       </div>
 
-      <div className="my-4 flex items-center justify-between gap-2">
+      <div className="my-4 flex flex-col md:flex-row items-center justify-between gap-2">
         <div className="relative w-full md:w-1/3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <Input
@@ -240,27 +240,29 @@ export function SubContaTable() {
             className="pl-10"
           />
         </div>
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleLimparFiltros}
-            className={`flex items-center bg-transparent border border-gray-400 px-3 py-1 rounded-md text-gray-600 dark:text-gray-300 gap-1 hover:bg-gray-400 dark:hover:text-gray-800 hover:text-white
+        <div className="flex flex-col md:flex-row items-center gap-2">
+          <div className="flex gap-2">
+            <button
+              onClick={handleLimparFiltros}
+              className={`flex items-center bg-transparent border border-gray-400 px-3 py-1 rounded-md text-gray-600 dark:text-gray-300 gap-1 hover:bg-gray-400 dark:hover:text-gray-800 hover:text-white
               ${!filters.tipo && !filters.dataInicio && !filters.dataFim && !filters.valorMin && !filters.valorMax ? 'opacity-50 cursor-not-allowed' : ''}
               `}
-            type="button"
-            disabled={!filters.tipo && !filters.dataInicio && !filters.dataFim && !filters.valorMin && !filters.valorMax}
-          >
-            <Trash size={15} />
-            Limpar
-          </button>
-          <button onClick={() => setOpenSheet(true)}
-            className={`flex items-center bg-transparent border border-green-600 px-3 py-1 rounded-md text-green-600 gap-1 hover:bg-green-600 hover:text-white
+              type="button"
+              disabled={!filters.tipo && !filters.dataInicio && !filters.dataFim && !filters.valorMin && !filters.valorMax}
+            >
+              <Trash size={15} />
+              Limpar
+            </button>
+            <button onClick={() => setOpenSheet(true)}
+              className={`flex items-center bg-transparent border border-green-600 px-3 py-1 rounded-md text-green-600 gap-1 hover:bg-green-600 hover:text-white
             ${!subContaContrato ? 'opacity-50 cursor-not-allowed' : ''}`}
-            type="button"
-            disabled={!subContaContrato}
-          >
-            <Funnel size={15} />
-            Filtro
-          </button>
+              type="button"
+              disabled={!subContaContrato}
+            >
+              <Funnel size={15} />
+              Filtro
+            </button>
+          </div>
           <button
             className={`bg-blue-600 px-3 py-1 rounded-md text-white flex items-center gap-1 *:
                ${!subContaContrato ? 'opacity-50 cursor-not-allowed' : ''}

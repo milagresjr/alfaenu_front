@@ -13,7 +13,7 @@ export function InfoHeader() {
 
     return (
         <>
-            <div className="flex items-center justify-between px-4 pt-2">
+            <div className="flex flex-col items-start md:flex-row md:items-center justify-between px-4 pt-2">
                 <Link href={'/'} className="text-blue-600 cursor-pointer flex items-center ga-2">
                     <ChevronLeft size={18} />
                     <span>Voltar</span>

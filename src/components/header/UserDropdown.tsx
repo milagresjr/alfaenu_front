@@ -34,7 +34,7 @@ export default function UserDropdown() {
             alt="User"
           /> */}
           <div className="w-[40px] h-[40px] text-lg font-bold text-white bg-green-600 flex justify-center items-center rounded-full">
-            {user?.nome.charAt(0).toUpperCase()}
+            {user?.nome?.charAt(0).toUpperCase()}
           </div>
         </span>
 
