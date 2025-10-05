@@ -10,9 +10,17 @@ interface CardServiceProps {
 }
 
 export function CardService({ service, onClick, disabled }: CardServiceProps) {
+
+  function handleClick() {
+    if(disabled){
+      return
+    }
+    onClick?.();
+  }
+
   return (
     <div
-      onClick={onClick}
+      onClick={handleClick}
       className={`
     rounded-md border flex flex-col min-h-[200px] 
     bg-white border-gray-300 dark:bg-gray-800 dark:border-gray-700

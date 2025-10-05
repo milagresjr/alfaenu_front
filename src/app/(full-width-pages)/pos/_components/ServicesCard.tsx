@@ -35,6 +35,7 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { ServiceTypeType } from "@/features/service-type/types";
+import { ItemServicContratoType } from "@/features/pos/types";
 
 
 export function ServicesCard() {
@@ -52,7 +53,10 @@ export function ServicesCard() {
 
     const { data: dataCategoriaServico, isLoading: loadingCategoriaServico } = useTipoServicos();
 
-    const { setClienteContrato, setCategoriaSelected, totalPago, categoriaSelected, subContaContrato, saldoAtual, clienteContrato } = usePOSStore();
+    const { setClienteContrato, setCategoriaSelected, totalPago, categoriaSelected,
+        subContaContrato, saldoAtual, clienteContrato,
+        itensServicesContrato, setItensServicesContrato
+    } = usePOSStore();
 
     const dataServicosFiltered =
         !categoriaSelected || categoriaSelected.id === "all"
@@ -77,6 +81,41 @@ export function ServicesCard() {
     const create = useCreateItensServiceContrato();
 
     const queryClient = useQueryClient();
+
+    function addServiceContrato(service: ServiceType) {
+        const { itensServicesContrato, setItensServicesContrato } = usePOSStore.getState();
+
+        // Verifica se o item já existe na lista
+        const itemExistente = itensServicesContrato.find(
+            (item) => item.service_id === Number(service.id)
+        );
+
+        let novaLista;
+
+        if (itemExistente) {
+            // Se já existir, apenas atualiza a quantidade
+            novaLista = itensServicesContrato.map((item) =>
+                item.service_id === Number(service.id)
+                    ? { ...item, qtd: Number(item.qtd) + 1 } // incrementa a quantidade
+                    : item
+            );
+        } else {
+            // Se não existir, adiciona um novo item
+            const novoItem: ItemServicContratoType = {
+                service_id: Number(service.id),
+                servico_nome: service.nome,
+                servico_valor: service.valor,
+                servico_tipo: service.tipo,
+                servico_valor_externo: service.valor_externo,
+                qtd: 1,
+            };
+
+            novaLista = [...itensServicesContrato, novoItem];
+        }
+
+        setItensServicesContrato(novaLista);
+    }
+
 
     async function handleServiceClik(service: ServiceType) {
 
@@ -189,7 +228,7 @@ export function ServicesCard() {
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 pb-4 px-4 items-start min-h-[calc(100vh-318px)] max-h-[calc(100vh-318px)] overflow-auto custom-scrollbar">
                     {loadingServicos ? (
-                        Array.from({ length: 4 }).map((_, index) => (
+                        Array.from({ length: 5 }).map((_, index) => (
                             <Skeleton key={index} className="h-[200px] rounded-md" />
                         ))
                     ) : (
@@ -197,8 +236,9 @@ export function ServicesCard() {
                             <CardService
                                 key={servico.id}
                                 service={servico}
-                                onClick={() => handleServiceClik(servico)}
-                                disabled={clienteContrato?.estado !== "ativo"}
+                                onClick={() => addServiceContrato(servico)}
+                                // disabled={clienteContrato?.estado !== "ativo"}
+                                disabled={!subContaContrato}
                             />
                         ))
                     )}

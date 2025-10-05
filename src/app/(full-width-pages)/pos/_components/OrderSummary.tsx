@@ -1,5 +1,6 @@
 "use client";
 
+import { DropdownActions } from "@/components/dropdown-action-menu/drop-actions-menu";
 import { useContratos } from "@/features/contract/hooks/useContractQuery";
 import { ContratoType } from "@/features/contract/types";
 import { useMovimentosBySubconta } from "@/features/movimento-subconta/hooks/useMovimentosQuery";
@@ -12,9 +13,14 @@ import { ItemServicContratoType } from "@/features/pos/types";
 import { alert } from "@/lib/alert";
 import { formatarMoeda } from "@/lib/helpers";
 import { useQueryClient } from "@tanstack/react-query";
-import { Edit2, Trash2 } from "lucide-react";
-import { useEffect } from "react";
-import { toast } from "react-toastify";
+import { Info, Trash } from "lucide-react";
+import { useEffect, useState } from "react";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { QuantityDialog } from "./QuantityDialog";
 
 export function OrderSummary() {
 
@@ -24,7 +30,10 @@ export function OrderSummary() {
         clienteContrato,
         setSaldoAtual,
         setClienteContrato,
-        setSubContaContrato
+        setSubContaContrato,
+
+        itensServicesContrato,
+        setItensServicesContrato
     } = usePOSStore();
 
     const { data: dataContratos } = useContratos(1, 100000);
@@ -33,6 +42,9 @@ export function OrderSummary() {
     const { data: dataItensServiceContrato, isLoading: isLoadingItensServiceContrato } = useItensServiceContrato();
 
     const { data, isLoading, isError } = useMovimentosBySubconta({ idSubconta: String(subContaContrato?.id), page: 1, per_page: 1000, search: '', filters: {} });
+
+    const [openDialogQtd, setOpenDialogQtd] = useState(false);
+    const [serviceSelected, setServiceSelected] = useState<ItemServicContratoType | null>(null);
 
     const saldoTotalSubconta = data?.saldo_total || 0;
 
@@ -60,34 +72,53 @@ export function OrderSummary() {
         s => Number(s?.id) === Number(subContaContrato?.id)
     );
 
-    const totalServicos = subContasFiltradas?.servicos?.reduce(
-        (acc, servico: any) => acc + Number(servico.servico_valor),
-        0
-    );
+    const totalQtd = itensServicesContrato.reduce((acc, item) => (
+        acc + Number(item?.qtd)
+    ), 0);
+
+    const totalValor = itensServicesContrato.reduce((acc, item) => (
+        acc + Number(item?.servico_valor) * Number(item?.qtd)
+    ), 0);
 
     const saldoTotal = Number(totalPago) - Number(TotalsaidaPorSubConta);
 
-    const deleteItemServico = useDeleteItensServiceContrato();
+    function updateQtdServiceContrato(service_id: number, novaQtd: number) {
+        const { itensServicesContrato, setItensServicesContrato } = usePOSStore.getState();
 
-    const queryClient = useQueryClient();
+        const novaLista = itensServicesContrato.map((item) =>
+            item.service_id === service_id
+                ? { ...item, qtd: novaQtd }
+                : item
+        );
 
-    const handleDelete = async (service: ItemServicContratoType) => {
-        // const confirmed = await alert.confirm('Confirmar', 'Tem certeza que deseja excluir este serviço da lista?', 'Sim', 'Não');
+        setItensServicesContrato(novaLista);
+    }
 
-        deleteItemServico.mutate(Number(service.id), {
-            onSuccess: () => {
-                queryClient.invalidateQueries({
-                    queryKey: ["servicos"],
-                    exact: false,
-                });
-                toast.success('Serviço excluído da lista com sucesso!');
-            },
-            onError: (error) => {
-                console.error("Erro ao excluir o Serviço:", error);
-            },
-        });
+    function removeServiceContrato(service_id: number) {
+        const { itensServicesContrato, setItensServicesContrato } = usePOSStore.getState();
 
-    };
+        const novaLista = itensServicesContrato.filter(
+            (item) => item.service_id !== service_id
+        );
+
+        setItensServicesContrato(novaLista);
+    }
+
+    async function clearItensServicesContrato() {
+        const { setItensServicesContrato } = usePOSStore.getState();
+
+        const confirmed = await alert.confirm("Limpar Carrinho", "Deseja limpar o carrinho?", "Sim", "Não");
+
+        if (confirmed) {
+            // Define a lista como vazia
+            setItensServicesContrato([]);
+        }
+    }
+
+    function handleQtdClick(service: ItemServicContratoType) {
+        setServiceSelected(service)
+        setOpenDialogQtd(true);
+    }
 
     useEffect(() => {
         setSaldoAtual(saldoTotal);
@@ -120,28 +151,30 @@ export function OrderSummary() {
                 ) : (
                     <>
                         {/* Resumo Totais */}
-                        {itensServicoContratoFiltrado && itensServicoContratoFiltrado.length > 0 && (
-                            <div className="w-full flex items-center justify-end">
+                        {itensServicesContrato && itensServicesContrato.length > 0 && (
+                            <div className="w-full flex items-center justify-between">
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button onClick={clearItensServicesContrato} className="cursor-pointer">
+                                            <Trash size={15} />
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Limpar carrinho</p>
+                                    </TooltipContent>
+                                </Tooltip>
                                 <div className="flex items-center gap-2 p-2">
                                     <div className="text-sm text-gray-900 dark:text-gray-100">
                                         Qtd Total:{" "}
                                         <span className="font-semibold">
-                                            {itensServicoContratoFiltrado.reduce(
-                                                (acc, item) => acc + Number(item.qtd || 0),
-                                                0
-                                            )}
+                                            {totalQtd}
                                         </span>
                                     </div>
                                     <span className="mx-1">|</span>
                                     <div className="text-sm text-gray-900 dark:text-gray-100">
                                         Total Geral:{" "}
                                         <span className="font-semibold">
-                                            {formatarMoeda(
-                                                itensServicoContratoFiltrado.reduce(
-                                                    (acc, item) => acc + Number(item.total || 0),
-                                                    0
-                                                ) || 0
-                                            )}
+                                            {formatarMoeda(totalValor)}
                                         </span>
                                     </div>
                                 </div>
@@ -159,29 +192,46 @@ export function OrderSummary() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {itensServicoContratoFiltrado?.map((item) => (
-                                    <tr
-                                        key={item.id}
-                                        className="border-b last:border-0 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 transition"
-                                    >
-                                        <td className="p-2 text-sm text-gray-900 dark:text-gray-100">
-                                            {item.servico_nome}
-                                        </td>
-                                        <td className="p-2 text-sm text-center text-gray-900 dark:text-gray-100">
-                                            {item.qtd}
-                                        </td>
-                                        <td className="p-2 text-sm text-right text-gray-900 dark:text-gray-100">
-                                            {formatarMoeda(Number(item.total))}
-                                        </td>
-                                        <td className="p-2 text-sm flex justify-center gap-2">
-                                            <Trash2
-                                                onClick={() => handleDelete(item)}
-                                                className="text-red-500 cursor-pointer hover:text-red-600 transition"
-                                                size={15}
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
+                                {itensServicesContrato?.map((item) => {
+                                    const actions = [
+                                        // {
+                                        //     label: "Editar",
+                                        //     icon: <Edit />,
+                                        //     onClick: () => handleDelete(item),
+                                        // },
+                                        {
+                                            label: "Excluir",
+                                            icon: <Trash />,
+                                            onClick: () => removeServiceContrato(Number(item.service_id)),
+                                        },
+                                        {
+                                            label: "Qtd",
+                                            icon: <Info />,
+                                            onClick: () => handleQtdClick(item),
+                                        },
+                                    ];
+
+                                    return (
+                                        <tr
+                                            key={item.id}
+                                            className="border-b last:border-0 border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900 transition"
+                                        >
+                                            <td className="p-2 text-sm text-gray-900 dark:text-gray-100">
+                                                {item.servico_nome}
+                                            </td>
+                                            <td className="p-2 text-sm text-center text-gray-900 dark:text-gray-100">
+                                                {item.qtd}
+                                            </td>
+                                            <td className="p-2 text-sm text-right text-gray-900 dark:text-gray-100">
+                                                {formatarMoeda(Number(item.servico_valor) * Number(item.qtd))}
+                                            </td>
+                                            <td className="p-2 text-sm flex justify-center gap-2">
+                                                <DropdownActions actions={actions} />
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+
                             </tbody>
                         </table>
                     </>
@@ -228,6 +278,14 @@ export function OrderSummary() {
                     </span>
                 </div>
             </div> */}
+
+            <QuantityDialog
+                open={openDialogQtd}
+                onOpenChange={setOpenDialogQtd}
+                produtoNome={serviceSelected?.servico_nome}
+                qtdInicial={String(serviceSelected?.qtd)}
+                onConfirm={(valor) => updateQtdServiceContrato(Number(serviceSelected?.service_id), Number(valor))}
+            />
         </div>
 
     )

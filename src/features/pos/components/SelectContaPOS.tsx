@@ -86,7 +86,7 @@ export function SelectContaPOS({
                     </label>
                 </div>
                 <div
-                    className={`relative h-11 w-full flex items-center text-sm pl-4 pr-8 rounded-lg shadow-theme-xs dark:text-white/90 dark:bg-gray-900 border border-gray-300 dark:border-gray-600
+                    className={`relative h-11 w-full flex items-center text-sm pl-4 pr-8 rounded-lg shadow-theme-xs bg-white/90 dark:text-white/90 dark:bg-gray-900 border border-gray-300 dark:border-gray-600
                         ${(!clienteContrato) && 'bg-gray-300 cursor-not-allowed'}`}
                     onClick={() => {
                         if (!clienteContrato) return; // só abre se clienteContrato existir

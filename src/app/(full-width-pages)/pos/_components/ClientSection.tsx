@@ -21,6 +21,9 @@ export function ClientSection() {
         subContaContrato,
         setTotalPago,
         setTotalPorPagar,
+
+        itensServicesContrato,
+        setItensServicesContrato
     } = usePOSStore();
 
     const { data, isLoading, isError } = useMovimentosBySubconta({ idSubconta: String(subContaContrato?.id), page: 1, per_page: 1000, search: '', filters: {} });
@@ -33,9 +36,11 @@ export function ClientSection() {
         (item) => (item.subconta_id === subContaContrato?.id && item.contract_id === clienteContrato?.id)
     );
 
-    const [loadingDoc,setLoadingDoc] = useState(false);
+    const [loadingDoc, setLoadingDoc] = useState(false);
 
-    const totalGeralServico = itensServicoContratoFiltrado?.reduce((acc, item) => acc + Number(item.total || 0), 0);
+    const totalValor = itensServicesContrato.reduce((acc, item) => (
+        acc + Number(item?.servico_valor) * Number(item?.qtd)
+    ), 0);
 
     useEffect(() => {
         if (!clienteContrato) return;
@@ -60,13 +65,27 @@ export function ClientSection() {
 
     const queryClient = useQueryClient();
 
+    async function clearItensServicesContrato() {
+        const { setItensServicesContrato } = usePOSStore.getState();
+
+        const confirmed = await alert.confirm("Cancelar Documento", "Deseja cancelar o documento?", "Sim", "Não");
+
+        if (confirmed) {
+            // Define a lista como vazia
+            setItensServicesContrato([]);
+            setClienteContrato(null);
+            setSubContaContrato(null);
+        }
+    }
+
+
     async function handleFinalizarDocumento() {
 
         const confirmed = await alert.confirm("Finalizar Documento", "Deseja finalizar o documento?", "Sim", "Não");
 
         if (confirmed) {
 
-            if (Number(totalGeralServico) > saldoTotalSubconta) {
+            if (Number(totalValor) > saldoTotalSubconta) {
                 toast.error(
                     <div>
                         Saldo da subconta insuficiente! <br />
@@ -77,7 +96,7 @@ export function ClientSection() {
             }
 
             const data = {
-                itens: itensServico,
+                itens: itensServicesContrato,
                 contract_id: idContrato,
                 subconta_id: idSubconta,
             }
@@ -92,17 +111,13 @@ export function ClientSection() {
                     queryKey: ['movimentos-subconta'],
                     exact: false
                 });
-                queryClient.invalidateQueries({
-                    queryKey: ['item-service-contrato'],
-                    exact: false
-                });
                 setLoadingDoc(false);
             }
 
         }
     }
 
-    if(loadingDoc) {
+    if (loadingDoc) {
         return (
             <LoadingDialog />
         )
@@ -128,7 +143,7 @@ export function ClientSection() {
             </div>
 
             <div className="flex justify-end gap-2 mt-4">
-                <button className="flex items-center gap-2 px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition">
+                <button onClick={clearItensServicesContrato} className="flex items-center gap-2 px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition">
                     <XCircle className="w-5 h-5" />
                     Cancelar
                 </button>
