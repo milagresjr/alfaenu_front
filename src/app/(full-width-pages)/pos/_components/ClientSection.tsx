@@ -60,8 +60,8 @@ export function ClientSection() {
         subconta_id: item.subconta_id,
     })) || [];
 
-    const idContrato = itensServicoContratoFiltrado?.[0]?.contract_id ?? null;
-    const idSubconta = itensServicoContratoFiltrado?.[0]?.subconta_id ?? null;
+    const idContrato = clienteContrato?.id ?? null;
+    const idSubconta = subContaContrato?.id ?? null;
 
     const queryClient = useQueryClient();
 
@@ -111,6 +111,7 @@ export function ClientSection() {
                     queryKey: ['movimentos-subconta'],
                     exact: false
                 });
+                setItensServicesContrato([]);
                 setLoadingDoc(false);
             }
 

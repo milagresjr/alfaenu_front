@@ -13,7 +13,7 @@ export const api = axios.create(
     }
 );
 
-// Interceptor para adicionar token de autenticação, se necessário
+//Interceptor para adicionar token de autenticação, se necessário
 api.interceptors.request.use(
     (config) => {
         const token = Cookies.get('token'); // cookies.getItem('token'); // localStorage.getItem('token'); // Substitua pela lógica de obtenção do token
