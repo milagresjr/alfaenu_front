@@ -112,40 +112,63 @@ export function InfoHeader() {
                         transition={{ duration: 0.15 }}
                         className="absolute top-14 left-4 z-50 w-64 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg py-2"
                     >
-                        {navItems.map((item) => {
+                        {navItems.map((item: any) => {
                             const hasChildren = !!item.children;
 
                             return (
                                 <div key={item.name}>
-                                    <button
-                                        onClick={() =>
-                                            hasChildren
-                                                ? handleSubmenuToggle(item.name)
-                                                : setOpen(false)
-                                        }
-                                        className="w-full flex items-center justify-between gap-3 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
-                                    >
-                                        <div className="flex items-center gap-3">
-                                            {item.icon}
-                                            {hasChildren ? (
-                                                <span className="text-left">{item.name}</span>
-                                            ) : (
-                                                <Link
-                                                    href={item.path ?? "#"}
-                                                    className="flex-1 text-left"
-                                                    onClick={() => setOpen(false)}
+                                    {
+                                        item && hasChildren ? (
+                                            <button
+                                                onClick={() => handleSubmenuToggle(item.name)}
+                                                className="w-full flex items-center justify-between px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300"
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    {item.icon}
+                                                    <span>{item.name}</span>
+                                                </div>
+                                                {openSubmenu === item.name ? (
+                                                    <ChevronUp size={16} />
+                                                ) : (
+                                                    <ChevronDown size={16} />
+                                                )}
+                                            </button>
+                                        ) : (
+                                            <Link
+                                                href={item.path ?? "#"}
+                                                className="flex-1 text-left"
+                                                onClick={() => setOpen(false)}
+                                            >
+                                                <button
+                                                    onClick={() =>
+                                                        hasChildren
+                                                            ? handleSubmenuToggle(item.name)
+                                                            : setOpen(false)
+                                                    }
+                                                    className="w-full flex items-center justify-between gap-3 px-4 py-2 text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-md transition-colors"
                                                 >
-                                                    {item.name}
-                                                </Link>
-                                            )}
-                                        </div>
-                                        {hasChildren &&
-                                            (openSubmenu === item.name ? (
-                                                <ChevronUp size={16} />
-                                            ) : (
-                                                <ChevronDown size={16} />
-                                            ))}
-                                    </button>
+                                                    <div className="flex items-center gap-3">
+                                                        {item.icon}
+                                                        {hasChildren ? (
+                                                            <span className="text-left">{item.name}</span>
+                                                        ) : (
+
+                                                            <span>
+                                                                {item.name}
+                                                            </span>
+
+                                                        )}
+                                                    </div>
+                                                    {hasChildren &&
+                                                        (openSubmenu === item.name ? (
+                                                            <ChevronUp size={16} />
+                                                        ) : (
+                                                            <ChevronDown size={16} />
+                                                        ))}
+                                                </button>
+                                            </Link>
+                                        )
+                                    }
 
                                     {/* Subitens */}
                                     <AnimatePresence>
@@ -157,7 +180,7 @@ export function InfoHeader() {
                                                 transition={{ duration: 0.2 }}
                                                 className="pl-10 pr-4 pb-2 flex flex-col gap-1"
                                             >
-                                                {item.children.map((child) => (
+                                                {item.children.map((child: any) => (
                                                     <Link
                                                         key={child.name}
                                                         href={child.path}

@@ -125,7 +125,7 @@ export function OrderSummary() {
     }, [saldoTotal]);
 
     return (
-        <div className="w-full p-2 bg-gray-200 dark:bg-gray-800 flex flex-col gap-2 justify-start h-[calc(100vh-400px)] md:h-[calc(100vh-90px)] md:w-[400px] rounded-md">
+        <div className="w-full p-2 bg-gray-200 dark:bg-gray-800 flex flex-col gap-2 justify-start h-[calc(100vh-200px)] md:h-[calc(100vh-90px)] md:w-[400px] rounded-md">
 
             <div className="flex flex-col gap-2 border-b">
                 <SelectClientPOS
@@ -135,15 +135,19 @@ export function OrderSummary() {
                     }
                     error={!clienteContrato}
                 />
-                <SelectContaPOS
-                    selectedSubconta={subContaContrato}
-                    onSelectSubconta={(subContaSelected) =>
-                        setSubContaContrato(subContaSelected)
-                    }
-                    error={!subContaContrato}
-                    totalPorSubConta={saldoTotalSubconta}
-                    saidaPorSubConta={totalSaidas}
-                />
+                {
+                    clienteContrato && (
+                        <SelectContaPOS
+                            selectedSubconta={subContaContrato}
+                            onSelectSubconta={(subContaSelected) =>
+                                setSubContaContrato(subContaSelected)
+                            }
+                            error={!subContaContrato}
+                            totalPorSubConta={saldoTotalSubconta}
+                            saidaPorSubConta={totalSaidas}
+                        />
+                    )
+                }
             </div>
             <div className="flex flex-col gap-2 overflow-auto custom-scrollbar p-2">
                 {isLoadingItensServiceContrato ? (

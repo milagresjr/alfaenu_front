@@ -26,6 +26,9 @@ type POStoState = {
             | ItemServicContratoType[]
             | ((prev: ItemServicContratoType[]) => ItemServicContratoType[])
     ) => void;
+
+    openSheetAddService: boolean;
+    setOpenSheetAddService: (open: boolean) => void;
 }
 
 export const usePOSStore = create<POStoState>((set) => ({
@@ -55,6 +58,9 @@ export const usePOSStore = create<POStoState>((set) => ({
             itensServicesContrato:
                 typeof updater === "function" ? updater(state.itensServicesContrato) : updater,
         })),
+
+    openSheetAddService: false,
+    setOpenSheetAddService: (open) => set({ openSheetAddService: open }),
 }));
 
 

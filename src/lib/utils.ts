@@ -58,9 +58,34 @@ export async function gerarPdfMovimentoSubcontaByPOS(payload: any) {
   }
 }
 
-export async function gerarPdfMovimentoSubcontaAllMov(search = '', filters = {}) {
+export async function gerarPdfMovimentoSubcontaAllMov(search = '', idContrato: number | string, filters = {}) {
   try {
-    const response = await api.get(`movimento-subconta/gerar-pdf-movimento-subconta`, {
+    const response = await api.get(`movimento-subconta/gerar-pdf-movimento-subconta/${idContrato}`, {
+      responseType: 'blob', // ⚠️ Muito importante para PDFs
+      params: { search, ...filters }
+    });
+
+    if (response.status !== 200) {
+      console.error("Erro ao gerar PDF:", response);
+      throw new Error("Erro ao gerar PDF");
+    }
+
+    // Cria uma URL temporária do PDF
+    const file = new Blob([response.data], { type: 'application/pdf' });
+    const fileURL = URL.createObjectURL(file);
+
+    // Abre o PDF numa nova aba
+    window.open(fileURL, "_blank");
+
+  } catch (error) {
+    toast.error("Erro ao gerar PDF.");
+    console.error(error);
+  }
+}
+
+export async function gerarPdfMovimentoContratoAllMov(search = '', idContrato: number | string, filters = {}) {
+  try {
+    const response = await api.get(`movimento-subconta/gerar-pdf-movimento-contrato/${idContrato}`, {
       responseType: 'blob', // ⚠️ Muito importante para PDFs
       params: { search, ...filters }
     });

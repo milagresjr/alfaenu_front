@@ -20,7 +20,7 @@ import { MovimentoSubcontaType } from "../type";
 
 export const useMovimentos = ({ page = 1, per_page = 15, search = '', estado = '' } = {}) => {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["movimentos-subconta", per_page, page, search, estado],
+    queryKey: ["movimentos", per_page, page, search, estado],
     queryFn: () => getAllMovimento(per_page, page, search, estado),
     staleTime: 1000 * 60 * 5,
     networkMode: 'always',
@@ -43,33 +43,33 @@ export const useMovimentosBySubconta = ({ idSubconta = '', page = 1, per_page = 
 
 
 export const useCreateMovimento = () => {
-    const mutation = useMutation({
-        mutationFn: (newService: MovimentoSubcontaType) => createMovimento(newService),
-    });
+  const mutation = useMutation({
+    mutationFn: (newService: MovimentoSubcontaType) => createMovimento(newService),
+  });
 
-    return mutation;
+  return mutation;
 };
 
 
 export const useUpdateMovimento = () => {
-    const mutation = useMutation({
-        mutationFn: ({ id, ...data }: MovimentoSubcontaType) => updateMovimento(Number(id), data),
-    });
+  const mutation = useMutation({
+    mutationFn: ({ id, ...data }: MovimentoSubcontaType) => updateMovimento(Number(id), data),
+  });
 
-    return mutation;
+  return mutation;
 };
 
 export const useDeleteMovimento = () => {
-    const queryClient = useQueryClient();
-    const mutation = useMutation({
-        mutationFn: (id: number | undefined) => deleteMovimento(id),
-        onSuccess: () => {
-            queryClient.invalidateQueries({
-                queryKey: ["Movimentos-subconta"],
-                exact: false,
-            });
-        },
-    });
+  const queryClient = useQueryClient();
+  const mutation = useMutation({
+    mutationFn: (id: number | undefined) => deleteMovimento(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["Movimentos-subconta"],
+        exact: false,
+      });
+    },
+  });
 
-    return mutation;
+  return mutation;
 }

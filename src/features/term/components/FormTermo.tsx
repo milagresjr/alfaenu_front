@@ -214,6 +214,10 @@ export function FormTermo() {
                                             <td className="px-4 py-2">Número de BI do Cliente</td>
                                         </tr>
                                         <tr>
+                                            <td className="px-4 py-2 font-mono text-blue-600">#endereco_cliente</td>
+                                            <td className="px-4 py-2">Endereço do Cliente</td>
+                                        </tr>
+                                        <tr>
                                             <td className="px-4 py-2 font-mono text-blue-600">#valor_total</td>
                                             <td className="px-4 py-2">Valor total pago pelo Cliente</td>
                                         </tr>
@@ -232,6 +236,10 @@ export function FormTermo() {
                                         <tr>
                                             <td className="px-4 py-2 font-mono text-blue-600">#assinatura_cliente</td>
                                             <td className="px-4 py-2">Assinatura do Cliente</td>
+                                        </tr>
+                                        <tr>
+                                            <td className="px-4 py-2 font-mono text-blue-600">#data_emissao</td>
+                                            <td className="px-4 py-2">Data de emissão do termo</td>
                                         </tr>
                                     </tbody>
                                 </table>

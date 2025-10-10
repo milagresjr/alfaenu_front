@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowDownCircle, ArrowUpCircle, ChevronLeft, Edit, File, FileText, Funnel, Info, Loader2, Lock, Plus, Printer, Search, Trash, Unlock, UserCircle2, Wallet, Wrench } from "lucide-react";
 import { useContratos, useDeleteContrato } from "@/features/contract/hooks/useContractQuery";
-import { gerarPdfContrato, gerarPdfMovimentoSubconta, gerarPdfMovimentoSubcontaAllMov, gerarPdfServicosContrato } from "@/lib/utils";
+import { gerarPdfContrato, gerarPdfMovimentoContratoAllMov, gerarPdfMovimentoSubconta, gerarPdfMovimentoSubcontaAllMov, gerarPdfServicosContrato } from "@/lib/utils";
 import { formatarDataLong, formatarMoeda } from "@/lib/helpers";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@uidotdev/usehooks";
@@ -49,6 +49,8 @@ export function SubContaTable() {
   const [openSheet, setOpenSheet] = useState(false);
 
   const [loadingId, setLoadingId] = useState<number | null>(null);
+
+  const [loadingPrintAllContrato, setLoadingPrintAllContrato] = useState(false);
 
   // const { selectedCliente, set } = useContratoStore();
 
@@ -158,9 +160,25 @@ export function SubContaTable() {
     if (subContaContrato) {
       setLoadingId(-1);
       try {
-        await gerarPdfMovimentoSubcontaAllMov(search, filters);
+        await gerarPdfMovimentoSubcontaAllMov(search, subContaContrato?.id!, filters);
       } finally {
         setLoadingId(null);
+        handleLimparFiltros();
+      }
+    }
+  }
+
+    async function handlePrintAllMovContrato() {
+    if (data?.total === 0) {
+      toast.warning("Nenhum movimento encontrado para este contrato.");
+      return;
+    }
+    if (subContaContrato) {
+      setLoadingPrintAllContrato(true);
+      try {
+        await gerarPdfMovimentoContratoAllMov(search, clienteResponsavelContrato?.id!, filters);
+      } finally {
+        setLoadingPrintAllContrato(false);
         handleLimparFiltros();
       }
     }
@@ -180,16 +198,28 @@ export function SubContaTable() {
           <ChevronLeft size={18} />
           <span>Voltar</span>
         </span>
-        <button
-          className="flex items-center gap-2 bg-purple-600 text-white px-3 py-1 rounded-md hover:bg-purple-700"
-          type="button"
-          disabled={!subContaContrato}
-          onClick={handlePrintAllMov}
-          title={!subContaContrato ? "Selecione uma subconta para exportar nota" : ""}
-        >
-          <Printer size={18} />
-          {loadingId === -1 ? 'Imprimindo...' : 'Imprimir'}
-        </button>
+        <div className="flex gap-2">
+          <button
+            className="flex items-center gap-2 bg-amber-600 text-white px-3 py-1 rounded-md hover:bg-amber-700"
+            type="button"
+            disabled={!clienteResponsavelContrato || loadingPrintAllContrato}
+            onClick={handlePrintAllMovContrato}
+            title={!subContaContrato ? "Selecione um contrato" : ""}
+          >
+            <Printer size={18} />
+            {loadingPrintAllContrato ? 'Imprimindo...' : 'Imprimir Mov. Geral'}
+          </button>
+          <button
+            className="flex items-center gap-2 bg-purple-600 text-white px-3 py-1 rounded-md hover:bg-purple-700"
+            type="button"
+            disabled={!subContaContrato}
+            onClick={handlePrintAllMov}
+            title={!subContaContrato ? "Selecione uma subconta para exportar nota" : ""}
+          >
+            <Printer size={18} />
+            {loadingId === -1 ? 'Imprimindo...' : 'Imprimir Mov. Subconta'}
+          </button>
+        </div>
       </div>
 
 

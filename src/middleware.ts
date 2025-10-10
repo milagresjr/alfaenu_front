@@ -21,30 +21,36 @@
 // export const config = {
 //   matcher: ['/:path*'],
 // };
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
 
-import { NextResponse } from 'next/server'; 
-import type { NextRequest } from 'next/server'; 
+export function middleware(req: NextRequest) {
+  const token = req.cookies.get("token")?.value;
+  const { pathname } = req.nextUrl;
 
-export function middleware(req: NextRequest) { 
+  // Páginas públicas (sem necessidade de login)
+  const publicPaths = ["/signin"];
+  const isPublicRoute = publicPaths.includes(pathname) || pathname.startsWith("/api");
 
-  const token = req.cookies.get('token')?.value; // Obtém o token do cookie 
+  // Ignorar rotas estáticas (Next.js e assets)
+  if (
+    pathname.startsWith("/_next") ||
+    pathname.startsWith("/images") ||
+    pathname.startsWith("/favicon.ico")
+  ) {
+    return NextResponse.next();
+  }
 
-  const isAuthRoute = req.nextUrl.pathname === '/signin'; 
+  // Se não tiver token e a rota não for pública → redireciona
+  if (!token && !isPublicRoute) {
+    const loginUrl = new URL("/signin", req.url);
+    return NextResponse.redirect(loginUrl);
+  }
 
-  const isPublicRoute = isAuthRoute || req.nextUrl.pathname.startsWith('/api'); 
+  return NextResponse.next();
+}
 
-  if (!token && !isPublicRoute) { // Redireciona para /signIn se não estiver autenticado 
-
-  const loginUrl = new URL('/signin', req.url); 
-
-  return NextResponse.redirect(loginUrl); 
-  
-  } // Permite acesso às rotas públicas ou se o token estiver presente 
-
-  return NextResponse.next(); 
-
-} 
-
-export const config = { 
-  matcher: ['/((?!api|_next/static|_next/image|public|images/*.jpg|favicon.ico).*)'], 
-}; 
+export const config = {
+  // Ignora APIs, arquivos estáticos e imagens
+  matcher: ["/((?!api|_next/static|_next/image|images|favicon.ico).*)"],
+};

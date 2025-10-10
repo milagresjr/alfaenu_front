@@ -24,7 +24,14 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { CustomPagination } from "@/components/custom-pagination/custom-pagination";
 import { SelectClientPOS } from "@/features/pos/components/SelectClientPOS";
 import * as React from "react"
-
+import {
+    Sheet,
+    SheetContent,
+    SheetDescription,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet";
 import {
     Select,
     SelectContent,
@@ -36,6 +43,7 @@ import {
 } from "@/components/ui/select"
 import { ServiceTypeType } from "@/features/service-type/types";
 import { ItemServicContratoType } from "@/features/pos/types";
+import { ServicosContent } from "./ServiceContent";
 
 
 export function ServicesCard() {
@@ -55,7 +63,8 @@ export function ServicesCard() {
 
     const { setClienteContrato, setCategoriaSelected, totalPago, categoriaSelected,
         subContaContrato, saldoAtual, clienteContrato,
-        itensServicesContrato, setItensServicesContrato
+        itensServicesContrato, setItensServicesContrato,
+        openSheetAddService, setOpenSheetAddService
     } = usePOSStore();
 
     const dataServicosFiltered =
@@ -93,12 +102,13 @@ export function ServicesCard() {
         let novaLista;
 
         if (itemExistente) {
-            // Se já existir, apenas atualiza a quantidade
+            //Se já existir, apenas atualiza a quantidade
             novaLista = itensServicesContrato.map((item) =>
                 item.service_id === Number(service.id)
                     ? { ...item, qtd: Number(item.qtd) + 1 } // incrementa a quantidade
                     : item
             );
+            toast.info("Quantidade do serviço atualizada na lista!");
         } else {
             // Se não existir, adiciona um novo item
             const novoItem: ItemServicContratoType = {
@@ -111,6 +121,8 @@ export function ServicesCard() {
             };
 
             novaLista = [...itensServicesContrato, novoItem];
+
+            toast.success("Serviço adicionado na lista!");
         }
 
         setItensServicesContrato(novaLista);
@@ -169,98 +181,53 @@ export function ServicesCard() {
 
     return (
         <>
-            <div className="flex-1 flex flex-col gap-3 rounded-b-md border border-gray-300 dark:border-gray-600 border-t-0">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 p-4">
-                    <SearchItem onChange={(e) => setSearch(e.target.value)} />
-                    <Select value={String(categoriaSelected?.id)} onValueChange={handleChangeCategoria}>
-                        <SelectTrigger className="w-full md:w-[50%]">
-                            <SelectValue placeholder="Selecione uma categoria" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectGroup>
-                                {loadingCategoriaServico ? (
-                                    <SelectLabel>Carregando...</SelectLabel>
-                                ) : (
-                                    <>
-                                        <SelectItem value="all">Todas categoria</SelectItem>
-                                        {dataCategoriaServico?.data.map((categoria, index) => (
-                                            <SelectItem key={index} value={String(categoria.id)}>
-                                                {categoria.descricao}
-                                            </SelectItem>
-                                        ))}
-                                    </>
-                                )}
-                            </SelectGroup>
-                        </SelectContent>
-                    </Select>
-                </div>
-                {/* <div className="flex justify-center gap-2 px-4">
-                    <Carousel className="w-full max-w-lg">
-                        <CarouselContent className="-ml-1">
-                            <CarouselItem className="pl-1 md:basis-1/2 lg:basis-1/3">
-                                <div className="p-1">
-                                    <CardCategoria selected={(!categoriaSelected || categoriaSelected?.id === "all")} categoria={{ id: "all", descricao: "Todas" }} />
-                                </div>
-                            </CarouselItem>
-                            {
-                                loadingCategoriaServico ? (
-                                    Array.from({ length: 4 }).map((_, index) => (
-                                        <CarouselItem key={index} className="pl-1 md:basis-1/2 lg:basis-1/3">
-                                            <Skeleton className="h-[40px] rounded-md" />
-                                        </CarouselItem>
-                                    ))
-                                ) :
-                                    dataCategoriaServico?.data.map((categoria, index) => (
-                                        <CarouselItem key={index} className="pl-1 md:basis-1/2 lg:basis-1/3">
-                                            <div className="p-1">
-                                                <CardCategoria selected={categoria == categoriaSelected} categoria={categoria} />
-                                            </div>
-                                        </CarouselItem>
-                                    ))
-                            }
-                        </CarouselContent>
-                        <CarouselPrevious />
-                        <CarouselNext />
-                    </Carousel>
-                </div> */}
 
-                <hr className="" />
+            {/* CARD SERVICE */}
+            <div className="hidden md:block">
+                <ServicosContent
+                    search={search}
+                    loadingCategoriaServico={loadingCategoriaServico}
+                    dataCategoriaServico={dataCategoriaServico}
+                    categoriaSelected={categoriaSelected}
+                    handleChangeCategoria={handleChangeCategoria}
+                    setSearch={setSearch}
+                    loadingServicos={loadingServicos}
+                    dataServicosFiltered={dataServicosFiltered}
+                    addServiceContrato={addServiceContrato}
+                    clienteContrato={clienteContrato}
+                    subContaContrato={subContaContrato}
+                    dataServicos={dataServicos}
+                    setPage={setPage}
+                    setPerPage={setPerPage}
+                />
+            </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 pb-4 px-4 items-start min-h-[calc(100vh-318px)] max-h-[calc(100vh-318px)] overflow-auto custom-scrollbar">
-                    {loadingServicos ? (
-                        Array.from({ length: 5 }).map((_, index) => (
-                            <Skeleton key={index} className="h-[200px] rounded-md" />
-                        ))
-                    ) : (
-                        dataServicosFiltered?.map((servico) => (
-                            <CardService
-                                key={servico.id}
-                                service={servico}
-                                onClick={() => addServiceContrato(servico)}
-                                // disabled={clienteContrato?.estado !== "ativo"}
-                                disabled={!subContaContrato}
+            <Sheet open={openSheetAddService} onOpenChange={setOpenSheetAddService}>
+                <SheetContent className="w-full md:w-2/3 lg:w-1/2 xl:w-2/5">
+                    <SheetHeader>
+                        <SheetTitle>Adicionar serviços</SheetTitle>
+                        <SheetDescription asChild>
+                            <ServicosContent
+                                search={search}
+                                loadingCategoriaServico={loadingCategoriaServico}
+                                dataCategoriaServico={dataCategoriaServico}
+                                categoriaSelected={categoriaSelected}
+                                handleChangeCategoria={handleChangeCategoria}
+                                setSearch={setSearch}
+                                loadingServicos={loadingServicos}
+                                dataServicosFiltered={dataServicosFiltered}
+                                addServiceContrato={addServiceContrato}
+                                clienteContrato={clienteContrato}
+                                subContaContrato={subContaContrato}
+                                dataServicos={dataServicos}
+                                setPage={setPage}
+                                setPerPage={setPerPage}
                             />
-                        ))
-                    )}
-                </div>
+                        </SheetDescription>
+                    </SheetHeader>
+                </SheetContent>
+            </Sheet>
 
-            </div>
-            <div className="flex items-center justify-end  py-2">
-                {/* Paginação */}
-                {dataServicos && (
-                    <CustomPagination
-                        currentPage={dataServicos.current_page}
-                        itemsPerPage={dataServicos.per_page}
-                        totalItems={dataServicos.total}
-                        lastPage={dataServicos.last_page}
-                        onPageChange={setPage}
-                        onItemsPerPageChange={value => {
-                            setPage(1)
-                            setPerPage(value)
-                        }}
-                    />
-                )}
-            </div>
         </>
     )
 }

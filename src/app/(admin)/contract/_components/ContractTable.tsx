@@ -8,7 +8,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { File, FileText, Loader2, Plus, Printer, Search, UserCircle2 } from "lucide-react";
 import { useContratos, useDeleteContrato } from "@/features/contract/hooks/useContractQuery";
-import { gerarPdfContrato, gerarPdfServicosContrato } from "@/lib/utils";
+import { gerarPdfContrato, gerarPdfMovimentoContratoAllMov, gerarPdfServicosContrato } from "@/lib/utils";
 import { formatarDataLong } from "@/lib/helpers";
 import { Input } from "@/components/ui/input";
 import { useDebounce } from "@uidotdev/usehooks";
@@ -88,6 +88,15 @@ export default function ContractTable() {
         try {
             setLoadingId(Number(contrato.id)); // ativa loading só nesse contrato
             await gerarPdfServicosContrato(contrato.id);
+        } finally {
+            setLoadingId(null); // volta ao normal
+        }
+    }
+
+    async function handlePdfMovContratoClick(contrato: ContratoType) {
+        try {
+            setLoadingId(Number(contrato.id)); // ativa loading só nesse contrato
+            await gerarPdfMovimentoContratoAllMov('',String(contrato.id));
         } finally {
             setLoadingId(null); // volta ao normal
         }
@@ -298,6 +307,24 @@ export default function ContractTable() {
                                     </TooltipTrigger>
                                     <TooltipContent>
                                         <p>Subcontas</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                                 <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <button
+                                            className="cursor-pointer"
+                                            onClick={() => handlePdfMovContratoClick(contrato)}
+                                            disabled={loadingId === contrato.id}
+                                        >
+                                            {loadingId === contrato.id ? (
+                                                <Loader2 className="animate-spin" />
+                                            ) : (
+                                                <Printer />
+                                            )}
+                                        </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>Imprimir Movimentos Geral do Contrato</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </div>

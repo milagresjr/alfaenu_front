@@ -11,7 +11,7 @@ export default function Page() {
     return (
         <>
             <InfoHeader />
-            <div className="flex flex-col-reverse md:flex-row gap-5 md:gap-3 p-4 pt-2">
+            <div className="flex flex-col md:flex-row gap-5 md:gap-3 p-4 pt-2">
                 <OrderSummary />
                 <div className="flex-1 flex flex-col">
                     <ClientSection />

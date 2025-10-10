@@ -5,6 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Trash2, XCircle, Save } from "lucide-react";
+import { alert } from "@/lib/alert";
+import { toast } from "react-toastify";
 
 export function QuantityDialog({
     open,
@@ -24,6 +26,12 @@ export function QuantityDialog({
     const addNumero = (num: string) => setValor((prev) => prev + num);
     const limpar = () => setValor("");
     const gravar = () => {
+
+        if (valor.includes(',') || /^0+\.?0*$/.test(valor) || valor === "") {
+            toast.warning("Quantidade inválida!");
+            return;
+        }
+
         if (onConfirm) onConfirm(valor);
         setValor("");
         onOpenChange(false);

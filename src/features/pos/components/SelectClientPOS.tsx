@@ -29,11 +29,27 @@ export function SelectClientPOS({
 
     const { data, isLoading } = useContratos(page, perPage, debouncedSearch);
 
-    const { setSubContaContrato, clienteContrato, totalPorPagar, totalPago } = usePOSStore();
+    const { setSubContaContrato, setClienteContrato, clienteContrato, totalPorPagar, totalPago } = usePOSStore();
 
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const inputRef = useRef<HTMLInputElement>(null);
+
+    function consumidorFinal() {
+        const consumidor = {
+            id: 0,
+            nome: "Consumidor Final",
+            nif: "Consumidor Final",
+            endereco: "",
+            telefone: "",
+            email: "",
+            telemovel: ""
+        };
+        onSelectClienteContrato(null);
+        setClienteContrato(null);
+        setSubContaContrato(null);
+        // setCliente(consumidor);
+    }
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -82,9 +98,12 @@ export function SelectClientPOS({
                     <label htmlFor="fornecedor" className="block text-sm font-medium text-gray-700 dark:text-gray-400">
                         Cliente (Responsável)<span className="text-red-600">*</span>
                     </label>
-                    {/* <label className="block text-sm font-medium text-gray-700 dark:text-gray-400">
-                        <span className="text-blue-600">{formatarMoeda(Number(totalPago))}</span>
-                    </label> */}
+                    <button onClick={consumidorFinal}
+                        className={`cursor-pointer text-sm font-medium text-gray-700 dark:text-gray-400
+                    ${selectedClienteContrato === null ? 'hidden' : 'block'}
+                    `}>
+                        <span className="text-blue-600">Consumidor Final</span>
+                    </button>
                 </div>
                 <div
                     className={`relative h-11 w-full flex items-center text-sm pl-4 pr-8 rounded-lg shadow-theme-xs bg-white/90 dark:text-white/90 dark:bg-gray-900 border border-gray-300 dark:border-gray-600
@@ -92,7 +111,7 @@ export function SelectClientPOS({
                     onClick={() => setIsOpen((item) => (!item))}
                 >
                     <span className="text-gray-700 dark:text-gray-300 font-normal select-none cursor-default">
-                        {selectedClienteContrato?.cliente?.nome || ''}
+                        {selectedClienteContrato?.cliente?.nome || 'Consumidor Final'}
                     </span>
 
                     {/* Ícone da seta */}

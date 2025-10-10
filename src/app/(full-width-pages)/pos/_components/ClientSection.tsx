@@ -23,7 +23,9 @@ export function ClientSection() {
         setTotalPorPagar,
 
         itensServicesContrato,
-        setItensServicesContrato
+        setItensServicesContrato,
+
+        setOpenSheetAddService
     } = usePOSStore();
 
     const { data, isLoading, isError } = useMovimentosBySubconta({ idSubconta: String(subContaContrato?.id), page: 1, per_page: 1000, search: '', filters: {} });
@@ -85,7 +87,7 @@ export function ClientSection() {
 
         if (confirmed) {
 
-            if (Number(totalValor) > saldoTotalSubconta) {
+            if (clienteContrato !== null && (Number(totalValor) > saldoTotalSubconta)) {
                 toast.error(
                     <div>
                         Saldo da subconta insuficiente! <br />
@@ -126,7 +128,7 @@ export function ClientSection() {
 
     return (
         <div className="flex flex-col gap-2 px-4 pt-2 bg-white dark:bg-transparent rounded-t-md border border-gray-300 dark:border-gray-600 border-b-0">
-            <div className="flex gap-2 items-center justify-end">
+            <div className="hidden md:flex gap-2 items-center justify-end">
                 Estado:
                 <span
                     className={`
@@ -144,30 +146,53 @@ export function ClientSection() {
             </div>
 
             <div className="flex justify-end gap-2 mt-4">
-                <button onClick={clearItensServicesContrato} className="flex items-center gap-2 px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition">
-                    <XCircle className="w-5 h-5" />
-                    Cancelar
-                </button>
+                <div className="hidden md:flex gap-2">
+                    <button onClick={clearItensServicesContrato} className="flex items-center gap-2 px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition">
+                        <XCircle className="w-5 h-5" />
+                        Cancelar
+                    </button>
 
-                <button
-                    onClick={handleFinalizarDocumento}
-                    className="flex items-center gap-2 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition">
-                    <CheckCircle2 className="w-5 h-5" />
-                    Finalizar
-                </button>
+                    <button
+                        onClick={handleFinalizarDocumento}
+                        className="flex items-center gap-2 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition">
+                        <CheckCircle2 className="w-5 h-5" />
+                        Finalizar
+                    </button>
+                </div>
 
-                {/* <button className="flex-1 flex items-center gap-2 px-4 py-2 rounded bg-yellow-100 text-yellow-700 hover:bg-yellow-200 transition">
-                    <PauseCircle className="w-5 h-5" />
-                    Suspender
-                </button>
+                <div className="md:hidden">
+                    <div className="fixed bottom-0 left-0 right-0 border-t pb-1 px-1  md:relative md:p-0 md:border-none md:bg-transparent">
+                        <div className="flex flex-col sm:flex-row gap-1 w-full md:w-auto">
+                            <div className="flex gap-1">
+                                <button
+                                    onClick={clearItensServicesContrato}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700 transition flex-1 md:flex-none"
+                                >
+                                    <XCircle className="w-5 h-5" />
+                                    Cancelar
+                                </button>
+                                <button
+                                    onClick={() => setOpenSheetAddService(true)}
+                                    className="flex items-center justify-center gap-2 px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800 transition flex-1 md:flex-none"
+                                >
+                                    <XCircle className="w-5 h-5" />
+                                    Add serviço
+                                </button>
+                            </div>
 
-                <button className="flex-1 flex items-center gap-2 px-4 py-2 rounded bg-green-100 text-green-700 hover:bg-green-200 transition">
-                    <PlayCircle className="w-5 h-5" />
-                    Ativar
-                </button> */}
+                            <button
+                                onClick={handleFinalizarDocumento}
+                                className="flex items-center justify-center gap-2 px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 transition flex-1 md:flex-none"
+                            >
+                                <CheckCircle2 className="w-5 h-5" />
+                                Finalizar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
 
-            <hr />
         </div >
     );
 }
