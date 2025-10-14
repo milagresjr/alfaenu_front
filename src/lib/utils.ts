@@ -111,7 +111,7 @@ export async function gerarPdfMovimentoContratoAllMov(search = '', idContrato: n
 export async function gerarPdfContrato(documentoId: number | undefined) {
   try {
     const response = await api.get(`contract/${documentoId}/gerar-pdf`, {
-      responseType: 'blob', // ⚠️ Muito importante para PDFs
+      responseType: 'blob', 
     });
 
     if (response.status !== 200) {
@@ -150,7 +150,7 @@ export async function gerarPdfServicosContrato(documentoId: number | undefined) 
     // Abre o PDF numa nova aba
     window.open(fileURL, "_blank");
 
-  } catch (error) {
+  } catch (error: any) {
     toast.error("Erro ao gerar PDF.");
     console.error(error);
   }

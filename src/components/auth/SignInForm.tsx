@@ -55,7 +55,8 @@ export default function SignInForm() {
       if (token) {
         //setToken(token);
         setUser(utilizador);
-        document.cookie = `token=${token}; path=/; SameSite=Strict;`;
+        // document.cookie = `token=${token}; path=/; SameSite=Strict;`;
+        document.cookie = `token=${token}; path=/; SameSite=Lax; Secure`;
         router.push('/');
       }
     } catch (error: any) {
@@ -71,7 +72,7 @@ export default function SignInForm() {
 
   };
 
-   if (loading2) {
+  if (loading2) {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-white dark:bg-gray-900 z-50">
         <ClipLoader color="#2563eb" size={50} />
@@ -79,7 +80,7 @@ export default function SignInForm() {
     );
   }
 
- 
+
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full">
       <div className="w-full max-w-md sm:pt-10 mx-auto mb-5">
@@ -98,7 +99,7 @@ export default function SignInForm() {
               Login
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-             Entre com as suas credencias
+              Entre com as suas credencias
             </p>
           </div>
           <div>
