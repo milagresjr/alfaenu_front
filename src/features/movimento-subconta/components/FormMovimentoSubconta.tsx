@@ -25,6 +25,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSubcontaStore } from "@/features/subconta/store/useSubcontaStore";
 import DialogMovimentoCreated from "./DialogMovimentoCreated";
 import { gerarPdfMovimentoSubconta } from "@/lib/utils";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const schema = z.object({
     valor: z.string().min(1, "O valor é obrigatório"),
@@ -48,6 +49,8 @@ export function FormMovimentoSubconta() {
 
     const route = useRouter();
 
+    const { user } = useAuthStore();
+
     const { idSubconta } = useParams();
 
     const { selectedMovimentoSubconta, setSelectedMovimentoSubconta } = useMovimentoSubcontaStore();
@@ -58,7 +61,7 @@ export function FormMovimentoSubconta() {
 
     const [openDialogCreated, setOpenDialogCreated] = useState(false);
 
-     const [idMovimentoCreated, setIdMovimentoCreated] = useState<number | null>(null);
+    const [idMovimentoCreated, setIdMovimentoCreated] = useState<number | null>(null);
 
     const create = useCreateMovimento();
     const update = useUpdateMovimento();
@@ -81,6 +84,7 @@ export function FormMovimentoSubconta() {
     function onSubmit(data: FormValues) {
 
         const allData = {
+            utilizador_id: user?.id,
             valor: Number(data.valor),
             tipo: data.tipo,
             descricao: data.descricao,
@@ -104,6 +108,10 @@ export function FormMovimentoSubconta() {
                     });
                     queryClient.invalidateQueries({
                         queryKey: ["subcontas"],
+                        exact: false
+                    });
+                    queryClient.invalidateQueries({
+                        queryKey: ['caixaAberto'],
                         exact: false
                     });
                 },
@@ -235,7 +243,7 @@ export function FormMovimentoSubconta() {
                         toast.error("ID do contrato não disponível.");
                     }
                 }}
-              />
+            />
         </>
     );
 }

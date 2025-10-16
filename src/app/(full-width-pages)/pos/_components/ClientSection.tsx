@@ -11,6 +11,7 @@ import { formatarMoeda } from "@/lib/helpers";
 import { gerarPdfMovimentoSubcontaByPOS } from "@/lib/utils";
 import LoadingDialog from "./LoadingDialog";
 import { useQueryClient } from "@tanstack/react-query";
+import { useAuthStore } from "@/store/useAuthStore";
 
 
 export function ClientSection() {
@@ -27,6 +28,8 @@ export function ClientSection() {
 
         setOpenSheetAddService
     } = usePOSStore();
+
+    const { user } = useAuthStore();
 
     const { data, isLoading, isError } = useMovimentosBySubconta({ idSubconta: String(subContaContrato?.id), page: 1, per_page: 1000, search: '', filters: {} });
 
@@ -98,12 +101,13 @@ export function ClientSection() {
             }
 
             const data = {
+                utilizador_id: user?.id,
                 itens: itensServicesContrato,
                 contract_id: idContrato,
                 subconta_id: idSubconta,
             }
 
-            console.log(data);
+            // console.log(data);
 
             try {
                 setLoadingDoc(true);
@@ -111,6 +115,10 @@ export function ClientSection() {
             } finally {
                 queryClient.invalidateQueries({
                     queryKey: ['movimentos-subconta'],
+                    exact: false
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ['caixaAberto'],
                     exact: false
                 });
                 setItensServicesContrato([]);

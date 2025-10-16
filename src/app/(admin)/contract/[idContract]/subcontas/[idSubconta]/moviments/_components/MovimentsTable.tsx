@@ -27,6 +27,10 @@ import { useMovimentoSubcontaStore } from "@/features/movimento-subconta/store/u
 import { useMovimentos, useMovimentosBySubconta } from "@/features/movimento-subconta/hooks/useMovimentosQuery";
 import { FormMovimentoSubconta } from "@/features/movimento-subconta/components/FormMovimentoSubconta";
 import Badge from "@/components/ui-old/badge/Badge";
+import { useGetCaixaAbertoByUser } from "@/features/caixa/hooks/useCaixaQuery";
+import { useAuthStore } from "@/store/useAuthStore";
+import { alert } from "@/lib/alert";
+import CaixaDialog from "@/features/caixa/components/CaixaDialog";
 
 export default function MovimentsTable() {
 
@@ -45,6 +49,11 @@ export default function MovimentsTable() {
         "todos"
     );
 
+    const [openModalCaixa, setOpenModalCaixa] = useState(false);
+
+    const acao = "abrir";
+
+    const { user } = useAuthStore();
 
     const router = useRouter();
 
@@ -58,8 +67,7 @@ export default function MovimentsTable() {
 
     const { openDialogFormMovimentoSubconta, setOpenDialogFormMovimentoSubconta } = useMovimentoSubcontaStore();
 
-    const [loadingPrint,setLoadingPrint] = useState(false);
-
+    const { data: dataCaixa } = useGetCaixaAbertoByUser(Number(user?.id) || 0);
 
     async function handlePrintClick(idMovimento: number) {
         try {
@@ -95,6 +103,20 @@ export default function MovimentsTable() {
         router.back();
     }
 
+    async function handleAddMovimento() {
+
+        if (!dataCaixa || dataCaixa?.status !== 'aberto') {
+            const confirmed = await alert.confirm("Atenção", "Para adicionar um movimento, é necessário que você tenha um caixa aberto. Deseja abrir o caixa agora?");
+            if (confirmed) {
+                // router.push('/operation/my-caixa');
+                setOpenModalCaixa(true);
+            }
+            return;
+        }
+
+        setOpenDialogFormMovimentoSubconta(true);
+    }
+
     return (
         <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-4 min-h-[calc(100vh-120px)]">
 
@@ -121,7 +143,7 @@ export default function MovimentsTable() {
                         className="pl-10"
                     />
                 </div>
-                <button onClick={() => setOpenDialogFormMovimentoSubconta(true)} className="bg-blue-600 px-4 py-2 rounded-md text-white flex gap-1">
+                <button onClick={handleAddMovimento} className="bg-blue-600 px-4 py-2 rounded-md text-white flex gap-1">
                     <Plus />
                     Add Movimento
                 </button>
@@ -192,7 +214,7 @@ export default function MovimentsTable() {
             />
 
             {/* Paginação */}
-            {( data && data.total > 10) && (
+            {(data && data.total > 10) && (
                 <PaginationComponent
                     currentPage={data.current_page}
                     itemsPerPage={data.per_page}
@@ -205,6 +227,13 @@ export default function MovimentsTable() {
                     }}
                 />
             )}
+
+            <CaixaDialog
+                acao={acao}
+                open={openModalCaixa}
+                onOpenChange={setOpenModalCaixa}
+                dataCaixa={dataCaixa}
+            />
 
             <FormMovimentoSubconta />
         </div>

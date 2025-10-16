@@ -16,6 +16,7 @@ import {
   Printer,
   Briefcase,
   ArrowLeftRight,
+  Settings,
 } from "lucide-react";
 import {
   Tooltip,
@@ -54,6 +55,7 @@ const navItems: NavItem[] = [
   },
   { icon: <FileText />, name: "Termos", path: "/term" },
   { icon: <Users />, name: "Utilizadores", path: "/user" },
+  { icon: <Settings />, name: "Operações e Caixa", path: "/operation" }
 ];
 
 const othersItems: NavItem[] = [];

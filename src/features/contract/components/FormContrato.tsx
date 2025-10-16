@@ -361,10 +361,17 @@ export function FormContrato() {
 
         const newData = {
             ...data,
+            nota: notaSalva,
             termo_id: data.termo_id,
             cliente_id: cliente?.id,
+            assinatura_cliente: assinaturaCliente,
+            assinatura_user: assinaturaUser,
+            servicos: servicosSelecionadosData,
             subcontas: subcontas
         }
+
+        console.log(newData);
+
         previewPdfDocumento(newData);
     }
 

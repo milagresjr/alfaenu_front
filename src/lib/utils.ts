@@ -212,3 +212,52 @@ export async function downloadPdfContratoFinalizado(documentoId: number | undefi
     console.error(error);
   }
 }
+
+
+export async function gerarPdfAberturaCaixa(caixaId: number | undefined) {
+  try {
+    const response = await api.get(`caixa/${caixaId}/gerar-pdf-abertura`, {
+      responseType: 'blob', // ⚠️ Muito importante para PDFs
+    });
+
+    if (response.status !== 200) {
+      console.error("Erro ao gerar PDF:", response);
+      throw new Error("Erro ao gerar PDF");
+    }
+
+    // Cria uma URL temporária do PDF
+    const file = new Blob([response.data], { type: 'application/pdf' });
+    const fileURL = URL.createObjectURL(file);
+
+    // Abre o PDF numa nova aba
+    window.open(fileURL, "_blank");
+
+  } catch (error) {
+    toast.error("Erro ao gerar PDF.");
+    console.error(error);
+  }
+}
+
+export async function gerarPdfFechoCaixa(caixaId: number | undefined) {
+  try {
+    const response = await api.get(`caixa/${caixaId}/gerar-pdf-fecho`, {
+      responseType: 'blob', // ⚠️ Muito importante para PDFs
+    });
+
+    if (response.status !== 200) {
+      console.error("Erro ao gerar PDF:", response);
+      throw new Error("Erro ao gerar PDF");
+    }
+
+    // Cria uma URL temporária do PDF
+    const file = new Blob([response.data], { type: 'application/pdf' });
+    const fileURL = URL.createObjectURL(file);
+
+    // Abre o PDF numa nova aba
+    window.open(fileURL, "_blank");
+
+  } catch (error) {
+    toast.error("Erro ao gerar PDF.");
+    console.error(error);
+  }
+}

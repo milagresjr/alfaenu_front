@@ -15,6 +15,7 @@ import {
     X,
     ChevronDown,
     ChevronUp,
+    Settings,
 } from "lucide-react";
 import path from "path";
 
@@ -66,6 +67,7 @@ export function InfoHeader() {
             path: "/services-operation",
         },
         { icon: <FileText />, name: "Termos", path: "/term" },
+        { icon: <Settings />, name: "Operações e Caixa", path: "/operation" },
         { icon: <Users />, name: "Utilizadores", path: "/user" },
     ];
 

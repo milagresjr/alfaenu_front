@@ -32,6 +32,7 @@ export default function ContractTable() {
 
 
     const [loadingId, setLoadingId] = useState<number | null>(null);
+    const [loadingPosition, setLoadingPosition] = useState<number | null>(null);
 
     // const { selectedCliente, set } = useContratoStore();
 
@@ -78,6 +79,7 @@ export default function ContractTable() {
     async function handlePdfClick(contrato: ContratoType) {
         try {
             setLoadingId(Number(contrato.id)); // ativa loading só nesse contrato
+            setLoadingPosition(1);
             await gerarPdfContrato(contrato.id);
         } finally {
             setLoadingId(null); // volta ao normal
@@ -87,6 +89,7 @@ export default function ContractTable() {
     async function handlePdfServicosClick(contrato: ContratoType) {
         try {
             setLoadingId(Number(contrato.id)); // ativa loading só nesse contrato
+            setLoadingPosition(2);
             await gerarPdfServicosContrato(contrato.id);
         } finally {
             setLoadingId(null); // volta ao normal
@@ -96,6 +99,7 @@ export default function ContractTable() {
     async function handlePdfMovContratoClick(contrato: ContratoType) {
         try {
             setLoadingId(Number(contrato.id)); // ativa loading só nesse contrato
+            setLoadingPosition(3);
             await gerarPdfMovimentoContratoAllMov('',String(contrato.id));
         } finally {
             setLoadingId(null); // volta ao normal
@@ -265,9 +269,9 @@ export default function ContractTable() {
                                         <button
                                             className="cursor-pointer"
                                             onClick={() => handlePdfClick(contrato)}
-                                            disabled={loadingId === contrato.id}
+                                            disabled={loadingId === contrato.id && loadingPosition === 1}
                                         >
-                                            {loadingId === contrato.id ? (
+                                            {loadingId === contrato.id && loadingPosition === 1 ? (
                                                 <Loader2 className="animate-spin" />
                                             ) : (
                                                 <File />
@@ -283,9 +287,9 @@ export default function ContractTable() {
                                         <button
                                             className="cursor-pointer"
                                             onClick={() => handlePdfServicosClick(contrato)}
-                                            disabled={loadingId === contrato.id}
+                                            disabled={loadingId === contrato.id && loadingPosition === 2}
                                         >
-                                            {loadingId === contrato.id ? (
+                                            {loadingId === contrato.id && loadingPosition === 2 ? (
                                                 <Loader2 className="animate-spin" />
                                             ) : (
                                                 <Printer />
@@ -314,9 +318,9 @@ export default function ContractTable() {
                                         <button
                                             className="cursor-pointer"
                                             onClick={() => handlePdfMovContratoClick(contrato)}
-                                            disabled={loadingId === contrato.id}
+                                            disabled={loadingId === contrato.id && loadingPosition === 3}
                                         >
-                                            {loadingId === contrato.id ? (
+                                            {loadingId === contrato.id && loadingPosition === 3 ? (
                                                 <Loader2 className="animate-spin" />
                                             ) : (
                                                 <Printer />

@@ -51,13 +51,14 @@ export default function SignInForm() {
       });
       const { token, utilizador } = response.data;
       toast.success('Login realizado com sucesso!', { autoClose: 1000 });
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // await new Promise((resolve) => setTimeout(resolve, 1000));
       if (token) {
         //setToken(token);
         setUser(utilizador);
         // document.cookie = `token=${token}; path=/; SameSite=Strict;`;
         document.cookie = `token=${token}; path=/; SameSite=Lax; Secure`;
         router.push('/');
+        router.refresh();
       }
     } catch (error: any) {
       if (error.response?.status === 401) {

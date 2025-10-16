@@ -11,6 +11,7 @@ import {
   Printer,
   ArrowLeftRight,
   ChevronUp,
+  Settings,
 } from "lucide-react";
 
 const navItems = [
@@ -34,6 +35,7 @@ const navItems = [
     ],
   },
   { name: "Movimentos", icon: <ArrowLeftRight size={22} />, path: "/services-operation" },
+  { name: "Op. Caixas", icon: <Settings size={22} />, path: "/operation" },
 ];
 
 export default function MobileBottomNav() {

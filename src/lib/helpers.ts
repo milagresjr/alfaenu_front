@@ -21,3 +21,30 @@ export function formatarMoeda(valor: number): string {
     // troca o símbolo "Kz" de lugar caso venha antes
     .replace("AOA", "Kz");
 }
+
+/**
+ * Formata uma data no formato "dd/mm/yyyy HH:mm"
+ * @param data - string ou Date
+ * @returns string formatada
+ */
+export function formatarDataHora(data: string | Date | null | undefined): string {
+  if (!data) return "—";
+
+  try {
+    const dataObj = new Date(data);
+    if (isNaN(dataObj.getTime())) return "—"; // caso data inválida
+
+    return dataObj
+      .toLocaleString("pt-PT", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      })
+      .replace(",", ""); // remove a vírgula entre data e hora
+  } catch {
+    return "—";
+  }
+}

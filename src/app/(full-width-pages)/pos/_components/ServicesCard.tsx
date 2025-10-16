@@ -44,6 +44,9 @@ import {
 import { ServiceTypeType } from "@/features/service-type/types";
 import { ItemServicContratoType } from "@/features/pos/types";
 import { ServicosContent } from "./ServiceContent";
+import { useGetCaixaAbertoByUser } from "@/features/caixa/hooks/useCaixaQuery";
+import CaixaDialog from "@/features/caixa/components/CaixaDialog";
+import { useAuthStore } from "@/store/useAuthStore";
 
 
 export function ServicesCard() {
@@ -56,6 +59,8 @@ export function ServicesCard() {
     const [perPage, setPerPage] = useState(10);
 
     const searchDebounce = useDebounce(search, 300);
+
+    const { user } = useAuthStore();
 
     const { data: dataServicos, isLoading: loadingServicos } = useServicos({ page, per_page: perPage, search: searchDebounce });
 
@@ -87,11 +92,26 @@ export function ServicesCard() {
         }
     };
 
+    const { data: dataCaixa } = useGetCaixaAbertoByUser(Number(user?.id) || 0);
+    const [openModalCaixa, setOpenModalCaixa] = useState(false);
+
     const create = useCreateItensServiceContrato();
 
     const queryClient = useQueryClient();
 
-    function addServiceContrato(service: ServiceType) {
+    const acao = "abrir";
+
+    async function addServiceContrato(service: ServiceType) {
+
+        if (!dataCaixa || dataCaixa?.status !== 'aberto') {
+            const confirmed = await alert.confirm("Atenção", "Para adicionar um serviço, é necessário que você tenha um caixa aberto. Deseja abrir o caixa agora?", "Sim", "Não");
+            if (confirmed) {
+                // router.push('/operation/my-caixa');
+                setOpenModalCaixa(true);
+            }
+            return;
+        }
+
         const { itensServicesContrato, setItensServicesContrato } = usePOSStore.getState();
 
         // Verifica se o item já existe na lista
@@ -228,6 +248,12 @@ export function ServicesCard() {
                 </SheetContent>
             </Sheet>
 
+            <CaixaDialog
+                acao={acao}
+                open={openModalCaixa}
+                onOpenChange={setOpenModalCaixa}
+                dataCaixa={dataCaixa}
+            />
         </>
     )
 }

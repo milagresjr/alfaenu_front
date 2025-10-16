@@ -37,6 +37,10 @@ import { useMovimentosBySubconta } from "@/features/movimento-subconta/hooks/use
 import Badge from "@/components/ui-old/badge/Badge";
 import { FiltroSheet } from "./FiltroSheet";
 import { toast } from "react-toastify";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useGetCaixaAbertoByUser } from "@/features/caixa/hooks/useCaixaQuery";
+import { alert } from "@/lib/alert";
+import CaixaDialog from "@/features/caixa/components/CaixaDialog";
 
 export function SubContaTable() {
 
@@ -67,6 +71,14 @@ export function SubContaTable() {
     setFilters
   } = useSubcontaContratoStore();
 
+  const [openModalCaixa, setOpenModalCaixa] = useState(false);
+
+  const acao = "abrir";
+
+  const { user } = useAuthStore();
+
+  const { data: dataCaixa } = useGetCaixaAbertoByUser(Number(user?.id) || 0);
+
   const router = useRouter();
 
   const progress = useProgress();
@@ -92,8 +104,18 @@ export function SubContaTable() {
     // router.push(`/admin/contract/${idContract}/subconta/form`);
   }
 
-  function handleOpenDialogAddMov(subconta: any) {
+  async function handleOpenDialogAddMov(subconta: any) {
     //setSelectedCliente(cliente);
+
+    if (!dataCaixa || dataCaixa?.status !== 'aberto') {
+      const confirmed = await alert.confirm("Atenção", "Para adicionar um movimento, é necessário que você tenha um caixa aberto. Deseja abrir o caixa agora?");
+      if (confirmed) {
+        // router.push('/operation/my-caixa');
+        setOpenModalCaixa(true);
+      }
+      return;
+    }
+
     setSelectedSubconta(subconta);
     setOpenDialogFormMovimentoSubconta(true);
   }
@@ -168,7 +190,7 @@ export function SubContaTable() {
     }
   }
 
-    async function handlePrintAllMovContrato() {
+  async function handlePrintAllMovContrato() {
     if (data?.total === 0) {
       toast.warning("Nenhum movimento encontrado para este contrato.");
       return;
@@ -396,6 +418,13 @@ export function SubContaTable() {
           }}
         />
       )}
+
+      <CaixaDialog
+        acao={acao}
+        open={openModalCaixa}
+        onOpenChange={setOpenModalCaixa}
+        dataCaixa={dataCaixa}
+      />
 
       <FormMovimentoSubconta />
     </div>

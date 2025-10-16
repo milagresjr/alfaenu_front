@@ -27,6 +27,10 @@ import { useMovimentoSubcontaStore } from "@/features/movimento-subconta/store/u
 import { FormMovimentoSubconta } from "@/features/movimento-subconta/components/FormMovimentoSubconta";
 import { useSubcontaStore } from "@/features/subconta/store/useSubcontaStore";
 import { SubcontaType } from "@/features/subconta/type";
+import { useGetCaixaAbertoByUser } from "@/features/caixa/hooks/useCaixaQuery";
+import { alert } from "@/lib/alert";
+import { useAuthStore } from "@/store/useAuthStore";
+import CaixaDialog from "@/features/caixa/components/CaixaDialog";
 
 export default function SubcontaTable() {
 
@@ -45,6 +49,7 @@ export default function SubcontaTable() {
         "todos"
     );
 
+    const { user } = useAuthStore();
 
     const router = useRouter();
 
@@ -54,39 +59,17 @@ export default function SubcontaTable() {
 
     const { idContract } = useParams();
 
+    const acao = "abrir";
+
     const { data, isLoading, isError } = useSubcontasByContract({ idContract: String(idContract), page, per_page: perPage, search: debouncedSearch, estado: selected === 'todos' ? '' : selected });
 
     const { setOpenDialogFormMovimentoSubconta } = useMovimentoSubcontaStore();
 
+    const { data: dataCaixa } = useGetCaixaAbertoByUser(Number(user?.id) || 0);
+
+    const [openModalCaixa, setOpenModalCaixa] = useState(false);
+
     const { setSelectedSubconta } = useSubcontaStore();
-
-    // const handleEdit = (cliente: ContratoType) => {
-    //     //setSelectedCliente(cliente);
-    //     router.push(`/client/form`);
-    // };
-
-    // const queryClient = useQueryClient();
-
-    // const handleDelete = async (cliente: ContratoType) => {
-
-    //     const confirmed = await alert.confirm('Confirmar', 'Tem certeza que deseja excluir este cliente?', 'Sim', 'Não');
-
-    //     if (confirmed) {
-
-    //         deleteContrato.mutate(cliente.id, {
-    //             onSuccess: () => {
-    //                 queryClient.invalidateQueries({
-    //                     queryKey: ["clientes"],
-    //                     exact: false,
-    //                 });
-    //                 toast.success('Cliente excluído com sucesso!');
-    //             },
-    //             onError: (error) => {
-    //                 console.error("Erro ao excluir a marca:", error);
-    //             },
-    //         });
-    //     }
-    // };
 
     async function handlePdfClick(contrato: ContratoType) {
         try {
@@ -125,8 +108,18 @@ export default function SubcontaTable() {
         router.push(`/admin/contract/${idContract}/subconta/form`);
     }
 
-    function handleOpenDialogAddMov(subconta: SubcontaType) {
+    async function handleOpenDialogAddMov(subconta: SubcontaType) {
         //setSelectedCliente(cliente);
+
+        if (!dataCaixa || dataCaixa?.status !== 'aberto') {
+            const confirmed = await alert.confirm("Atenção", "Para adicionar um movimento, é necessário que você tenha um caixa aberto. Deseja abrir o caixa agora?");
+            if (confirmed) {
+                // router.push('/operation/my-caixa');
+                setOpenModalCaixa(true);
+            }
+            return;
+        }
+
         setSelectedSubconta(subconta);
         setOpenDialogFormMovimentoSubconta(true);
     }
@@ -269,6 +262,13 @@ export default function SubcontaTable() {
                     }}
                 />
             )}
+
+            <CaixaDialog
+                acao={acao}
+                open={openModalCaixa}
+                onOpenChange={setOpenModalCaixa}
+                dataCaixa={dataCaixa}
+            />
 
             <FormMovimentoSubconta />
         </div>
