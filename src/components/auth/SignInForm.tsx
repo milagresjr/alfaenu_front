@@ -57,6 +57,7 @@ export default function SignInForm() {
         setUser(utilizador);
         // document.cookie = `token=${token}; path=/; SameSite=Strict;`;
         document.cookie = `token=${token}; path=/; SameSite=Lax; Secure`;
+        window.location.reload();
         router.push('/');
         router.refresh();
       }
