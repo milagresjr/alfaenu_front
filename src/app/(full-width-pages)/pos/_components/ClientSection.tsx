@@ -2,7 +2,7 @@
 
 import { usePOSStore } from "@/features/pos/store/usePOSStore";
 import { useEffect, useState } from "react";
-import { XCircle, CheckCircle2, PauseCircle, PlayCircle } from "lucide-react";
+import { XCircle, CheckCircle2, PauseCircle, PlayCircle, Plus, PlusCircle } from "lucide-react";
 import { useMovimentosBySubconta } from "@/features/movimento-subconta/hooks/useMovimentosQuery";
 import { useItensServiceContrato } from "@/features/pos/hooks/usePOSQuery";
 import { toast } from "react-toastify";
@@ -12,6 +12,7 @@ import { gerarPdfMovimentoSubcontaByPOS } from "@/lib/utils";
 import LoadingDialog from "./LoadingDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/useAuthStore";
+import { PaymentDialog } from "./PaymentDialog";
 
 
 export function ClientSection() {
@@ -23,6 +24,9 @@ export function ClientSection() {
         setTotalPago,
         setTotalPorPagar,
 
+        descontoAplicado,
+        setDescontoAplicado,
+
         itensServicesContrato,
         setItensServicesContrato,
 
@@ -30,6 +34,8 @@ export function ClientSection() {
     } = usePOSStore();
 
     const { user } = useAuthStore();
+
+    const [openPayment, setOpenPayment] = useState(false);
 
     const { data, isLoading, isError } = useMovimentosBySubconta({ idSubconta: String(subContaContrato?.id), page: 1, per_page: 1000, search: '', filters: {} });
 
@@ -46,6 +52,8 @@ export function ClientSection() {
     const totalValor = itensServicesContrato.reduce((acc, item) => (
         acc + Number(item?.servico_valor) * Number(item?.qtd)
     ), 0);
+
+    const qtd = itensServicesContrato.length;
 
     useEffect(() => {
         if (!clienteContrato) return;
@@ -68,6 +76,8 @@ export function ClientSection() {
     const idContrato = clienteContrato?.id ?? null;
     const idSubconta = subContaContrato?.id ?? null;
 
+
+
     const queryClient = useQueryClient();
 
     async function clearItensServicesContrato() {
@@ -80,34 +90,51 @@ export function ClientSection() {
             setItensServicesContrato([]);
             setClienteContrato(null);
             setSubContaContrato(null);
+            setDescontoAplicado({
+                tipo: "fixo",
+                desconto: 0
+            });
         }
     }
 
 
     async function handleFinalizarDocumento() {
 
+        if (clienteContrato !== null && (Number(totalValor) > saldoTotalSubconta)) {
+            toast.error(
+                <div>
+                    Saldo da subconta insuficiente! <br />
+                    Saldo atual: <strong>{formatarMoeda(Number(saldoTotalSubconta))}</strong>
+                </div>
+            );
+            return;
+        }
+
+        setOpenPayment(true);
+        return;
+
+
+    }
+
+    async function handleConfirmPayment(dados: any) {
+        
         const confirmed = await alert.confirm("Finalizar Documento", "Deseja finalizar o documento?", "Sim", "Não");
 
         if (confirmed) {
-
-            if (clienteContrato !== null && (Number(totalValor) > saldoTotalSubconta)) {
-                toast.error(
-                    <div>
-                        Saldo da subconta insuficiente! <br />
-                        Saldo atual: <strong>{formatarMoeda(Number(saldoTotalSubconta))}</strong>
-                    </div>
-                );
-                return;
-            }
-
+            // console.log("Pagamento confirmado ✅", dados);
+            // return;
             const data = {
                 utilizador_id: user?.id,
+                desconto: descontoAplicado?.desconto || 0,
                 itens: itensServicesContrato,
                 contract_id: idContrato,
                 subconta_id: idSubconta,
+                forma_pagamento: dados.forma_pagamento,
+                conta_financeira_id: dados.conta_bancaria
             }
 
             // console.log(data);
+            // return;
 
             try {
                 setLoadingDoc(true);
@@ -123,10 +150,13 @@ export function ClientSection() {
                 });
                 setItensServicesContrato([]);
                 setLoadingDoc(false);
+                setOpenPayment(false);
             }
 
         }
-    }
+
+
+    };
 
     if (loadingDoc) {
         return (
@@ -183,7 +213,7 @@ export function ClientSection() {
                                     onClick={() => setOpenSheetAddService(true)}
                                     className="flex items-center justify-center gap-2 px-4 py-2 rounded bg-green-700 text-white hover:bg-green-800 transition flex-1 md:flex-none"
                                 >
-                                    <XCircle className="w-5 h-5" />
+                                    <PlusCircle className="w-5 h-5" />
                                     Add serviço
                                 </button>
                             </div>
@@ -200,6 +230,16 @@ export function ClientSection() {
                 </div>
 
             </div>
+
+            <PaymentDialog
+                open={openPayment}
+                onOpenChange={setOpenPayment}
+                subtotal={totalValor}
+                desconto={descontoAplicado?.desconto || 0}
+                total={Number(totalValor) - Number(descontoAplicado?.desconto)}
+                qtd={qtd}
+                onConfirm={handleConfirmPayment}
+            />
 
         </div >
     );

@@ -13,7 +13,7 @@ import { ItemServicContratoType } from "@/features/pos/types";
 import { alert } from "@/lib/alert";
 import { formatarMoeda } from "@/lib/helpers";
 import { useQueryClient } from "@tanstack/react-query";
-import { Info, Trash } from "lucide-react";
+import { Info, Plus, Trash } from "lucide-react";
 import { useEffect, useState } from "react";
 import {
     Tooltip,
@@ -21,6 +21,7 @@ import {
     TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { QuantityDialog } from "./QuantityDialog";
+import { DiscountDialog } from "./DiscountDialog";
 
 export function OrderSummary() {
 
@@ -32,12 +33,16 @@ export function OrderSummary() {
         setClienteContrato,
         setSubContaContrato,
 
+        descontoAplicado,
+        setDescontoAplicado,
+
         itensServicesContrato,
         setItensServicesContrato
     } = usePOSStore();
 
     const { data: dataContratos } = useContratos(1, 100000);
 
+    const [openDesconto, setOpenDesconto] = useState(false);
 
     const { data: dataItensServiceContrato, isLoading: isLoadingItensServiceContrato } = useItensServiceContrato();
 
@@ -78,7 +83,7 @@ export function OrderSummary() {
 
     const totalValor = itensServicesContrato.reduce((acc, item) => (
         acc + Number(item?.servico_valor) * Number(item?.qtd)
-    ), 0);
+    ), 0) - (descontoAplicado ? Number(descontoAplicado.desconto) : 0);
 
     const saldoTotal = Number(totalPago) - Number(TotalsaidaPorSubConta);
 
@@ -112,6 +117,10 @@ export function OrderSummary() {
         if (confirmed) {
             // Define a lista como vazia
             setItensServicesContrato([]);
+            setDescontoAplicado({
+                tipo: "fixo",
+                desconto: 0
+            });
         }
     }
 
@@ -119,6 +128,11 @@ export function OrderSummary() {
         setServiceSelected(service)
         setOpenDialogQtd(true);
     }
+
+    const handleConfirmDesconto = (valor: { tipo: "fixo" | "percentual"; desconto: number }) => {
+        setDescontoAplicado(valor);
+        console.log("Desconto aplicado:", valor);
+    };
 
     useEffect(() => {
         setSaldoAtual(saldoTotal);
@@ -156,25 +170,44 @@ export function OrderSummary() {
                     <>
                         {/* Resumo Totais */}
                         {itensServicesContrato && itensServicesContrato.length > 0 && (
-                            <div className="w-full flex items-center justify-between">
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <button onClick={clearItensServicesContrato} className="cursor-pointer">
-                                            <Trash size={15} />
-                                        </button>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>Limpar carrinho</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                                <div className="flex items-center gap-2 p-2">
+                            <div className="w-full flex flex-col">
+                                <div className="flex gap-1 items-center mb-2">
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <button onClick={clearItensServicesContrato} className="cursor-pointer flex items-center gap-1 text-sm bg-slate-700 text-white px-2 py-1 rounded">
+                                                <Trash size={15} />
+                                                Limpar
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Limpar carrinho</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <button onClick={() => setOpenDesconto(true)} className="cursor-pointer flex items-center gap-1 text-sm bg-amber-600 text-white px-2 py-1 rounded">
+                                                <Plus size={15} />
+                                                Desconto
+                                            </button>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>Adicionar desconto</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </div>
+                                <div className="flex flex-col gap-1 -space-y-1 pb-2 border-b">
                                     <div className="text-sm text-gray-900 dark:text-gray-100">
                                         Qtd Total:{" "}
                                         <span className="font-semibold">
                                             {totalQtd}
                                         </span>
                                     </div>
-                                    <span className="mx-1">|</span>
+                                    <div className="text-sm text-gray-900 dark:text-gray-100">
+                                        Desconto:{" "}
+                                        <span className="font-semibold">
+                                            {formatarMoeda(Number(descontoAplicado?.desconto))}
+                                        </span>
+                                    </div>
                                     <div className="text-sm text-gray-900 dark:text-gray-100">
                                         Total Geral:{" "}
                                         <span className="font-semibold">
@@ -290,6 +323,16 @@ export function OrderSummary() {
                 qtdInicial={String(serviceSelected?.qtd)}
                 onConfirm={(valor) => updateQtdServiceContrato(Number(serviceSelected?.service_id), Number(valor))}
             />
+
+            {/* Modal */}
+            <DiscountDialog
+                open={openDesconto}
+                onOpenChange={setOpenDesconto}
+                produtoNome="Serviço XPTO"
+                precoUnitario={totalValor}
+                onConfirm={handleConfirmDesconto}
+            />
+
         </div>
 
     )

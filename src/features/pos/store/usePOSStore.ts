@@ -20,6 +20,11 @@ type POStoState = {
     setSaldoAtual: (total: number) => void;
     updateEstado: (estado: string) => void;
 
+    descontoAplicado: { tipo: "fixo" | "percentual"; desconto: number } | null;
+    setDescontoAplicado: (
+        desconto: { tipo: "fixo" | "percentual"; desconto: number } | null
+    ) => void;
+
     itensServicesContrato: ItemServicContratoType[],
     setItensServicesContrato: (
         updater:
@@ -51,6 +56,9 @@ export const usePOSStore = create<POStoState>((set) => ({
             ? { clienteContrato: { ...state.clienteContrato, estado } }
             : state
     ),
+
+    descontoAplicado: { tipo: "fixo", desconto: 0 },
+    setDescontoAplicado: (desconto) => set({ descontoAplicado: desconto }),
 
     itensServicesContrato: [],
     setItensServicesContrato: (updater) =>

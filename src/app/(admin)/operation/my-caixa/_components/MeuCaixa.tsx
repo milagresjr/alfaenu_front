@@ -190,7 +190,7 @@ export function MeuCaixa() {
                             <InfoBox
                                 icon={<DollarSign className="w-4 h-4" />}
                                 label="Saldo Inicial"
-                                value={formatarMoeda(Number(caixa.saldo_inicial))}
+                                value={caixa.saldo_inicial ? formatarMoeda(Number(caixa.saldo_inicial)) : "—"}
                             />
                             <InfoBox
                                 icon={<DollarSign className="w-4 h-4" />}

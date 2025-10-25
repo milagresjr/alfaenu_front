@@ -23,6 +23,20 @@
   color: white !important;
 }
 
+/* Aumenta o z-index do SweetAlert2 para ficar acima de outros elementos */
+.swal2-container {
+  z-index: 999999 !important;
+  position: fixed !important;
+  inset: 0 !important;
+  pointer-events: all !important;
+}
+
+/* Força o backdrop a bloquear o fundo */
+.swal2-backdrop-show {
+  pointer-events: all !important;
+}
+
+
 /* SCROOL BAR */
 /* global.css ou index.css */
 .custom-scrollbar::-webkit-scrollbar {
