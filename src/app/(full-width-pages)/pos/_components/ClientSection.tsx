@@ -13,6 +13,7 @@ import LoadingDialog from "./LoadingDialog";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/useAuthStore";
 import { PaymentDialog } from "./PaymentDialog";
+import DialogDocumentCreated from "@/features/pos/components/DialogDocumentCreated";
 
 
 export function ClientSection() {
@@ -34,6 +35,9 @@ export function ClientSection() {
     } = usePOSStore();
 
     const { user } = useAuthStore();
+
+    const [openDialogDocumentCreated, setOpenDialogDocumentCreated] = useState(false);
+    const [documentData, setDocumentData] = useState<any>(null);
 
     const [openPayment, setOpenPayment] = useState(false);
 
@@ -117,7 +121,7 @@ export function ClientSection() {
     }
 
     async function handleConfirmPayment(dados: any) {
-        
+
         const confirmed = await alert.confirm("Finalizar Documento", "Deseja finalizar o documento?", "Sim", "Não");
 
         if (confirmed) {
@@ -133,30 +137,35 @@ export function ClientSection() {
                 conta_financeira_id: dados.conta_bancaria
             }
 
+            setDocumentData(data);
+            setOpenPayment(false);
+            setOpenDialogDocumentCreated(true);
+
             // console.log(data);
             // return;
-
-            try {
-                setLoadingDoc(true);
-                await gerarPdfMovimentoSubcontaByPOS(data);
-            } finally {
-                queryClient.invalidateQueries({
-                    queryKey: ['movimentos-subconta'],
-                    exact: false
-                });
-                queryClient.invalidateQueries({
-                    queryKey: ['caixaAberto'],
-                    exact: false
-                });
-                setItensServicesContrato([]);
-                setLoadingDoc(false);
-                setOpenPayment(false);
-            }
 
         }
 
 
     };
+
+    async function handleOpenPDF() {
+        try {
+            setLoadingDoc(true);
+            await gerarPdfMovimentoSubcontaByPOS(documentData);
+        } finally {
+            queryClient.invalidateQueries({
+                queryKey: ['movimentos-subconta'],
+                exact: false
+            });
+            queryClient.invalidateQueries({
+                queryKey: ['caixaAberto'],
+                exact: false
+            });
+            setItensServicesContrato([]);
+            setLoadingDoc(false);
+        }
+    }
 
     if (loadingDoc) {
         return (
@@ -230,6 +239,12 @@ export function ClientSection() {
                 </div>
 
             </div>
+
+            <DialogDocumentCreated
+                open={openDialogDocumentCreated}
+                onOpenChange={setOpenDialogDocumentCreated}
+                onPrintDocument={handleOpenPDF}
+            />
 
             <PaymentDialog
                 open={openPayment}

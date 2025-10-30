@@ -17,6 +17,7 @@ import {
     FileText,
     ArrowDownCircle,
     ArrowUpCircle,
+    File,
 } from "lucide-react";
 import {
     Dialog,
@@ -29,7 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { abrirCaixa } from "@/features/caixa/api/caixaApi";
-import { useAbrirCaixa, useCaixas, useFecharCaixa, useGetCaixaAbertoByUser } from "@/features/caixa/hooks/useCaixaQuery";
+import { useAbrirCaixa, useFecharCaixa, useGetCaixaAbertoByUser } from "@/features/caixa/hooks/useCaixaQuery";
 import { toast } from "react-toastify";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -37,6 +38,7 @@ import { formatarDataHora, formatarMoeda } from "@/lib/helpers";
 import { gerarPdfFechoCaixa } from "@/lib/utils";
 import LoadingDialog from "@/app/(full-width-pages)/pos/_components/LoadingDialog";
 import CaixaDialog from "@/features/caixa/components/CaixaDialog";
+import CaixaTable from "./CaixaTable";
 
 export function MeuCaixa() {
 
@@ -145,11 +147,10 @@ export function MeuCaixa() {
                     {/* HEADER */}
                     <CardHeader className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pb-4 border-b dark:border-gray-700">
                         <CardTitle className="text-2xl font-bold flex items-center gap-2">
-                            <DollarSign className="w-6 h-6 text-green-500" />
-                            Detalhes do Caixa
-                        </CardTitle>
-
-                        <div className="flex items-center gap-3">
+                            <div className="flex items-center">
+                                <DollarSign className="w-6 h-6 text-green-500" />
+                                Detalhes do Caixa
+                            </div>
                             <Badge
                                 variant="outline"
                                 className={`px-3 py-1 text-sm ${caixa.estado === "Aberto"
@@ -159,6 +160,10 @@ export function MeuCaixa() {
                             >
                                 {caixa.estado}
                             </Badge>
+                        </CardTitle>
+
+                        <div className="flex items-center gap-3">
+
 
                             <Button
                                 onClick={() =>
@@ -171,6 +176,9 @@ export function MeuCaixa() {
                             >
                                 {caixa.estado === "Aberto" ? "Fechar Caixa" : "Abrir Caixa"}
                             </Button>
+                            <button>
+                                <File />
+                            </button>
                         </div>
                     </CardHeader>
 
@@ -220,7 +228,7 @@ export function MeuCaixa() {
 
                         <Separator className="dark:bg-gray-700" />
 
-                        <div className="flex items-center gap-3">
+                        {/* <div className="flex items-center gap-3">
                             <User className="w-5 h-5 text-gray-500 dark:text-gray-400" />
                             <div>
                                 <p className="text-sm text-gray-500 dark:text-gray-400">
@@ -228,7 +236,10 @@ export function MeuCaixa() {
                                 </p>
                                 <p className="text-lg font-semibold">{caixa.utilizador}</p>
                             </div>
-                        </div>
+                        </div> */}
+
+                        <CaixaTable />
+
                     </CardContent>
                 </Card>
             </div>
@@ -285,6 +296,8 @@ export function MeuCaixa() {
                     </DialogFooter>
                 </DialogContent>
             </Dialog> */}
+
+
 
             <CaixaDialog
                 acao={acao}
