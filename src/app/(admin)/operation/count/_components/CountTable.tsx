@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
-import { Plus, Search, Banknote, Lock, Unlock, Info, Edit, Trash, ChevronLeft } from "lucide-react";
+import { Plus, Search, Banknote, Lock, Unlock, Info, Edit, Trash, ChevronLeft, File } from "lucide-react";
 import { useDebounce } from "@uidotdev/usehooks";
 import { useProgress } from "@bprogress/next";
 
@@ -23,6 +23,8 @@ import { useCountStore } from "@/features/count/store/useCountStore";
 import { useAlterarEstadoCount, useCounts, useDeleteCount } from "@/features/count/hooks/useCountQuery";
 import LoadingDialog from "@/app/(full-width-pages)/pos/_components/LoadingDialog";
 import { EstadoCell } from "@/features/count/components/EstadoCell";
+import { RelatorioIntervaloDialog } from "./RelatorioIntervaloDialog";
+import { gerarRelatorioContaFinanceira } from "@/lib/utils";
 
 export default function CountTable() {
 
@@ -32,7 +34,10 @@ export default function CountTable() {
     const [selected, setSelected] = useState<"ativo" | "inativo" | "todos">("todos");
 
     const debouncedSearch = useDebounce(search, 500);
-    const { setSelectedCount } = useCountStore();
+    const { setSelectedCount, selectedCount } = useCountStore();
+
+    const [openDialogRelInt, setOpenDialogRelInt] = useState(false);
+    const [loadingRelatorio, setLoadingRelatorio] = useState(false);
 
     const { data, isLoading, isError } = useCounts(page, perPage, debouncedSearch, selected !== 'todos' ? selected : '');
     const deleteConta = useDeleteCount();
@@ -135,6 +140,23 @@ export default function CountTable() {
         router.back();
     }
 
+    async function handleGerarRelatorio(datas: { data_inicial: string; data_final: string }) {
+        try {
+            setLoadingRelatorio(true);
+            await gerarRelatorioContaFinanceira(
+                Number(selectedCount?.id),
+                datas.data_inicial,
+                datas.data_final
+            );
+        } catch (error) {
+            console.error("Erro ao gerar relatório:", error);
+            toast.error("Erro ao gerar relatório.");
+        } finally {
+            setLoadingRelatorio(false);
+            setOpenDialogRelInt(false);
+        }
+    };
+
     useEffect(() => {
         setPage(1);
     }, [selected]);
@@ -235,7 +257,17 @@ export default function CountTable() {
                                     onClick: () => toggleEstado(conta),
                                 },
                             ];
-                            return <DropdownActions actions={actions} />;
+                            return (
+                                <div className="flex gap-2">
+                                    <DropdownActions actions={actions} />
+                                    <button title="Imprimir relatorio da conta"
+                                        onClick={() => {
+                                            setSelectedCount(conta);
+                                            setOpenDialogRelInt(true);
+                                        }}
+                                    ><File size={20} /></button>
+                                </div>
+                            );
                         },
                         width: "10%",
                     },
@@ -256,6 +288,13 @@ export default function CountTable() {
                     }}
                 />
             )}
+
+            <RelatorioIntervaloDialog
+                open={openDialogRelInt}
+                onOpenChange={setOpenDialogRelInt}
+                onGerarRelatorio={handleGerarRelatorio}
+                isLoading={loadingRelatorio}
+            />
 
         </div>
     );

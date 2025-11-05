@@ -261,3 +261,28 @@ export async function gerarPdfFechoCaixa(caixaId: number | undefined) {
     console.error(error);
   }
 }
+
+export async function gerarRelatorioContaFinanceira(contaId: number | undefined, data_inicial: string, data_final: string) {
+  try {
+    const response = await api.get(`conta-financeira/relatorio/${contaId}`, {
+      responseType: 'blob', // ⚠️ Muito importante para PDFs
+      params: { data_inicial, data_final }
+    });
+
+    if (response.status !== 200) {
+      console.error("Erro ao gerar PDF:", response);
+      throw new Error("Erro ao gerar PDF");
+    }
+
+    // Cria uma URL temporária do PDF
+    const file = new Blob([response.data], { type: 'application/pdf' });
+    const fileURL = URL.createObjectURL(file);
+
+    // Abre o PDF numa nova aba
+    window.open(fileURL, "_blank");
+
+  } catch (error) {
+    toast.error("Erro ao gerar PDF.");
+    console.error(error);
+  }
+}
