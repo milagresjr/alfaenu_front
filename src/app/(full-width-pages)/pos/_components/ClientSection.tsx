@@ -162,6 +162,10 @@ export function ClientSection() {
                 queryKey: ['caixaAberto'],
                 exact: false
             });
+            queryClient.invalidateQueries({
+                queryKey: ['mov-financeiras'],
+                exact: false
+            });
             setItensServicesContrato([]);
             setLoadingDoc(false);
         }

@@ -172,7 +172,7 @@ export default function MovFinanceiraTable() {
             <TableMain
                 data={movFinanceirasFiltradas || []}
                 isLoading={isLoading}
-                emptyMessage="Nenhuma movFinanceira encontrada."
+                emptyMessage="Nenhuma Movimentação Financeira Encontrada."
                 columns={[
                     { header: "Descrição", accessor: "descricao", width: "20%" },
                     {

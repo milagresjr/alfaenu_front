@@ -13,7 +13,7 @@ import { PaginationComponent } from "@/components/pagination/Pagination";
 import { StatCard } from "@/components/StatCard/stat-card";
 import { TableMain } from "@/components/table";
 import { alert } from "@/lib/alert";
-import { formatarDataLong } from "@/lib/helpers";
+import { formatarDataLong, formatarMoeda } from "@/lib/helpers";
 
 import { DropdownActions } from "@/components/dropdown-action-menu/drop-actions-menu";
 
@@ -222,15 +222,30 @@ export default function CountTable() {
                 columns={[
                     { header: "Descrição", accessor: "nome", width: "20%" },
                     { header: "IBAN", accessor: "iban", width: "20%" },
-                    { header: "Tipo", accessor: "tipo", width: "20%" },
+                    { header: "Tipo", accessor: "tipo", width: "10%" },
+                    {
+                        header: "Total Entradas",
+                        accessor: (conta: CountType) => (
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
+                                {formatarMoeda(Number(conta.total_entradas))}
+                            </span>
+                        ),
+                        width: "15%",
+                    },
+                    {
+                        header: "Total Saídas",
+                        accessor: (conta: CountType) => (
+                            <span className="font-medium text-gray-700 dark:text-gray-300">
+                                {formatarMoeda(Number(conta.total_saidas))}
+                            </span>
+                        ),
+                        width: "15%",
+                    },
                     {
                         header: "Saldo",
                         accessor: (conta: CountType) => (
                             <span className="font-medium text-gray-700 dark:text-gray-300">
-                                {Number(conta.saldo_atual).toLocaleString("pt-PT", {
-                                    style: "currency",
-                                    currency: "AOA",
-                                })}
+                                {formatarMoeda(Number(conta.saldo_atual))}
                             </span>
                         ),
                         width: "15%",

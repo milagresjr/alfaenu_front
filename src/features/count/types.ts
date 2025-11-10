@@ -20,6 +20,8 @@ export type CountType = {
     iban: string;
     tipo: string;
     numero_conta: string;
+    total_entradas: number | string;
+    total_saidas: number | string;
     saldo_atual: number | string;
     estado?: string;
 };
