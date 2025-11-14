@@ -104,7 +104,7 @@ export function ClientSection() {
 
     async function handleFinalizarDocumento() {
 
-        if (clienteContrato !== null && (Number(totalValor) > saldoTotalSubconta)) {
+        if (clienteContrato !== null && ((Number(totalValor)-Number(descontoAplicado?.desconto)) > saldoTotalSubconta)) {
             toast.error(
                 <div>
                     Saldo da subconta insuficiente! <br />
@@ -116,7 +116,6 @@ export function ClientSection() {
 
         setOpenPayment(true);
         return;
-
 
     }
 
@@ -137,12 +136,12 @@ export function ClientSection() {
                 conta_financeira_id: dados.conta_bancaria
             }
 
+            // console.log(data);
+            // return;
             setDocumentData(data);
             setOpenPayment(false);
             setOpenDialogDocumentCreated(true);
 
-            // console.log(data);
-            // return;
 
         }
 
