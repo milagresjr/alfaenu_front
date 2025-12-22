@@ -40,6 +40,7 @@ export default function CountTable() {
     const [loadingRelatorio, setLoadingRelatorio] = useState(false);
 
     const { data, isLoading, isError } = useCounts(page, perPage, debouncedSearch, selected !== 'todos' ? selected : '');
+    
     const deleteConta = useDeleteCount();
     const alterarEstado = useAlterarEstadoCount();
 

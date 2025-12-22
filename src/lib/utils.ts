@@ -31,11 +31,10 @@ export async function gerarPdfMovimentoSubconta(documentoId: number | undefined)
   }
 }
 
-export async function gerarPdfMovimentoSubcontaByPOS(payload: any) {
+export async function gerarPdfMovimentoSubcontaByPOS(idDocument: string | number) {
   try {
-    const response = await api.post(
-      `movimento-subconta/gerar-pdf-movimento-subconta-pos`,
-      payload, // 👉 aqui vai o payload (body da requisição)
+    const response = await api.get(
+      `document-pos-generated/${idDocument}/gerar-pdf`,
       {
         responseType: "blob", // ⚠️ muito importante para PDFs
       }

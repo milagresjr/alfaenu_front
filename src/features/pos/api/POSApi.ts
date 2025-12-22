@@ -4,6 +4,14 @@ import { ItemServicContratoType } from "../types";
 
 const API_URL = '/items-services-contract'; // URL base para a API de ItensServiceContratos
 
+export interface DocumentPOSPaginated {
+    data: any[];
+    total: number;
+    per_page: number;
+    current_page: number;
+    last_page: number;
+}
+
 // Obter todas as ItensServiceContratos
 export const getAllItensServiceContrato = async (search: string): Promise<ItemServicContratoType[]> => {
     try {
@@ -62,3 +70,40 @@ export const deleteItensServiceContrato = async (id: number | undefined): Promis
     }
 };
 
+export const createDocumentPOS = async (data: any): Promise<any> => {
+    try {
+        const response = await api.post<any>('/movimento-subconta/movimento-subconta-pos', data);
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao criar documento do POS:', error);
+        throw error;
+    }
+}
+
+export const listDocumentsPOS = async (
+    page: number, 
+    per_page: number, 
+    search?: string
+): Promise<DocumentPOSPaginated> => {
+    try {
+        const response = await api.get<DocumentPOSPaginated>('/movimento-subconta/list-movimento-subconta-pos', {
+            params: { page, per_page, search }
+        });
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao listar documentos do POS:', error);
+        throw error;
+    }
+}
+
+export const generatePdfDocumentPOS = async (id: number): Promise<Blob> => {
+    try {
+        const response = await api.get(`/document-pos-generated/${id}/gerar-pdf`, {
+            responseType: 'blob', // Importante para arquivos binários
+        });
+        return response.data;
+    } catch (error) {
+        console.error(`Erro ao gerar PDF do documento POS com ID ${id}:`, error);
+        throw error;
+    }
+}

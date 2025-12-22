@@ -108,7 +108,7 @@ export function FormCount() {
             setValue("iban", selectedCount.iban);
             // setValue("tipo", selectedCount.tipo);
             setValue("numero_conta", selectedCount.numero_conta);
-            setValue("saldo_atual", selectedCount.saldo_atual.toString());
+            setValue("saldo_atual", selectedCount?.saldo_atual?.toString() || '');
         } else {
             reset();
         }

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { createItensServiceContrato, deleteItensServiceContrato, getAllItensServiceContrato, updateItensServiceContrato } from "../api/POSApi";
+import { createDocumentPOS, createItensServiceContrato, deleteItensServiceContrato, getAllItensServiceContrato, listDocumentsPOS, updateItensServiceContrato } from "../api/POSApi";
 import { ItemServicContratoType } from "../types";
 
 export const useItensServiceContrato = (search = '') => {
@@ -49,3 +49,27 @@ export const useDeleteItensServiceContrato = () => {
 
     return mutation;
 }
+
+export const useCreateDocumentPOS = () => {
+    const mutation = useMutation({
+        mutationFn: (data: any) => createDocumentPOS(data),
+    });
+
+    return mutation;
+}
+
+export const useListDocumentPOS = (page = 1, per_page = 15, search = '') => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ["document-pos", page, per_page, search],
+        queryFn: () => listDocumentsPOS(page, per_page, search),
+        staleTime: 1000 * 60 * 5,
+        networkMode: 'always',
+        //keepPreviousData: true, 
+    });
+
+    return {
+        data,
+        isLoading,
+        isError,
+    };
+};

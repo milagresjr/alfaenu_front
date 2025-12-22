@@ -4,7 +4,7 @@ import { usePOSStore } from "@/features/pos/store/usePOSStore";
 import { useEffect, useState } from "react";
 import { XCircle, CheckCircle2, PauseCircle, PlayCircle, Plus, PlusCircle } from "lucide-react";
 import { useMovimentosBySubconta } from "@/features/movimento-subconta/hooks/useMovimentosQuery";
-import { useItensServiceContrato } from "@/features/pos/hooks/usePOSQuery";
+import { useCreateDocumentPOS, useItensServiceContrato } from "@/features/pos/hooks/usePOSQuery";
 import { toast } from "react-toastify";
 import { alert } from "@/lib/alert";
 import { formatarMoeda } from "@/lib/helpers";
@@ -38,7 +38,7 @@ export function ClientSection() {
 
     const [openDialogDocumentCreated, setOpenDialogDocumentCreated] = useState(false);
     const [documentData, setDocumentData] = useState<any>(null);
-
+    const [idDocument, setIdDocument] = useState<number | null>(null);
     const [openPayment, setOpenPayment] = useState(false);
 
     const { data, isLoading, isError } = useMovimentosBySubconta({ idSubconta: String(subContaContrato?.id), page: 1, per_page: 1000, search: '', filters: {} });
@@ -58,6 +58,8 @@ export function ClientSection() {
     ), 0);
 
     const qtd = itensServicesContrato.length;
+
+    const createDocumentPOS = useCreateDocumentPOS();
 
     useEffect(() => {
         if (!clienteContrato) return;
@@ -104,7 +106,7 @@ export function ClientSection() {
 
     async function handleFinalizarDocumento() {
 
-        if (clienteContrato !== null && ((Number(totalValor)-Number(descontoAplicado?.desconto)) > saldoTotalSubconta)) {
+        if (clienteContrato !== null && ((Number(totalValor) - Number(descontoAplicado?.desconto)) > saldoTotalSubconta)) {
             toast.error(
                 <div>
                     Saldo da subconta insuficiente! <br />
@@ -136,12 +138,19 @@ export function ClientSection() {
                 conta_financeira_id: dados.conta_bancaria
             }
 
-            // console.log(data);
-            // return;
-            setDocumentData(data);
-            setOpenPayment(false);
-            setOpenDialogDocumentCreated(true);
-
+            createDocumentPOS.mutate(data, {
+                onSuccess: (response) => {
+                    toast.success("Documento criado com sucesso!");
+                    console.log(response);
+                    setIdDocument(response.data.id);
+                    setOpenPayment(false);
+                    setOpenDialogDocumentCreated(true);
+                },
+                onError: (error: any) => {
+                    console.error("Erro ao criar documento POS:", error);
+                    toast.error("Erro ao criar documento POS: " + (error?.response?.data?.message || error.message));
+                }
+            })
 
         }
 
@@ -151,7 +160,7 @@ export function ClientSection() {
     async function handleOpenPDF() {
         try {
             setLoadingDoc(true);
-            await gerarPdfMovimentoSubcontaByPOS(documentData);
+            await gerarPdfMovimentoSubcontaByPOS(idDocument as number);
         } finally {
             queryClient.invalidateQueries({
                 queryKey: ['movimentos-subconta'],
@@ -170,7 +179,7 @@ export function ClientSection() {
         }
     }
 
-    if (loadingDoc) {
+    if (loadingDoc || createDocumentPOS.isPending) {
         return (
             <LoadingDialog />
         )
