@@ -68,7 +68,7 @@ export default function StepFinanciamentoOrigem({
             <span className="font-medium">Financiamento</span>
           </div>
           <h2 className="text-2xl font-bold tracking-tight">
-            Origem do Financiamento
+            Origem do Finan.
           </h2>
           <p className="text-muted-foreground mt-1">
             Selecione a origem da instituição financiadora

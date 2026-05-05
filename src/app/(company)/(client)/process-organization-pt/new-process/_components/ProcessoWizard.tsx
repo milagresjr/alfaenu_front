@@ -35,7 +35,7 @@ export default function ProcessoWizard() {
     // Sempre mostra Detalhes (Step 4)
     visibleSteps.push("Detalhes")
     
-    // Se for financiado E for formação profissional, mostra Origem do Financiamento
+    // Se for financiado E for formação profissional, mostra Origem do Finan.
     if (data.financiamento === "financiado" && data.subtipo === "formacao") {
       visibleSteps.push("Origem do Finan.")
       
@@ -67,7 +67,7 @@ export default function ProcessoWizard() {
         return StepSubtipo
       case "Detalhes":
         return StepDetalhes
-      case "Origem do Financiamento":
+      case "Origem do Finan.":
         return StepFinanciamentoOrigem
       case "Minutas":
         return StepMinutas
@@ -140,7 +140,7 @@ export default function ProcessoWizard() {
           return data.financiamento !== null
         }
         return true
-      case "Origem do Financiamento":
+      case "Origem do Finan.":
         return data.financiamentoOrigem !== null
       case "Minutas":
         return data.minutaSelecionada !== null
