@@ -1,4 +1,5 @@
-import { Outfit } from 'next/font/google';
+// import { Outfit } from 'next/font/google';
+import localFont from 'next/font/local';
 import './globals.css';
 import './app.css';
 import './react-quill.css';
@@ -8,8 +9,24 @@ import { ToastContainer } from 'react-toastify';
 import QueryProvider from '@/provider/queryProvider';
 import { ProgressProviderWrapper } from '@/provider/progressProvider';
 
-const outfit = Outfit({
-  subsets: ["latin"],
+const outfit = localFont({
+  src: [
+    {
+      path: '../../public/fonts/Outfit/static/Outfit-Regular.ttf',
+      weight: '400',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/Outfit/static/Outfit-Medium.ttf',
+      weight: '500',
+      style: 'normal',
+    },
+    {
+      path: '../../public/fonts/Outfit/static/Outfit-Bold.ttf',
+      weight: '700',
+      style: 'normal',
+    },
+  ],
 });
 
 export default function RootLayout({

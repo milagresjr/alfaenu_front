@@ -95,12 +95,12 @@ export default function StepReview({ data, back }: StepReviewProps) {
                     <span>{data.cliente.telefone}</span>
                   </div>
                 )}
-                {data.cliente.documento && (
+                {/* {data.cliente.documento && (
                   <div className="flex justify-between items-center">
                     <span className="text-muted-foreground">Documento:</span>
                     <span>{data.cliente.documento}</span>
                   </div>
-                )}
+                )} */}
               </div>
             ) : (
               <p className="text-muted-foreground text-sm">Nenhum cliente selecionado</p>
