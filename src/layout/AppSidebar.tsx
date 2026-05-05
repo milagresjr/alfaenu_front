@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState, useCallback } from "react";
+import React, { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -17,6 +17,7 @@ import {
   Briefcase,
   ArrowLeftRight,
   Settings,
+  TicketsPlaneIcon
 } from "lucide-react";
 import {
   Tooltip,
@@ -24,6 +25,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAuthStore } from "@/store/useAuthStore";
+
+// Definição dos tipos de usuário
+export enum UserType {
+  INTERNAL = "interno",  // funcionário
+  EXTERNAL = "externo"   // cliente
+}
 
 type NavItem = {
   name: string;
@@ -32,8 +40,19 @@ type NavItem = {
   subItems?: { name: string; path: string; pro?: boolean; new?: boolean }[];
 };
 
-const navItems: NavItem[] = [
+// Menus completos (todos os itens)
+const allNavItems: NavItem[] = [
+  // { icon: <LayoutDashboard />, name: "Inicio", path: "/home" },
   { icon: <LayoutDashboard />, name: "Dashboard", path: "/" },
+  {
+    name: "Org. de Processos",
+    icon: <TicketsPlaneIcon />,
+    subItems: [
+      { name: "Portugal", path: "/process-organization-pt" },
+      { name: "Brasil", path: "/process-organization-br" },
+    ],
+  },
+  { icon: <Users />, name: "Clientes", path: "/process-organization/my-clients" },
   { icon: <Users />, name: "Clientes", path: "/client" },
   {
     icon: <FileText />,
@@ -63,6 +82,11 @@ const othersItems: NavItem[] = [];
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const pathname = usePathname();
+  const { user } = useAuthStore();
+
+  // Pega o tipo do usuário da store
+  const userType = user?.type || UserType.EXTERNAL;
+  const isInternal = userType === UserType.INTERNAL;
 
   const [openSubmenu, setOpenSubmenu] = useState<{ type: "main" | "others"; index: number } | null>(null);
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -76,11 +100,74 @@ const AppSidebar: React.FC = () => {
     );
   };
 
+  // Filtra os menus baseado no tipo de usuário
+  const { main: navItems, others: filteredOthersItems } = useMemo(() => {
+    // Se for usuário interno, mostra todos os menus
+    if (isInternal) {
+      return { main: allNavItems, others: othersItems };
+    }
+
+    // Para usuários externos, filtra os menus
+    const filterExternalMenus = (items: NavItem[]): NavItem[] => {
+      return items
+        .map((item) => {
+          // Lista de paths restritos para usuários externos
+          const restrictedPaths = [
+            "/client",           // Clientes
+            "/contract",        //Contratos
+            "/services-operation", // Operações e Movimentos
+            "/pos",             // Gerar Documento (POS)
+            "/user",            // Utilizadores
+            "/operation",        // Operações e Caixa
+            "/term",
+          ];
+
+          // Se o item principal é restrito, não mostra
+          if (item.path && restrictedPaths.includes(item.path)) {
+            return null;
+          }
+
+          // Se tem subitems, filtra os subitems restritos
+          if (item.subItems) {
+            const restrictedSubPaths = [
+              "/contract/subcontas",  // Subcontas
+              "/service",
+              "/service-type",         // Categoria de serviços
+              "/contract",
+            ];
+
+            const filteredSubItems = item.subItems.filter(
+              (subItem) => !restrictedSubPaths.includes(subItem.path)
+            );
+
+            // Se não restou nenhum subitem, não mostra o item principal
+            if (filteredSubItems.length === 0) {
+              return null;
+            }
+
+            // Retorna o item com os subitems filtrados
+            return {
+              ...item,
+              subItems: filteredSubItems,
+            };
+          }
+
+          return item;
+        })
+        .filter((item): item is NavItem => item !== null);
+    };
+
+    return {
+      main: filterExternalMenus(allNavItems),
+      others: filterExternalMenus(othersItems),
+    };
+  }, [isInternal]);
+
   // Abre submenu automaticamente se o path estiver ativo
   useEffect(() => {
     let matched = false;
     ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : othersItems;
+      const items = menuType === "main" ? navItems : filteredOthersItems;
       items.forEach((nav, index) => {
         if (nav.subItems?.some((sub) => isActive(sub.path))) {
           setOpenSubmenu({ type: menuType as "main" | "others", index });
@@ -89,7 +176,7 @@ const AppSidebar: React.FC = () => {
       });
     });
     if (!matched) setOpenSubmenu(null);
-  }, [pathname, isActive]);
+  }, [pathname, isActive, navItems, filteredOthersItems]);
 
   // Define altura animada dos submenus
   useEffect(() => {
@@ -192,8 +279,8 @@ const AppSidebar: React.FC = () => {
                             <Link
                               href={subItem.path}
                               className={`block px-3 py-1 rounded-md text-sm hover:bg-gray-700 dark:hover:bg-gray-300 ${isActive(subItem.path)
-                                  ? "bg-gray-700 dark:bg-gray-300 font-semibold"
-                                  : ""
+                                ? "bg-gray-700 dark:bg-gray-300 font-semibold"
+                                : ""
                                 }`}
                             >
                               {subItem.name}
@@ -225,8 +312,8 @@ const AppSidebar: React.FC = () => {
                           <Link
                             href={subItem.path}
                             className={`menu-dropdown-item ${isActive(subItem.path)
-                                ? "menu-dropdown-item-active"
-                                : "menu-dropdown-item-inactive"
+                              ? "menu-dropdown-item-active"
+                              : "menu-dropdown-item-inactive"
                               }`}
                           >
                             {subItem.name}
@@ -244,68 +331,69 @@ const AppSidebar: React.FC = () => {
     </ul>
   );
 
-
   return (
-    <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-99 border-r border-gray-200 
-    ${isExpanded || isMobileOpen ? "w-[290px]" : "w-[90px]"}
-    ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
-    lg:translate-x-0`}
-    >
-      <div
-        className={`w-full py-0 flex ${!isExpanded ? "lg:justify-center py-6" : "justify-center"}`}
+    <TooltipProvider>
+      <aside
+        className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-99 border-r border-gray-200 
+        ${isExpanded || isMobileOpen ? "w-[290px]" : "w-[90px]"}
+        ${isMobileOpen ? "translate-x-0" : "-translate-x-full"}
+        lg:translate-x-0`}
       >
-        <Link href="/">
-          {isExpanded || isMobileOpen ? (
-            <>
-              <Image
-                className="dark:hidden"
-                src="/images/logo/alfaenu-logo-preto.png"
-                alt="Logo"
-                width={150}
-                height={40}
-              />
-              <Image
-                className="hidden dark:block"
-                src="/images/logo/alfaenu-logo.png"
-                alt="Logo"
-                width={150}
-                height={10}
-              />
-            </>
-          ) : (
-            <>
-            </>
-          )}
-        </Link>
-      </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
-        <nav className="mb-6">
-          <div className="flex flex-col gap-4">
-            <div>
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded ? "lg:justify-center" : "justify-start"
-                  }`}
-              >
-                {isExpanded || isMobileOpen ? "Menu" : <HorizontaLDots />}
-              </h2>
-              {renderMenuItems(navItems, "main")}
-            </div>
+        <div
+          className={`w-full py-0 flex ${!isExpanded ? "lg:justify-center py-6" : "justify-center"}`}
+        >
+          <Link href="/">
+            {isExpanded || isMobileOpen ? (
+              <>
+                <Image
+                  className="dark:hidden"
+                  src="/images/logo/alfaenu-logo-preto.png"
+                  alt="Logo"
+                  width={150}
+                  height={40}
+                />
+                <Image
+                  className="hidden dark:block"
+                  src="/images/logo/alfaenu-logo.png"
+                  alt="Logo"
+                  width={150}
+                  height={10}
+                />
+              </>
+            ) : (
+              <></>
+            )}
+          </Link>
+        </div>
+        <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar">
+          <nav className="mb-6">
+            <div className="flex flex-col gap-4">
+              <div>
+                <h2
+                  className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded ? "lg:justify-center" : "justify-start"
+                    }`}
+                >
+                  {isExpanded || isMobileOpen ? "Menu" : <HorizontaLDots />}
+                </h2>
+                {renderMenuItems(navItems, "main")}
+              </div>
 
-            <div className="">
-              <h2
-                className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded ? "lg:justify-center" : "justify-start"
-                  }`}
-              >
-                {isExpanded || isMobileOpen ? "" : <HorizontaLDots />}
-              </h2>
-              {renderMenuItems(othersItems, "others")}
+              {filteredOthersItems.length > 0 && (
+                <div className="">
+                  <h2
+                    className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded ? "lg:justify-center" : "justify-start"
+                      }`}
+                  >
+                    {isExpanded || isMobileOpen ? "Outros" : <HorizontaLDots />}
+                  </h2>
+                  {renderMenuItems(filteredOthersItems, "others")}
+                </div>
+              )}
             </div>
-          </div>
-        </nav>
-      </div>
-    </aside>
-
+          </nav>
+        </div>
+      </aside>
+    </TooltipProvider>
   );
 };
 

@@ -2,36 +2,102 @@
 import Checkbox from "@/components/form/input/Checkbox";
 import Input from "@/components/form/input/InputField";
 import Label from "@/components/form/Label";
+import { useRegisterUser } from "@/features/user/hooks/useUserQuery";
 import { ChevronLeftIcon, EyeCloseIcon, EyeIcon } from "@/icons";
+import { alert } from "@/lib/alert";
+import { api } from "@/services/api";
+import { useAuthStore } from "@/store/useAuthStore";
+import { zodResolver } from "@hookform/resolvers/zod/dist/zod.js";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "react-toastify";
+import { z } from "zod";
+
+const formSchema = z.object({
+  name: z.string().min(1, "Nome é obrigatório"),
+  email: z.email("Endereço de email inválido"),
+  password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
+  confirmPassword: z.string().min(6, "A confirmação de senha deve ter pelo menos 6 caracteres"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "As senhas não coincidem",
+});
+
+type formData = z.infer<typeof formSchema>;
 
 export default function SignUpForm() {
+
+  const { register, handleSubmit, formState: { errors } } = useForm<formData>({
+    resolver: zodResolver(formSchema),
+  });
+
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isChecked, setIsChecked] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const { setUser } = useAuthStore();
+  const registerUser = useRegisterUser();
+
+  function onSubmit(data: formData) {
+    registerUser.mutate({
+      nome: data.name,
+      email: data.email,
+      password: data.password,
+      password_confirmation: data.confirmPassword,
+    }, {
+      onSuccess: (response) => {
+        toast.success("Conta criada com sucesso!");
+        console.log("Usuário registrado com sucesso:", response);
+        //Fazer login automático após registro
+        handleLogin(data.email, data.password);
+      },
+      onError: (error) => {
+        toast.error("Erro ao registrar usuário");
+        console.error("Erro ao registrar usuário:", error);
+      },
+    });
+  }
+
+  async function handleLogin(email: string, password: string) {
+    try {
+      const response = await api.post('login', {
+        email: email,
+        password: password
+      });
+      const { token, utilizador } = response.data;
+      // toast.success('Login realizado com sucesso.', { autoClose: 1000 });
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      if (token) {
+        setUser(utilizador);
+        // document.cookie = `token=${token}; path=/; SameSite=Strict;`;
+        document.cookie = `token=${token}; path=/; SameSite=Lax; Secure`;
+        // window.location.reload();
+        router.push('/');
+        router.refresh();
+      }
+    } catch (error: any) {
+      console.log("Erro ao fazer o login", error);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
     <div className="flex flex-col flex-1 lg:w-1/2 w-full overflow-y-auto no-scrollbar">
-      <div className="w-full max-w-md sm:pt-10 mx-auto mb-5">
-        <Link
-          href="/"
-          className="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
-        >
-          <ChevronLeftIcon />
-          Back to dashboard
-        </Link>
-      </div>
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-8">
             <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
               Sign Up
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            {/* <p className="text-sm text-gray-500 dark:text-gray-400">
               Enter your email and password to sign up!
-            </p>
+            </p> */}
           </div>
           <div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">
+            {/* <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-5">
               <button className="inline-flex items-center justify-center gap-3 py-3 text-sm font-normal text-gray-700 transition-colors bg-gray-100 rounded-lg px-7 hover:bg-gray-200 hover:text-gray-800 dark:bg-white/5 dark:text-white/90 dark:hover:bg-white/10">
                 <svg
                   width="20"
@@ -72,8 +138,8 @@ export default function SignUpForm() {
                 </svg>
                 Sign up with X
               </button>
-            </div>
-            <div className="relative py-3 sm:py-5">
+            </div> */}
+            {/* <div className="relative py-3 sm:py-5">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-200 dark:border-gray-800"></div>
               </div>
@@ -82,32 +148,21 @@ export default function SignUpForm() {
                   Or
                 </span>
               </div>
-            </div>
-            <form>
+            </div> */}
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-5">
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <div className="grid grid-cols-1 gap-5">
                   {/* <!-- First Name --> */}
                   <div className="sm:col-span-1">
                     <Label>
-                      First Name<span className="text-error-500">*</span>
+                      Name<span className="text-error-500">*</span>
                     </Label>
                     <Input
                       type="text"
-                      id="fname"
-                      name="fname"
+                      id="name"
+                      name="name"
                       placeholder="Enter your first name"
-                    />
-                  </div>
-                  {/* <!-- Last Name --> */}
-                  <div className="sm:col-span-1">
-                    <Label>
-                      Last Name<span className="text-error-500">*</span>
-                    </Label>
-                    <Input
-                      type="text"
-                      id="lname"
-                      name="lname"
-                      placeholder="Enter your last name"
+                      register={register}
                     />
                   </div>
                 </div>
@@ -121,7 +176,11 @@ export default function SignUpForm() {
                     id="email"
                     name="email"
                     placeholder="Enter your email"
+                    register={register}
                   />
+                  {errors.email && (
+                    <p className="text-error-500 text-sm">{errors.email.message}</p>
+                  )}
                 </div>
                 {/* <!-- Password --> */}
                 <div>
@@ -132,7 +191,14 @@ export default function SignUpForm() {
                     <Input
                       placeholder="Enter your password"
                       type={showPassword ? "text" : "password"}
+                      name="password"
+                      register={register}
                     />
+                    {
+                      errors.password && (
+                        <p className="text-error-500 text-sm">{errors.password.message}</p>
+                      )
+                    }
                     <span
                       onClick={() => setShowPassword(!showPassword)}
                       className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
@@ -145,8 +211,38 @@ export default function SignUpForm() {
                     </span>
                   </div>
                 </div>
+                {/* <!-- Confirm Password --> */}
+                <div>
+                  <Label>
+                    Confirm Password<span className="text-error-500">*</span>
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      placeholder="Confirm your password"
+                      type={showConfirmPassword ? "text" : "password"}
+                      name="confirmPassword"
+                      register={register}
+                    />
+                    {
+                      errors.confirmPassword && (
+                        <p className="text-error-500 text-sm">{errors.confirmPassword.message}</p>
+                      )
+                    }
+                    <span
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
+                    >
+                      {showConfirmPassword ? (
+                        <EyeIcon className="fill-gray-500 dark:fill-gray-400" />
+                      ) : (
+                        <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400" />
+                      )}
+                    </span>
+                  </div>
+
+                </div>
                 {/* <!-- Checkbox --> */}
-                <div className="flex items-center gap-3">
+                {/* <div className="flex items-center gap-3">
                   <Checkbox
                     className="w-5 h-5"
                     checked={isChecked}
@@ -162,11 +258,36 @@ export default function SignUpForm() {
                       Privacy Policy
                     </span>
                   </p>
-                </div>
+                </div> */}
                 {/* <!-- Button --> */}
                 <div>
                   <button className="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600">
-                    Sign Up
+                    {
+                      registerUser.isPending ? (
+                        <svg
+                          className="w-5 h-5 text-white animate-spin"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                      ) : (
+                        "Criar Conta"
+                      )
+                    }
                   </button>
                 </div>
               </div>
@@ -174,12 +295,12 @@ export default function SignUpForm() {
 
             <div className="mt-5">
               <p className="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
-                Already have an account?
+                Já tem uma conta?{" "}
                 <Link
                   href="/signin"
                   className="text-brand-500 hover:text-brand-600 dark:text-brand-400"
                 >
-                  Sign In
+                  Entrar
                 </Link>
               </p>
             </div>

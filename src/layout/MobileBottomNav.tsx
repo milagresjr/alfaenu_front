@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -10,12 +10,29 @@ import {
   Briefcase,
   Printer,
   ArrowLeftRight,
-  ChevronUp,
   Settings,
+  TicketsPlaneIcon,
 } from "lucide-react";
+import { useAuthStore } from "@/store/useAuthStore";
 
-const navItems = [
+// Definição dos tipos de usuário (mesmo do sidebar)
+enum UserType {
+  INTERNAL = "interno",
+  EXTERNAL = "externo"
+}
+
+// Todos os itens do menu (completos)
+const allNavItems = [
   { name: "Dashboard", icon: <LayoutDashboard size={22} />, path: "/" },
+  {
+    name: "Org. de Processos",
+    icon: <TicketsPlaneIcon size={22} />,
+    subItems: [
+      { name: "Portugal", path: "/process-organization-pt" },
+      { name: "Brasil", path: "/process-organization-br" },
+    ],
+  },
+  { name: "Clientes", icon: <Users size={22} />, path: "/process-organization/my-clients" },
   { name: "Clientes", icon: <Users size={22} />, path: "/client" },
   {
     name: "Contratos",
@@ -25,6 +42,7 @@ const navItems = [
       { name: "Subcontas", path: "/contract/subcontas" },
     ],
   },
+  { name: "Movimentos", icon: <ArrowLeftRight size={22} />, path: "/services-operation" },
   { name: "POS", icon: <Printer size={22} />, path: "/pos" },
   {
     name: "Serviços",
@@ -34,14 +52,80 @@ const navItems = [
       { name: "Categoria", path: "/service-type" },
     ],
   },
-  { name: "Movimentos", icon: <ArrowLeftRight size={22} />, path: "/services-operation" },
+  { name: "Termos", icon: <FileText size={22} />, path: "/term" },
+  { name: "Utilizadores", icon: <Users size={22} />, path: "/user" },
   { name: "Op. Caixas", icon: <Settings size={22} />, path: "/operation" },
 ];
 
 export default function MobileBottomNav() {
   const pathname = usePathname();
+  const { user } = useAuthStore();
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Pega o tipo do usuário
+  const userType = user?.type || UserType.EXTERNAL;
+  const isInternal = userType === UserType.INTERNAL;
+
+  // Filtra os menus baseado no tipo de usuário
+  const navItems = useMemo(() => {
+    // Se for interno, mostra todos
+    if (isInternal) {
+      return allNavItems;
+    }
+
+    // Para externos, filtra
+    const filterExternalItems = (items: typeof allNavItems) => {
+      return items
+        .map((item) => {
+          // Paths restritos para externos
+          const restrictedPaths = [
+            "/client",
+            "/contract",
+            "/services-operation",
+            "/pos",
+            "/user",
+            "/operation",
+            "/term",
+          ];
+
+          // Se o item principal é restrito, não mostra
+          if (item.path && restrictedPaths.includes(item.path)) {
+            return null;
+          }
+
+          // Se tem subitems, filtra os subitems restritos
+          if (item.subItems) {
+            const restrictedSubPaths = [
+              "/contract/subcontas",
+              "/service",
+              "/service-type",
+              "/contract",
+            ];
+
+            const filteredSubItems = item.subItems.filter(
+              (subItem) => !restrictedSubPaths.includes(subItem.path)
+            );
+
+            // Se não restou nenhum subitem, não mostra o item principal
+            if (filteredSubItems.length === 0) {
+              return null;
+            }
+
+            // Retorna o item com os subitems filtrados
+            return {
+              ...item,
+              subItems: filteredSubItems,
+            };
+          }
+
+          return item;
+        })
+        .filter((item): item is typeof allNavItems[0] => item !== null);
+    };
+
+    return filterExternalItems(allNavItems);
+  }, [isInternal]);
 
   // Fecha submenu ao clicar fora
   useEffect(() => {
@@ -95,12 +179,6 @@ export default function MobileBottomNav() {
                   {item.icon}
                   <span className="mt-1 flex items-center gap-1">
                     {item.name}
-                    {/* <ChevronUp
-                      size={14}
-                      className={`transition-transform ${
-                        openMenu === item.name ? "rotate-180" : ""
-                      }`}
-                    /> */}
                   </span>
                 </button>
 

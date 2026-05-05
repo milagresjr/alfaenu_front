@@ -29,7 +29,7 @@ export function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Páginas públicas (sem necessidade de login)
-  const publicPaths = ["/signin"];
+  const publicPaths = ["/signin", "/signup", "/forgot-password"];
   const isPublicRoute = publicPaths.includes(pathname) || pathname.startsWith("/api");
 
   // Ignorar rotas estáticas (Next.js e assets)

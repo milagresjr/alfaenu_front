@@ -8,7 +8,7 @@ import MonthlySalesChart from "@/components/ecommerce/MonthlySalesChart";
 import StatisticsChart from "@/components/ecommerce/StatisticsChart";
 import RecentOrders from "@/components/ecommerce/RecentOrders";
 import DemographicCard from "@/components/ecommerce/DemographicCard";
-import { CardStat } from "./_dashboard/CardStat";
+import { CardStat } from "./(admin)/_dashboard/CardStat";
 import { useCardStatData, useChartData } from "@/features/dashboard/hooks/useDashboardQuery";
 
 // export const metadata: Metadata = {

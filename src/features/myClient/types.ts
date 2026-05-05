@@ -1,0 +1,22 @@
+export type MyClienteType = {
+  id?: number;
+  nome: string;
+  nome_pai: string;
+  nome_mae: string;
+  sexo: string;
+  estado_civil?: string;
+  email: string;
+  telefone?: string;
+  nacionalidade?: string;
+  naturalidade?: string;
+  data_nascimento?: string;
+  endereco?: string;
+  n_bi?: string;
+  n_passaporte?: string;
+  emitido_em?: string;
+  data_emissao?: string;
+  valido_ate?: string;
+  estado?: 'ativo' | 'inativo';
+  created_at?: string;
+  updated_at?: string;
+};

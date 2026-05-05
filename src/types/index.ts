@@ -6,4 +6,5 @@ export type UtilizadorType = {
     email: string;
     password: string;
     status: boolean;
+    type: string;
 }
