@@ -14,8 +14,6 @@ import { useEffect, useState } from "react";
 import { useDebounce } from "@uidotdev/usehooks";
 import { Input } from "@/components/ui/input";
 import { PaginationComponent } from "@/components/pagination/Pagination";
-import { StatCard } from "@/components/StatCard/stat-card";
-import { EstadoCell } from "@/features/course/components/EstadoCell";
 import { useMemo } from "react";
 import { useProgress } from "@bprogress/next";
 import LoadingDialog from "../../../../(full-width-pages)/pos/_components/LoadingDialog";

@@ -253,7 +253,25 @@ export function ModalPreencherMinuta2({
       }
 
       // console.log("Enviando payload para API:", payload)
-      // return
+      // Add your code here to handle the form submission and call onSuccess if successful
+      try {
+        const response = await fetch('/api/minuta', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error('Erro ao enviar minuta');
+        }
+
+        const data = await response.json();
+        onSuccess?.(data);
+      } catch (error) {
+        toast.error('Erro ao enviar minuta. Por favor, tente novamente.');
+      }
 
       const response = await api.post('minuta2/gerar-pdf', payload, {
         responseType: 'blob'
