@@ -1,4 +1,4 @@
-// components/processo/modais/ModalPreencherMinuta.tsx
+// components/processo/modais/ModalPreencherMinuta2.tsx
 'use client'
 
 import React, { useEffect, useState } from "react"
@@ -21,7 +21,7 @@ import { api } from "@/services/api"
 import { cn } from "@/lib/utils"
 import { MyClienteType } from "@/features/myClient/types"
 
-interface ModalPreencherMinutaProps {
+interface ModalPreencherMinuta2Props {
   open: boolean
   onOpenChange: (open: boolean) => void
   initialValues?: Partial<MinutaFormValues>
@@ -30,36 +30,34 @@ interface ModalPreencherMinutaProps {
 }
 
 interface MinutaFormValues {
-  nome_completo: string
-  naturalidade: string
-  nacionalidade: string
+  nome: string
+  data_nascimento: Date | undefined
+  local_nascimento: string
+  residencia_atual: string
   num_passaporte: string
+  local_emissao: string
   data_emissao: Date | undefined
   data_validade: Date | undefined
-  data_prevista_estadia: Date | undefined
-  inicio_formacao_profissional: Date | undefined
-  termino_formacao_profissional: Date | undefined
-  escola_profissional: string
   curso: string
-  duracao_curso: string
-  duracao_estagio: string
+  nome_escola: string
+  local_escola: string
+  data_prevista_chegada: Date | undefined
   local_hospedagem: string
 }
 
 const initialFormValues: MinutaFormValues = {
-  nome_completo: "",
-  naturalidade: "",
-  nacionalidade: "",
+  nome: "",
+  data_nascimento: undefined,
+  local_nascimento: "",
+  residencia_atual: "",
   num_passaporte: "",
+  local_emissao: "",
   data_emissao: undefined,
   data_validade: undefined,
-  data_prevista_estadia: undefined,
-  inicio_formacao_profissional: undefined,
-  termino_formacao_profissional: undefined,
-  escola_profissional: "",
   curso: "",
-  duracao_curso: "",
-  duracao_estagio: "",
+  nome_escola: "",
+  local_escola: "",
+  data_prevista_chegada: undefined,
   local_hospedagem: "",
 }
 
@@ -130,29 +128,30 @@ function getInitialValues(
   return {
     ...initialFormValues,
     ...values,
-    nome_completo: cliente?.nome ?? values?.nome_completo ?? initialFormValues.nome_completo,
-    naturalidade: cliente?.naturalidade ?? values?.naturalidade ?? initialFormValues.naturalidade,
-    nacionalidade: cliente?.nacionalidade ?? values?.nacionalidade ?? initialFormValues.nacionalidade,
-    num_passaporte:
-      cliente?.n_passaporte ?? cliente?.n_bi ?? values?.num_passaporte ?? initialFormValues.num_passaporte,
-    data_emissao:
-      cliente?.data_emissao || cliente?.emitido_em
-        ? parseClientDate(cliente?.data_emissao ?? cliente?.emitido_em)
-        : values?.data_emissao ?? initialFormValues.data_emissao,
-    data_validade:
-      cliente?.valido_ate
-        ? parseClientDate(cliente?.valido_ate)
-        : values?.data_validade ?? initialFormValues.data_validade,
+    nome: cliente?.nome ?? values?.nome ?? initialFormValues.nome,
+    num_passaporte: cliente?.n_passaporte ?? cliente?.n_bi ?? values?.num_passaporte ?? initialFormValues.num_passaporte,
+    local_emissao: cliente?.emitido_em ?? values?.local_emissao ?? initialFormValues.local_emissao,
+    data_emissao: cliente?.data_emissao || cliente?.emitido_em
+      ? parseClientDate(cliente?.data_emissao ?? cliente?.emitido_em)
+      : values?.data_emissao ?? initialFormValues.data_emissao,
+    data_validade: cliente?.valido_ate
+      ? parseClientDate(cliente?.valido_ate)
+      : values?.data_validade ?? initialFormValues.data_validade,
+    data_nascimento: cliente?.data_nascimento 
+      ? parseClientDate(cliente?.data_nascimento as any) 
+      : values?.data_nascimento ?? initialFormValues.data_nascimento,
+    local_nascimento: cliente?.naturalidade ?? values?.local_nascimento ?? initialFormValues.local_nascimento,
+    residencia_atual: cliente?.endereco ?? values?.residencia_atual ?? initialFormValues.residencia_atual,
   }
 }
 
-export function ModalPreencherMinuta({
+export function ModalPreencherMinuta2({
   open,
   onOpenChange,
   initialValues,
   onSuccess,
   cliente,
-}: ModalPreencherMinutaProps) {
+}: ModalPreencherMinuta2Props) {
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState<MinutaFormValues>(
     getInitialValues(initialValues, cliente)
@@ -160,12 +159,11 @@ export function ModalPreencherMinuta({
   const [errors, setErrors] = useState<Partial<Record<keyof MinutaFormValues, string>>>({})
 
   const clientePrefill = {
-    nome_completo: Boolean(cliente?.nome),
-    naturalidade: Boolean(cliente?.naturalidade),
-    nacionalidade: Boolean(cliente?.nacionalidade),
+    nome: Boolean(cliente?.nome),
     num_passaporte: Boolean(cliente?.n_passaporte || cliente?.n_bi),
     data_emissao: Boolean(cliente?.data_emissao || cliente?.emitido_em),
     data_validade: Boolean(cliente?.valido_ate),
+    data_nascimento: Boolean(cliente?.data_nascimento),
   }
 
   useEffect(() => {
@@ -192,29 +190,14 @@ export function ModalPreencherMinuta({
   const validateForm = (): boolean => {
     const newErrors: Partial<Record<keyof MinutaFormValues, string>> = {}
 
-    if (!formData.nome_completo?.trim()) {
-      newErrors.nome_completo = "Nome completo é obrigatório"
-    }
-    if (!formData.naturalidade?.trim()) {
-      newErrors.naturalidade = "Naturalidade é obrigatória"
-    }
-    if (!formData.nacionalidade?.trim()) {
-      newErrors.nacionalidade = "Nacionalidade é obrigatória"
+    if (!formData.nome?.trim()) {
+      newErrors.nome = "Nome é obrigatório"
     }
     if (!formData.num_passaporte?.trim()) {
       newErrors.num_passaporte = "Número do passaporte é obrigatório"
     }
-    if (!formData.escola_profissional?.trim()) {
-      newErrors.escola_profissional = "Escola profissional é obrigatória"
-    }
     if (!formData.curso?.trim()) {
       newErrors.curso = "Curso é obrigatório"
-    }
-    if (!formData.duracao_curso?.trim()) {
-      newErrors.duracao_curso = "Duração do curso é obrigatória"
-    }
-    if (!formData.duracao_estagio?.trim()) {
-      newErrors.duracao_estagio = "Duração do estágio é obrigatória"
     }
     if (!formData.local_hospedagem?.trim()) {
       newErrors.local_hospedagem = "Local de hospedagem é obrigatório"
@@ -225,14 +208,19 @@ export function ModalPreencherMinuta({
     if (!formData.data_validade) {
       newErrors.data_validade = "Data de validade é obrigatória"
     }
-    if (!formData.data_prevista_estadia) {
-      newErrors.data_prevista_estadia = "Data prevista de estadia é obrigatória"
+    if (!formData.data_prevista_chegada) {
+      newErrors.data_prevista_chegada = "Data prevista de chegada é obrigatória"
     }
-    if (!formData.inicio_formacao_profissional) {
-      newErrors.inicio_formacao_profissional = "Início da formação é obrigatório"
+    if (!formData.residencia_atual?.trim()) {
+      newErrors.residencia_atual = "Residência atual é obrigatória"
     }
-    if (!formData.termino_formacao_profissional) {
-      newErrors.termino_formacao_profissional = "Término da formação é obrigatório"
+
+    if(!formData.nome_escola?.trim()){
+      newErrors.nome_escola = "Campo obrigatorio";
+    }
+
+    if(!formData.local_escola?.trim()){
+      newErrors.local_escola = "Campo obrigatorio";
     }
 
     setErrors(newErrors)
@@ -249,25 +237,27 @@ export function ModalPreencherMinuta({
 
     try {
       const payload = {
-        nome_completo: formData.nome_completo,
-        naturalidade: formData.naturalidade,
-        nacionalidade: formData.nacionalidade,
+        nome: formData.nome,
+        data_nascimento: formatDateForPayload(formData.data_nascimento),
+        local_nascimento: formData.local_nascimento,
+        residencia_atual: formData.residencia_atual,
         num_passaporte: formData.num_passaporte,
+        local_emissao: formData.local_emissao,
         data_emissao: formatDateForPayload(formData.data_emissao),
         data_validade: formatDateForPayload(formData.data_validade),
-        data_prevista_estadia: formatDateForPayload(formData.data_prevista_estadia),
-        inicio_formacao_profissional: formatDateForPayload(formData.inicio_formacao_profissional),
-        termino_formacao_profissional: formatDateForPayload(formData.termino_formacao_profissional),
-        escola_profissional: formData.escola_profissional,
         curso: formData.curso,
-        duracao_curso: formData.duracao_curso,
-        duracao_estagio: formData.duracao_estagio,
+        nome_escola: formData.nome_escola,
+        local_escola: formData.local_escola,
+        data_prevista_chegada: formatDateForPayload(formData.data_prevista_chegada),
         local_hospedagem: formData.local_hospedagem,
       }
 
-      const response = await api.post('minuta1/gerar-pdf', payload, {
+      // console.log("Enviando payload para API:", payload)
+      // return
+
+      const response = await api.post('minuta2/gerar-pdf', payload, {
         responseType: 'blob'
-      })
+      });
 
       const contentType = response.headers['content-type'] || ''
       if (!contentType.includes('application/pdf')) {
@@ -283,7 +273,7 @@ export function ModalPreencherMinuta({
       const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
       const link = document.createElement('a')
       link.href = url
-      link.download = `minuta_${formData.nome_completo.replace(/\s/g, "_")}.pdf`
+      link.download = `minuta2_${formData.nome.replace(/\s/g, "_")}.pdf`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
@@ -318,7 +308,7 @@ export function ModalPreencherMinuta({
           <DialogHeader>
             <DialogTitle className="text-2xl flex items-center gap-2">
               <FileText className="h-6 w-6 text-primary" />
-              Preencher Minuta
+              Preencher Minuta 2
             </DialogTitle>
             <DialogDescription>
               Insira os dados abaixo para gerar a minuta do processo.
@@ -326,63 +316,72 @@ export function ModalPreencherMinuta({
           </DialogHeader>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 py-4">
-            {/* Seção: Dados do Requerente */}
-            <div className="space-y-4 col-span-1 sm:col-span-2 lg:col-span-3">
-              <h3 className="font-semibold text-lg border-b pb-2">Dados do Requerente</h3>
-            </div>
-
-            {/* Nome Completo - ocupa largura total em todas as telas */}
+            {/* Nome */}
             <div className="space-y-2 col-span-1 sm:col-span-2 lg:col-span-3">
-              <Label htmlFor="nome_completo">
-                Nome Completo *
+              <Label htmlFor="nome">
+                Nome * 
               </Label>
               <Input
-                id="nome_completo"
-                value={formData.nome_completo}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTextChange("nome_completo", e.target.value)}
-                placeholder="João Silva Santos"
-                className={cn(errors.nome_completo ? "border-red-500" : "", "w-full")}
-                disabled={clientePrefill.nome_completo}
+                id="nome"
+                value={formData.nome}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTextChange("nome", e.target.value)}
+                placeholder="Helena Manuel"
+                className={cn(errors.nome ? "border-red-500" : "", "w-full")}
+                disabled={clientePrefill.nome}
               />
-              {errors.nome_completo && (
-                <p className="text-sm text-red-500">{errors.nome_completo}</p>
+              {errors.nome && (
+                <p className="text-sm text-red-500">{errors.nome}</p>
               )}
             </div>
 
-            {/* Naturalidade - largura total em mobile, meia tela em tablet/desktop */}
+            {/* Data de Nascimento */}
             <div className="space-y-2 col-span-1 sm:col-span-1 lg:col-span-1">
-              <Label htmlFor="naturalidade">
-                Naturalidade *
-              </Label>
+              <Label htmlFor="data_nascimento">Data de Nascimento *</Label>
+              <input
+                type="date"
+                id="data_nascimento"
+                name="data_nascimento"
+                value={formData.data_nascimento ? format(formData.data_nascimento, "yyyy-MM-dd") : ""}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+                  const value = e.target.value
+                  handleDateChange("data_nascimento", value ? new Date(value) : undefined)
+                }}
+                disabled={clientePrefill.data_nascimento}
+                className={cn(
+                  "h-9 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden",
+                  "bg-transparent text-gray-800 dark:text-white/90",
+                  "border-gray-300 dark:border-white/10 focus:border-brand-300 focus:ring-brand-500/20"
+                )}
+              />
+            </div>
+
+            {/* Local de Nascimento */}
+            <div className="space-y-2 col-span-1 sm:col-span-1 lg:col-span-1">
+              <Label htmlFor="local_nascimento">Local de Nascimento *</Label>
               <Input
-                id="naturalidade"
-                value={formData.naturalidade}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTextChange("naturalidade", e.target.value)}
+                id="local_nascimento"
+                value={formData.local_nascimento}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTextChange("local_nascimento", e.target.value)}
                 placeholder="Luanda"
-                className={cn(errors.naturalidade ? "border-red-500" : "", "w-full")}
-                disabled={clientePrefill.naturalidade}
+                className="w-full"
               />
-              {errors.naturalidade && (
-                <p className="text-sm text-red-500">{errors.naturalidade}</p>
-              )}
             </div>
 
-            {/* Nacionalidade */}
+            {/* Residência Atual */}
             <div className="space-y-2 col-span-1 sm:col-span-1 lg:col-span-1">
-              <Label htmlFor="nacionalidade">
-                Nacionalidade *
-              </Label>
+              <Label htmlFor="residencia_atual">Residência Atual * </Label>
               <Input
-                id="nacionalidade"
-                value={formData.nacionalidade}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTextChange("nacionalidade", e.target.value)}
-                placeholder="Angolana"
-                className={cn(errors.nacionalidade ? "border-red-500" : "", "w-full")}
-                disabled={clientePrefill.nacionalidade}
+                id="residencia_atual"
+                value={formData.residencia_atual}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTextChange("residencia_atual", e.target.value)}
+                placeholder="Endereço atual"
+                className="w-full"
               />
-              {errors.nacionalidade && (
-                <p className="text-sm text-red-500">{errors.nacionalidade}</p>
-              )}
+              {
+                errors.residencia_atual && (
+                  <p className="text-sm text-red-500">{errors.residencia_atual}</p>
+                )
+              }
             </div>
 
             {/* Número do Passaporte */}
@@ -394,13 +393,25 @@ export function ModalPreencherMinuta({
                 id="num_passaporte"
                 value={formData.num_passaporte}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTextChange("num_passaporte", e.target.value)}
-                placeholder="N3085414"
+                placeholder="235325"
                 className={cn(errors.num_passaporte ? "border-red-500" : "", "w-full")}
                 disabled={clientePrefill.num_passaporte}
               />
               {errors.num_passaporte && (
                 <p className="text-sm text-red-500">{errors.num_passaporte}</p>
               )}
+            </div>
+
+            {/* Local de Emissão */}
+            <div className="space-y-2 col-span-1 sm:col-span-1 lg:col-span-1">
+              <Label htmlFor="local_emissao">Local de Emissão *</Label>
+              <Input
+                id="local_emissao"
+                value={formData.local_emissao}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTextChange("local_emissao", e.target.value)}
+                placeholder="Luanda"
+                className="w-full"
+              />
             </div>
 
             {/* Data de Emissão */}
@@ -415,14 +426,11 @@ export function ModalPreencherMinuta({
                 value={formData.data_emissao ? format(formData.data_emissao, "yyyy-MM-dd") : ""}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const value = e.target.value
-                  handleDateChange(
-                    "data_emissao",
-                    value ? new Date(value) : undefined
-                  )
+                  handleDateChange("data_emissao", value ? new Date(value) : undefined)
                 }}
                 disabled={clientePrefill.data_emissao}
                 className={cn(
-                  "h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden",
+                  "h-9 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden",
                   "bg-transparent text-gray-800 dark:text-white/90",
                   "border-gray-300 dark:border-white/10 focus:border-brand-300 focus:ring-brand-500/20",
                   errors.data_emissao && "border-red-500 focus:border-red-500"
@@ -443,14 +451,11 @@ export function ModalPreencherMinuta({
                 value={formData.data_validade ? format(formData.data_validade, "yyyy-MM-dd") : ""}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const value = e.target.value
-                  handleDateChange(
-                    "data_validade",
-                    value ? new Date(value) : undefined
-                  )
+                  handleDateChange("data_validade", value ? new Date(value) : undefined)
                 }}
                 disabled={clientePrefill.data_validade}
                 className={cn(
-                  "h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden",
+                  "h-9 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden",
                   "bg-transparent text-gray-800 dark:text-white/90",
                   "border-gray-300 dark:border-white/10 focus:border-brand-300 focus:ring-brand-500/20",
                   errors.data_validade && "border-red-500 focus:border-red-500"
@@ -459,57 +464,8 @@ export function ModalPreencherMinuta({
               {errors.data_validade && <p className="text-sm text-red-500">{errors.data_validade}</p>}
             </div>
 
-            {/* Data Prevista de Estadia - ocupa largura total em todas as telas (campo importante) */}
-            <div className="space-y-2 col-span-1 sm:col-span-2 lg:col-span-3">
-              <Label htmlFor="data_prevista_estadia">
-                Data Prevista de Estadia *
-              </Label>
-              <input
-                type="date"
-                id="data_prevista_estadia"
-                name="data_prevista_estadia"
-                value={formData.data_prevista_estadia ? format(formData.data_prevista_estadia, "yyyy-MM-dd") : ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = e.target.value
-                  handleDateChange(
-                    "data_prevista_estadia",
-                    value ? new Date(value) : undefined
-                  )
-                }}
-                className={cn(
-                  "h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden",
-                  "bg-transparent text-gray-800 dark:text-white/90",
-                  "border-gray-300 dark:border-white/10 focus:border-brand-300 focus:ring-brand-500/20",
-                  errors.data_prevista_estadia && "border-red-500 focus:border-red-500"
-                )}
-              />
-              {errors.data_prevista_estadia && <p className="text-sm text-red-500">{errors.data_prevista_estadia}</p>}
-            </div>
-
-            {/* Seção: Dados da Formação */}
-            <div className="space-y-4 col-span-1 sm:col-span-2 lg:col-span-3 mt-4">
-              <h3 className="font-semibold text-lg border-b pb-2">Dados da Formação</h3>
-            </div>
-
-            {/* Escola Profissional - largura total em todas as telas */}
-            <div className="space-y-2 col-span-1 sm:col-span-2 lg:col-span-3">
-              <Label htmlFor="escola_profissional">
-                Escola Profissional *
-              </Label>
-              <Input
-                id="escola_profissional"
-                value={formData.escola_profissional}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTextChange("escola_profissional", e.target.value)}
-                placeholder="Escola Profissional XYZ"
-                className={cn(errors.escola_profissional ? "border-red-500" : "", "w-full")}
-              />
-              {errors.escola_profissional && (
-                <p className="text-sm text-red-500">{errors.escola_profissional}</p>
-              )}
-            </div>
-
             {/* Curso */}
-            <div className="space-y-2 col-span-1 sm:col-span-1 lg:col-span-1">
+            <div className="space-y-2 col-span-1 sm:col-span-2 lg:col-span-2">
               <Label htmlFor="curso">
                 Curso *
               </Label>
@@ -517,7 +473,7 @@ export function ModalPreencherMinuta({
                 id="curso"
                 value={formData.curso}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTextChange("curso", e.target.value)}
-                placeholder="Técnico de Recursos Humanos"
+                placeholder="Informática"
                 className={cn(errors.curso ? "border-red-500" : "", "w-full")}
               />
               {errors.curso && (
@@ -525,95 +481,55 @@ export function ModalPreencherMinuta({
               )}
             </div>
 
-            {/* Duração do Curso */}
+            {/* Nome da Escola */}
             <div className="space-y-2 col-span-1 sm:col-span-1 lg:col-span-1">
-              <Label htmlFor="duracao_curso">
-                Duração do Curso *
-              </Label>
+              <Label htmlFor="nome_escola">Nome da Escola *</Label>
               <Input
-                id="duracao_curso"
-                value={formData.duracao_curso}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTextChange("duracao_curso", e.target.value)}
-                placeholder="125h (6 meses)"
-                className={cn(errors.duracao_curso ? "border-red-500" : "", "w-full")}
+                id="nome_escola"
+                value={formData.nome_escola}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTextChange("nome_escola", e.target.value)}
+                placeholder="Escola Nova Vida"
+                className="w-full"
               />
-              {errors.duracao_curso && (
-                <p className="text-sm text-red-500">{errors.duracao_curso}</p>
-              )}
             </div>
 
-            {/* Duração do Estágio */}
+            {/* Local da Escola */}
             <div className="space-y-2 col-span-1 sm:col-span-1 lg:col-span-1">
-              <Label htmlFor="duracao_estagio">
-                Duração do Estágio *
-              </Label>
+              <Label htmlFor="local_escola">Local da Escola *</Label>
               <Input
-                id="duracao_estagio"
-                value={formData.duracao_estagio}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTextChange("duracao_estagio", e.target.value)}
-                placeholder="180h (6 meses)"
-                className={cn(errors.duracao_estagio ? "border-red-500" : "", "w-full")}
+                id="local_escola"
+                value={formData.local_escola}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleTextChange("local_escola", e.target.value)}
+                placeholder="Lisboa"
+                className="w-full"
               />
-              {errors.duracao_estagio && (
-                <p className="text-sm text-red-500">{errors.duracao_estagio}</p>
-              )}
             </div>
 
-            {/* Início da Formação */}
-            <div className="space-y-2 col-span-1 sm:col-span-1 lg:col-span-1">
-              <Label htmlFor="inicio_formacao_profissional">
-                Início da Formação Profissional *
+            {/* Data Prevista de Chegada */}
+            <div className="space-y-2 col-span-1 sm:col-span-2 lg:col-span-1">
+              <Label htmlFor="data_prevista_chegada">
+                Data Prevista de Chegada *
               </Label>
               <input
                 type="date"
-                id="inicio_formacao_profissional"
-                name="inicio_formacao_profissional"
-                value={formData.inicio_formacao_profissional ? format(formData.inicio_formacao_profissional, "yyyy-MM-dd") : ""}
+                id="data_prevista_chegada"
+                name="data_prevista_chegada"
+                value={formData.data_prevista_chegada ? format(formData.data_prevista_chegada, "yyyy-MM-dd") : ""}
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const value = e.target.value
-                  handleDateChange(
-                    "inicio_formacao_profissional",
-                    value ? new Date(value) : undefined
-                  )
+                  handleDateChange("data_prevista_chegada", value ? new Date(value) : undefined)
                 }}
                 className={cn(
-                  "h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden",
+                  "h-9 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden",
                   "bg-transparent text-gray-800 dark:text-white/90",
                   "border-gray-300 dark:border-white/10 focus:border-brand-300 focus:ring-brand-500/20",
-                  errors.inicio_formacao_profissional && "border-red-500 focus:border-red-500"
+                  errors.data_prevista_chegada && "border-red-500 focus:border-red-500"
                 )}
               />
-              {errors.inicio_formacao_profissional && <p className="text-sm text-red-500">{errors.inicio_formacao_profissional}</p>}
+              {errors.data_prevista_chegada && <p className="text-sm text-red-500">{errors.data_prevista_chegada}</p>}
             </div>
 
-            {/* Término da Formação */}
-            <div className="space-y-2 col-span-1 sm:col-span-1 lg:col-span-1">
-              <Label htmlFor="termino_formacao_profissional">
-                Término da Formação Profissional *
-              </Label>
-              <input
-                type="date"
-                id="termino_formacao_profissional"
-                name="termino_formacao_profissional"
-                value={formData.termino_formacao_profissional ? format(formData.termino_formacao_profissional, "yyyy-MM-dd") : ""}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                  const value = e.target.value
-                  handleDateChange(
-                    "termino_formacao_profissional",
-                    value ? new Date(value) : undefined
-                  )
-                }}
-                className={cn(
-                  "h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden",
-                  "bg-transparent text-gray-800 dark:text-white/90",
-                  "border-gray-300 dark:border-white/10 focus:border-brand-300 focus:ring-brand-500/20",
-                  errors.termino_formacao_profissional && "border-red-500 focus:border-red-500"
-                )}
-              />
-              {errors.termino_formacao_profissional && <p className="text-sm text-red-500">{errors.termino_formacao_profissional}</p>}
-            </div>
-
-            {/* Local de Hospedagem - largura total em todas as telas */}
+            {/* Local de Hospedagem */}
             <div className="space-y-2 col-span-1 sm:col-span-2 lg:col-span-3">
               <Label htmlFor="local_hospedagem">
                 Local de Hospedagem *

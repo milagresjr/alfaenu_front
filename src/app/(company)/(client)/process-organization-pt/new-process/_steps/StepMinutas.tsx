@@ -17,6 +17,8 @@ import {
   Eye
 } from "lucide-react"
 import { useState } from "react"
+import { ModalPreencherMinuta } from "../_components/ModalPreencherMinuta"
+import { StepSolicitarMatricula } from "./StepSolicitarMatricula"
 
 type TipoMinuta =
   | "minuta1"
@@ -37,27 +39,27 @@ interface Minuta {
 
 const minutas: Minuta[] = [
   {
-    id: "minuta1",
-    titulo: "Minuta 1",
-    descricao: "Documento padrão para solicitação de visto de formação profissional",
-    icone: FileSignature,
-    cor: "from-violet-500 to-purple-500",
+    id: "solicitar_agendamento",
+    titulo: "Solicitar Agendamento",
+    descricao: "Formulário para agendamento de entrevista ou entrega de documentos",
+    icone: Calendar,
+    cor: "from-rose-500 to-pink-500",
     documentos: [
-      "Contrato de trabalho",
-      "Comprovante de residência",
-      "Documentos pessoais",
+      "Escolha de data e horário",
+      "Local de atendimento",
+      "Tipo de serviço",
     ],
   },
   {
-    id: "minuta2",
-    titulo: "Minuta 2",
-    descricao: "Modelo alternativo para casos específicos de formação",
-    icone: FileText,
-    cor: "from-blue-500 to-indigo-500",
+    id: "solicitar_matricula",
+    titulo: "Solicitar Matrícula",
+    descricao: "Solicitação de matrícula na instituição de ensino",
+    icone: BookOpen,
+    cor: "from-cyan-500 to-sky-500",
     documentos: [
-      "Declaração da instituição",
-      "Histórico acadêmico",
-      "Comprovante de matrícula",
+      "Documentos pessoais",
+      "Histórico escolar",
+      "Comprovante de pagamento",
     ],
   },
   {
@@ -85,27 +87,27 @@ const minutas: Minuta[] = [
     ],
   },
   {
-    id: "solicitar_agendamento",
-    titulo: "Solicitar Agendamento",
-    descricao: "Formulário para agendamento de entrevista ou entrega de documentos",
-    icone: Calendar,
-    cor: "from-rose-500 to-pink-500",
+    id: "minuta1",
+    titulo: "Minuta 1",
+    descricao: "Documento padrão para solicitação de visto de formação profissional",
+    icone: FileSignature,
+    cor: "from-violet-500 to-purple-500",
     documentos: [
-      "Escolha de data e horário",
-      "Local de atendimento",
-      "Tipo de serviço",
+      "Contrato de trabalho",
+      "Comprovante de residência",
+      "Documentos pessoais",
     ],
   },
   {
-    id: "solicitar_matricula",
-    titulo: "Solicitar Matrícula",
-    descricao: "Solicitação de matrícula na instituição de ensino",
-    icone: BookOpen,
-    cor: "from-cyan-500 to-sky-500",
+    id: "minuta2",
+    titulo: "Minuta 2",
+    descricao: "Modelo alternativo para casos específicos de formação",
+    icone: FileText,
+    cor: "from-blue-500 to-indigo-500",
     documentos: [
-      "Documentos pessoais",
-      "Histórico escolar",
-      "Comprovante de pagamento",
+      "Declaração da instituição",
+      "Histórico acadêmico",
+      "Comprovante de matrícula",
     ],
   },
 ]
@@ -124,6 +126,10 @@ export default function StepMinutas({
   const [showMinutaModal, setShowMinutaModal] = useState(false)
   const [selectedMinutaId, setSelectedMinutaId] = useState<TipoMinuta | null>(null)
 
+  const [showMinutaModal2, setShowMinutaModal2] = useState(false);
+
+  const [showMatriculaPage, setShowMatriculaPage] = useState(false);
+
   const handleSelect = (minutaId: TipoMinuta) => {
     setSelectedMinuta(minutaId)
     setData((prev) => ({
@@ -134,6 +140,10 @@ export default function StepMinutas({
     // Se for Minuta 1, abre o modal
     if (minutaId === "minuta1") {
       setShowMinutaModal(true)
+    } else if (minutaId === "solicitar_matricula") {
+      setShowMatriculaPage(true) // Mostra a página de matrícula
+    } else if (minutaId === "minuta2") {
+      setShowMinutaModal2(true)
     } else {
       // Para outras minutas, apenas seleciona e continua
       handleConfirm()
@@ -157,6 +167,19 @@ export default function StepMinutas({
   }
 
   const getMinuta = (id: TipoMinuta) => minutas.find(m => m.id === id)
+
+  if (showMatriculaPage) {
+    return (
+      <StepSolicitarMatricula
+        onBack={() => setShowMatriculaPage(false)}
+        onSuccess={(data) => {
+          setData((prev) => ({ ...prev, solicitacaoMatricula: data }))
+          next()
+        }}
+        cliente={data?.cliente}
+      />
+    )
+  }
 
   return (
     <>
@@ -300,10 +323,19 @@ export default function StepMinutas({
         cliente={data.cliente}
         onSuccess={handleMinutaSuccess}
       />
+
+      {/* Modal para Minuta 2 */}
+      <ModalPreencherMinuta2
+        open={showMinutaModal2}
+        onOpenChange={setShowMinutaModal2}
+        cliente={data.cliente}
+        onSuccess={handleMinutaSuccess}
+      />
     </>
   )
 }
 
 // Import necessário para o cn
 import { cn } from "@/lib/utils"
-import { ModalPreencherMinuta } from "../_components/ModalPreencherMinuta"
+import { ModalPreencherMinuta2 } from "../_components/ModalPreencherMinuta2"
+

@@ -73,6 +73,7 @@ const allNavItems: NavItem[] = [
     ],
   },
   { icon: <FileText />, name: "Termos", path: "/term" },
+  { icon: <FileText />, name: "Cursos", path: "/course" },
   { icon: <Users />, name: "Utilizadores", path: "/user" },
   { icon: <Settings />, name: "Operações e Caixa", path: "/operation" }
 ];
@@ -102,10 +103,60 @@ const AppSidebar: React.FC = () => {
 
   // Filtra os menus baseado no tipo de usuário
   const { main: navItems, others: filteredOthersItems } = useMemo(() => {
+
     // Se for usuário interno, mostra todos os menus
     if (isInternal) {
-      return { main: allNavItems, others: othersItems };
+      const filterInternalMenus = (items: NavItem[]): NavItem[] => {
+        return items
+          .map((item) => {
+            // Lista de paths restritos para usuários internos
+            const restrictedPaths = [
+              "/process-organization-pt",
+              "/process-organization-br",
+              "/process-organization/my-clients",
+            ];
+
+            // Se o item principal é restrito, não mostra
+            if (item.path && restrictedPaths.includes(item.path)) {
+              return null;
+            }
+
+            // Se tem subitems, filtra os subitems restritos
+            if (item.subItems) {
+              const restrictedSubPaths = [
+                "/process-organization-pt",
+                "/process-organization-br",
+                "/process-organization/my-clients",
+              ];
+
+              const filteredSubItems = item.subItems.filter(
+                (subItem) => !restrictedSubPaths.includes(subItem.path)
+              );
+
+              // Se não restou nenhum subitem, não mostra o item principal
+              if (filteredSubItems.length === 0) {
+                return null;
+              }
+
+              // Retorna o item com os subitems filtrados
+              return {
+                ...item,
+                subItems: filteredSubItems,
+              };
+            }
+
+            return item;
+          })
+          .filter((item): item is NavItem => item !== null);
+      };
+
+      return {
+        main: filterInternalMenus(allNavItems),
+        others: filterInternalMenus(othersItems),
+      };
     }
+
+
 
     // Para usuários externos, filtra os menus
     const filterExternalMenus = (items: NavItem[]): NavItem[] => {

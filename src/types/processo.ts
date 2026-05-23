@@ -32,6 +32,16 @@ export interface ProcessoData {
   minutaSelecionada?: TipoMinuta | null // Adicionado
   createdAt?: Date
   status?: "rascunho" | "em_andamento" | "concluido"
+  solicitacaoMatricula?: {
+    curso_id: number,
+    cliente_id: number,
+    curso: any,
+    curso_nome: string,
+    cliente_nome: string,
+    documentos: any[]
+    dataEnvio?: Date
+  },
+  minutaPdfUrl?: string
 }
 
 export interface StepProps {

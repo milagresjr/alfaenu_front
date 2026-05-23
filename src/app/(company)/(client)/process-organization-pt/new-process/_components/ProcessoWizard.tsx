@@ -218,7 +218,7 @@ export default function ProcessoWizard() {
           </div>
 
           {/* Navigation Buttons - Apenas para steps que não têm navegação própria */}
-          {!isLastStep && steps[step - 1] !== "Detalhes" && (
+          {/* {!isLastStep && steps[step - 1] !== "Detalhes" && (
             <div className="flex justify-between mt-8 pt-4 border-t">
               <Button 
                 variant="outline" 
@@ -238,7 +238,7 @@ export default function ProcessoWizard() {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>
-          )}
+          )} */}
         </div>
       </div>
     </div>
