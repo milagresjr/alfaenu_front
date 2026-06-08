@@ -171,6 +171,7 @@ const AppSidebar: React.FC = () => {
             "/user",            // Utilizadores
             "/operation",        // Operações e Caixa
             "/term",
+            "/course"
           ];
 
           // Se o item principal é restrito, não mostra

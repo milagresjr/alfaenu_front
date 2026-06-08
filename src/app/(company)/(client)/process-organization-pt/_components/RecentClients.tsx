@@ -1,7 +1,7 @@
 'use client';
 
 //import { PaginationComponent } from "@/components/ui_old/pagination/Pagination";
-import { Users, UserCheck, UserX, Settings, Menu, MenuIcon, MoreVertical, Edit, Trash, Lock, Unlock, Info, Search } from "lucide-react";
+import { Users, UserCheck, UserX, Settings, Menu, MenuIcon, MoreVertical, Edit, Trash, Lock, Unlock, Info, Search, PlayCircle, Trash2 } from "lucide-react";
 
 import { TableMain } from "@/components/table";
 import { useRouter } from "next/navigation";
@@ -22,6 +22,9 @@ import { DropdownActions } from "@/components/dropdown-action-menu/drop-actions-
 import { useMyClienteStore } from "@/features/myClient/store/useMyClienteStore";
 import { useDeleteMyCliente, useMyClientes } from "@/features/myClient/hooks/useMyClientsQuery";
 import { MyClienteType } from "@/features/myClient/types";
+import { useDeleteProcessoProgress, useProcessoProgress } from "@/features/processo-progress/hooks/useProcessoProgress";
+import { useClienteProcessoStore } from "@/features/processo-progress/store/clienteProcessoStore";
+import { Button } from "@/components/ui/button";
 
 
 export default function RecentClients() {
@@ -40,7 +43,13 @@ export default function RecentClients() {
     "todos"
   );
 
-  const { data, isLoading, isError } = useMyClientes(page, perPage, debouncedSearch, selected !== 'todos' ? selected : '');
+  const { setCliente, setStep } = useClienteProcessoStore();
+
+  const { data, isLoading, isError } = useProcessoProgress();
+
+  console.log("Data", data);
+
+  // const { data, isLoading, isError } = useMyClientes(page, perPage, debouncedSearch, selected !== 'todos' ? selected : '');
 
   const router = useRouter();
 
@@ -48,49 +57,63 @@ export default function RecentClients() {
 
   const deleteCliente = useDeleteMyCliente();
 
+  const deleteProcessProgress = useDeleteProcessoProgress();
+
   const handleEdit = (cliente: MyClienteType) => {
     setSelectedMyCliente(cliente);
     progress.start();
     router.push(`/client/form`);
   };
 
-  const handleNewCliente = () => {
+  const handleNewProcess = () => {
     progress.start();
     router.push(`/process-organization-pt/new-process`);
   };
 
+  function handleContinueProcess(cliente: MyClienteType) {
+    // Guardar cliente no Zustand
+    setCliente(cliente);
+    setStep(6); // Forçar etapa 6
+
+    // toast.success(`Continuando processo de ${cliente.nome}`);
+
+    // Redirecionar sem parâmetros na URL
+    progress.start();
+    router.push(`/process-organization-pt/new-process?clienteId=${cliente.id}`);
+  }
+
 
   const queryClient = useQueryClient();
 
-  const handleDelete = async (cliente: MyClienteType) => {
+  const handleRemoveFromRecent = async (cliente: MyClienteType) => {
     setSelectedMyCliente(cliente);
-    const confirmed = await alert.confirm('Confirmar', 'Tem certeza que deseja excluir este cliente?', 'Sim', 'Não');
+    const confirmed = await alert.confirm('Confirmar', 'Tem certeza que deseja excluir o processo do cliente?', 'Sim', 'Não');
     if (confirmed) {
       setSelectedMyCliente(null);
-      deleteCliente.mutate(cliente.id, {
+      deleteProcessProgress.mutate(cliente.id, {
         onSuccess: () => {
           queryClient.invalidateQueries({
-            queryKey: ["clientes"],
+            queryKey: ["processo-progress"],
             exact: false,
           });
-          toast.success('Cliente excluído com sucesso!');
+          toast.success('Processo excluído com sucesso!');
         },
         onError: (error: any) => {
-          console.error("Erro ao excluir a marca:", error);
+          console.error("Erro ao excluir o processo:", error);
         },
       });
     }
   };
 
 
-  const clientesFiltrados = useMemo(() => {
-    if (selected === "ativo") {
-      return data?.data.filter((cliente: any) => cliente.estado === "ativo");
-    } else if (selected === "inativo") {
-      return data?.data.filter((cliente: any) => cliente.estado === "inativo");
-    }
-    return data?.data;
-  }, [selected, data]);
+  // const clientesFiltrados = useMemo(() => {
+  //   if (selected === "ativo") {
+  //     return data?.data.filter((cliente: any) => cliente.estado === "ativo");
+  //   } else if (selected === "inativo") {
+  //     return data?.data.filter((cliente: any) => cliente.estado === "inativo");
+  //   }
+  //   return data?.data;
+  // }, [selected, data]);
 
   useEffect(() => {
     setPage(1);
@@ -120,7 +143,7 @@ export default function RecentClients() {
             className="pl-10"
           />
         </div>
-        <button onClick={handleNewCliente} className="bg-blue-600 px-4 py-2 rounded-md text-white flex gap-1">
+        <button onClick={handleNewProcess} className="bg-blue-600 px-4 py-2 rounded-md text-white flex gap-1">
           <Plus />
           Novo Processo
         </button>
@@ -129,66 +152,62 @@ export default function RecentClients() {
       <div>
         <h2 className="text-sm text-gray-600 dark:text-gray-400">Processos Recentes</h2>
         <TableMain
-          data={clientesFiltrados || []}
+          data={(data as any)?.data || []}
           isLoading={isLoading}
           emptyMessage="Nenhum cliente encontrado."
           columns={[
             {
               header: "Nome",
-              accessor: "nome",
-              width: "30%", // ocupa a maior parte
+              accessor: (item: any) => (
+                <div className="flex items-center gap-2">
+                  <Users size={18} className="text-gray-500" />
+                  <span>{item?.cliente?.nome ?? '-'}</span>
+                </div>
+              ),
             },
             {
               header: "Telefone",
-              accessor: "telefone",
-              width: "15%",
+              accessor: (item: any) => (
+                <div className="flex items-center gap-2">
+                  <span>{item?.cliente?.telefone ?? '-'}</span>
+                </div>
+              ),
             },
             {
               header: "Nº de BI/Passaporte",
-              accessor: "n_bi",
-              width: "20%",
-            },
-            // {
-            //   header: "Estado",
-            //   accessor: (cliente: ClienteType) => <EstadoCell cliente={cliente} />,
-            //   width: "10%",
-            // },
-            {
-              header: "Data",
-              accessor: (term: any) => (
-                <span>{formatarDataLong(term.created_at)}</span>
+              accessor: (item: any) => (
+                <div className="flex items-center gap-2">
+                  <span>{item?.cliente?.n_bi ?? '-'}</span>
+                </div>
               ),
-              width: "15%",
             },
             {
-              header: "Ações",
-              accessor: (cliente) => {
-                const actions = [
-                  {
-                    label: "Editar",
-                    icon: <Edit />,
-                    onClick: () => handleEdit(cliente),
-                  },
-                  {
-                    label: "Excluir",
-                    icon: <Trash />,
-                    onClick: () => handleDelete(cliente),
-                  },
-                  // {
-                  //   label: cliente.estado === "ativo" ? "Inativar" : "Ativar",
-                  //   icon: cliente.estado === "ativo" ? <Lock /> : <Unlock />,
-                  //   onClick: () => toggleEstado(cliente),
-                  // },
-                  // {
-                  //   label: "Detalhes",
-                  //   icon: <Info />,
-                  //   onClick: () => handleDetalhes(cliente),
-                  // },
-                ];
-                return <DropdownActions actions={actions} />;
-              },
-              width: "10%", // só precisa de pouco espaço
-            },
+              header: "",
+              accessor: (item: MyClienteType | any) => (
+                <div className="flex items-center justify-end gap-2">
+                  {/* Botão Continuar */}
+                  <Button
+                    onClick={() => handleContinueProcess(item.cliente)}
+                    size="sm"
+                    className="bg-green-600 hover:bg-green-700 text-white gap-2 shadow-sm"
+                  >
+                    <PlayCircle className="h-4 w-4" />
+                    <span className="hidden sm:inline">Continuar</span>
+                  </Button>
+
+                  {/* Botão Remover */}
+                  <Button
+                    onClick={() => handleRemoveFromRecent(item)}
+                    size="sm"
+                    variant="ghost"
+                    className="text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/30"
+                    title="Remover da lista"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ),
+            }
           ]}
         />
       </div>

@@ -257,7 +257,7 @@ export function ModalPreencherMinuta2({
         responseType: 'blob'
       });
 
-      const contentType = response.headers['content-type'] || ''
+      const contentType = String(response.headers['content-type']) || ''
       if (!contentType.includes('application/pdf')) {
         const text = await response.data.text()
         console.error('Resposta não é PDF:', text.substring(0, 500))

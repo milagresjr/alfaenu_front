@@ -13,10 +13,16 @@ import StepFinanciamentoOrigem from "../_steps/StepFinanciamentoOrigem"
 import StepMinutas from "../_steps/StepMinutas"
 import StepReview from "../_steps/StepReview"
 import { Button } from "@/components/ui/button"
-import { Save, X, ArrowLeft, ArrowRight } from "lucide-react"
+import { Save, ArrowLeft, ArrowRight } from "lucide-react"
 import { toast } from "react-toastify"
+import { useSearchParams } from "next/navigation"
+import { api } from "@/services/api"
 
 export default function ProcessoWizard() {
+
+  const searchParams = useSearchParams();
+  const clienteId = searchParams.get("clienteId");
+
   const [step, setStep] = useState(1)
   const [data, setData] = useState<ProcessoData>({
     cliente: null,
@@ -27,36 +33,25 @@ export default function ProcessoWizard() {
     minutaSelecionada: null,
     status: "rascunho",
   })
+  
+  const [isLoading, setIsLoading] = useState(true)
 
-  // Função para determinar quais steps devem ser exibidos baseado nas escolhas
-  const getVisibleSteps = () => {
-    const visibleSteps = ["Cliente", "Tipo de Visto", "Subtipo"]
-    
-    // Sempre mostra Detalhes (Step 4)
-    visibleSteps.push("Detalhes")
-    
-    // Se for financiado E for formação profissional, mostra Origem do Finan.
-    if (data.financiamento === "financiado" && data.subtipo === "formacao") {
-      visibleSteps.push("Origem do Finan.")
-      
-      // Se a origem for nacional, mostra Minutas
-      if (data.financiamentoOrigem === "nacional") {
-        visibleSteps.push("Minutas")
-      }
-    }
-    
-    // Sempre mostra Revisão no final
-    visibleSteps.push("Revisão")
-    
-    return visibleSteps
-  }
-
-  const steps = getVisibleSteps()
+  // ETAPAS FIXAS - Sempre todas as etapas disponíveis
+  const steps = [
+    "Cliente",           // Step 1
+    "Tipo de Visto",     // Step 2
+    "Subtipo",           // Step 3
+    "Detalhes",          // Step 4
+    "Origem do Finan.",  // Step 5
+    "Minutas",           // Step 6 - Sempre visível
+    "Revisão"            // Step 7
+  ]
+  
   const totalSteps = steps.length
 
   // Mapeamento de step index para componente
   const getStepComponent = (stepIndex: number) => {
-    const stepName = steps[stepIndex - 1] // steps array é 0-based
+    const stepName = steps[stepIndex - 1]
 
     switch (stepName) {
       case "Cliente":
@@ -81,7 +76,6 @@ export default function ProcessoWizard() {
   const next = () => {
     if (step < totalSteps) {
       setStep((s) => s + 1)
-      // Scroll to top quando mudar de step
       window.scrollTo({ top: 0, behavior: "smooth" })
     }
   }
@@ -93,35 +87,81 @@ export default function ProcessoWizard() {
     }
   }
 
-  const saveDraft = () => {
-    try {
-      localStorage.setItem("processo_draft", JSON.stringify({
-        ...data,
-        savedAt: new Date().toISOString()
-      }))
-      toast.success("Rascunho salvo com sucesso!")
-    } catch (error) {
-      toast.error("Erro ao salvar rascunho")
-    }
-  }
-
-  const loadDraft = () => {
-    try {
-      const draft = localStorage.getItem("processo_draft")
-      if (draft) {
-        const parsedDraft = JSON.parse(draft)
-        setData(parsedDraft)
-        toast.info("Rascunho carregado com sucesso!")
+  async function loadProcessCliente() {
+    if (clienteId && !isNaN(Number(clienteId))) {
+      try {
+        setIsLoading(true)
+        const response = await api.get(`/processo/progress/${clienteId}`)
+        const processoData = response.data.data;
+        // Mapear os dados da API para o formato esperado pelo wizard
+        setData({
+          cliente: processoData.cliente,
+          tipoVisto: processoData.tipo_visto,
+          subtipo: processoData.subtipo,
+          financiamento: processoData.financiamento,
+          financiamentoOrigem: processoData.financiamento_origem,
+          minutaSelecionada: processoData.minutaSelecionada,
+          status: processoData.status,
+        });
+        
+        // Definir a etapa baseada no progresso salvo
+        let targetStep = processoData.current_step || 1
+        
+        // Garantir que o step não ultrapasse o total
+        if (targetStep > totalSteps) {
+          targetStep = totalSteps
+        }
+        
+        setStep(targetStep)
+        
+        // toast.success(`Processo carregado! Etapa atual: ${steps[targetStep - 1]}`);
+        
+      } catch (error) {
+        console.error("Erro ao carregar dados do cliente:", error)
+        toast.error("Erro ao carregar dados do cliente. Iniciando novo processo.");
+      } finally {
+        setIsLoading(false)
       }
-    } catch (error) {
-      toast.error("Erro ao carregar rascunho")
+    } else {
+      setIsLoading(false)
     }
   }
 
   // Carregar rascunho ao iniciar
   useEffect(() => {
-    loadDraft()
-  }, [])
+    loadProcessCliente()
+  }, [clienteId])
+
+  // Salvar progresso automaticamente quando dados ou step mudarem
+  useEffect(() => {
+    const saveProgress = async () => {
+      if (data.cliente && data.cliente.id) {
+        try {
+          await api.post('/processo/progress', {
+            cliente_id: data.cliente.id,
+            current_step: step,
+            tipo_visto: data.tipoVisto,
+            subtipo: data.subtipo,
+            financiamento: data.financiamento,
+            financiamento_origem: data.financiamentoOrigem,
+            minuta_selecionada: data.minutaSelecionada,
+            status: data.status,
+          });
+        } catch (error) {
+          console.error("Erro ao salvar progresso:", error);
+        }
+      }
+    };
+
+    // Debounce para evitar muitas requisições
+    const timeoutId = setTimeout(() => {
+      if (data.cliente) {
+        saveProgress();
+      }
+    }, 1000);
+
+    return () => clearTimeout(timeoutId);
+  }, [data, step]);
 
   const CurrentStepComponent = getStepComponent(step)
 
@@ -135,11 +175,7 @@ export default function ProcessoWizard() {
       case "Subtipo":
         return data.subtipo !== null
       case "Detalhes":
-        // Se for formação profissional, precisa selecionar financiamento
-        if (data.subtipo === "formacao") {
-          return data.financiamento !== null
-        }
-        return true
+        return data.financiamento !== null
       case "Origem do Finan.":
         return data.financiamentoOrigem !== null
       case "Minutas":
@@ -151,30 +187,44 @@ export default function ProcessoWizard() {
     }
   }
 
-  // Função para avançar com validação
   const handleNext = () => {
     // if (isStepValid()) {
-      next()
+      next();
     // } else {
     //   toast.warning("Por favor, preencha todos os campos obrigatórios antes de continuar")
     // }
   }
 
-  // Calcular progresso real baseado nos steps visíveis
   const currentStepIndex = step
   const isLastStep = step === totalSteps
   const isFirstStep = step === 1
 
+  if (isLoading) {
+    return (
+      <div className="min-h-[calc(100vh-200px)] py-8 w-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Carregando processo...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-[calc(100vh-200px)] py-8">
-      <div className="max-w-5xl mx-auto px-4">
-        <div className="bg-card rounded-2xl shadow-xl border p-6 md:p-8">
+    <div className="min-h-[calc(100vh-200px)] py-8 w-full ">
+      <div className="w-6xl mx-auto px-4 lg:max-0 lg:w-full">
+        <div className="bg-card rounded-2xl w-full shadow-xl border p-6 md:p-8">
           {/* Header */}
           <div className="flex justify-between items-start mb-6 pb-4 border-b flex-wrap gap-4">
             <div className="flex-1">
-              <h1 className="text-2xl font-bold">Novo Processo</h1>
+              <h1 className="text-2xl font-bold">
+                {clienteId ? "Continuar Processo" : "Novo Processo"}
+              </h1>
               <p className="text-sm text-muted-foreground mt-1">
-                Preencha as informações do processo de visto
+                {clienteId 
+                  ? `Retomando processo na etapa ${steps[step - 1]}`
+                  : "Preencha as informações do processo de visto"
+                }
               </p>
               {data.cliente && (
                 <p className="text-xs text-muted-foreground mt-2">
@@ -182,24 +232,13 @@ export default function ProcessoWizard() {
                 </p>
               )}
             </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={saveDraft} 
-                className="gap-2"
-              >
-                <Save className="h-4 w-4" />
-                Salvar Rascunho
-              </Button>
-            </div>
           </div>
 
           {/* Progress */}
-          <StepProgress 
-            currentStep={currentStepIndex} 
-            totalSteps={totalSteps} 
-            steps={steps} 
+          <StepProgress
+            currentStep={currentStepIndex}
+            totalSteps={totalSteps}
+            steps={steps}
           />
 
           {/* Steps Content */}
@@ -217,8 +256,8 @@ export default function ProcessoWizard() {
             </AnimatePresence>
           </div>
 
-          {/* Navigation Buttons - Apenas para steps que não têm navegação própria */}
-          {/* {!isLastStep && steps[step - 1] !== "Detalhes" && (
+          {/* Navigation Buttons */}
+          {/* {!isLastStep && (
             <div className="flex justify-between mt-8 pt-4 border-t">
               <Button 
                 variant="outline" 

@@ -270,7 +270,7 @@ export function ModalPreencherMinuta({
       })
 
       const contentType = response.headers['content-type'] || ''
-      if (!contentType.includes('application/pdf')) {
+      if (!(contentType as any)?.includes('application/pdf')) {
         const text = await response.data.text()
         console.error('Resposta não é PDF:', text.substring(0, 500))
         throw new Error('Erro ao gerar minuta. Tente novamente.')
@@ -460,7 +460,7 @@ export function ModalPreencherMinuta({
             </div>
 
             {/* Data Prevista de Estadia - ocupa largura total em todas as telas (campo importante) */}
-            <div className="space-y-2 col-span-1 sm:col-span-2 lg:col-span-3">
+            <div className="space-y-2 col-span-1 sm:col-span-2 lg:col-span-1">
               <Label htmlFor="data_prevista_estadia">
                 Data Prevista de Estadia *
               </Label>

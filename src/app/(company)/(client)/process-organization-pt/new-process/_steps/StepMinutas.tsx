@@ -16,7 +16,7 @@ import {
   Download,
   Eye
 } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { ModalPreencherMinuta } from "../_components/ModalPreencherMinuta"
 import { StepSolicitarMatricula } from "./StepSolicitarMatricula"
 
@@ -130,6 +130,20 @@ export default function StepMinutas({
 
   const [showMatriculaPage, setShowMatriculaPage] = useState(false);
 
+  const [showTermoResponsabilidadeModal, setShowTermoResponsabilidadeModal] = useState(false);
+
+  const saveProcessoProgress = useSaveProcessoProgress();
+
+  const [isModalOpenSelectedCurso, setIsModalOpenSelectedCurso] = useState(false)
+  const [selectedCourse, setSelectedCourse] = useState<CourseType | null>(null)
+
+  const handleSelectCourse = (course: CourseType) => {
+    setSelectedCourse(course);
+    setShowMatriculaPage(true);
+    // console.log("Curso selecionado:", course)
+    // Faça algo com o curso selecionado
+  }
+
   const handleSelect = (minutaId: TipoMinuta) => {
     setSelectedMinuta(minutaId)
     setData((prev) => ({
@@ -141,12 +155,15 @@ export default function StepMinutas({
     if (minutaId === "minuta1") {
       setShowMinutaModal(true)
     } else if (minutaId === "solicitar_matricula") {
-      setShowMatriculaPage(true) // Mostra a página de matrícula
+      setIsModalOpenSelectedCurso(true) // Abre o modal de seleção de curso
+     // setShowMatriculaPage(true) // Mostra a página de matrícula
     } else if (minutaId === "minuta2") {
       setShowMinutaModal2(true)
+    } else if(minutaId === "termo_responsabilidade") {
+      setShowTermoResponsabilidadeModal(true)
     } else {
       // Para outras minutas, apenas seleciona e continua
-      handleConfirm()
+      // handleConfirm()
     }
   }
 
@@ -166,6 +183,29 @@ export default function StepMinutas({
     next()
   }
 
+  useEffect(() => {
+    console.log("Dados atuais:", data);
+    // Salvar o progresso da etapa de minutas no backend
+    saveProcessoProgress.mutate({
+      cliente_id: data.cliente?.id || 0,
+      current_step: 6, // Step de Minutas
+      tipo_visto: data.tipoVisto || '',
+      subtipo: data.subtipo || '',
+      financiamento: data.financiamento || '',
+      financiamento_origem: data.financiamentoOrigem || '',
+      documentos_profundo: selectedMinuta || '',
+      status: 'em_progresso',
+    }, {
+      onSuccess: () => {
+        toast.success('Progresso do processo salvo com sucesso');
+      },
+      onError: (error) => {
+        toast.error('Erro ao salvar progresso do processo');
+        console.log('Erro ao salvar progresso do processo:', error);
+      },
+    });
+  }, []);
+
   const getMinuta = (id: TipoMinuta) => minutas.find(m => m.id === id)
 
   if (showMatriculaPage) {
@@ -177,6 +217,7 @@ export default function StepMinutas({
           next()
         }}
         cliente={data?.cliente}
+        cursoSelected={selectedCourse}
       />
     )
   }
@@ -196,7 +237,7 @@ export default function StepMinutas({
               <span className="font-medium">Documentação</span>
             </div>
             <h2 className="text-2xl font-bold tracking-tight">
-              Selecione a Minuta
+              Analise de documentos profundos
             </h2>
             <p className="text-muted-foreground mt-1">
               Escolha o documento necessário para seu processo
@@ -331,6 +372,26 @@ export default function StepMinutas({
         cliente={data.cliente}
         onSuccess={handleMinutaSuccess}
       />
+
+      <ModalSelecionarCurso
+            isOpen={isModalOpenSelectedCurso} // Controlar abertura conforme necessário
+            onClose={() => setIsModalOpenSelectedCurso(false)} // Implementar função de controle
+            onSelectCourse={handleSelectCourse} // Implementar função de seleção
+        />
+
+        <ModalEmitirTermoResponsabilidade
+          open={showTermoResponsabilidadeModal}
+          onOpenChange={setShowTermoResponsabilidadeModal}
+          cliente={data.cliente}
+          // onSuccess={(pdfUrl) => {
+          //   setData((prev) => ({
+          //     ...prev,
+          //     termoResponsabilidadePdfUrl: pdfUrl,
+          //   }))
+          //   next()
+          // }}
+        />
+
     </>
   )
 }
@@ -338,4 +399,9 @@ export default function StepMinutas({
 // Import necessário para o cn
 import { cn } from "@/lib/utils"
 import { ModalPreencherMinuta2 } from "../_components/ModalPreencherMinuta2"
+import { useSaveProcessoProgress } from "@/features/processo-progress/hooks/useProcessoProgress"
+import { toast } from "react-toastify"
+import { ModalSelecionarCurso } from "../_components/ModalSelecionarCurso"
+import { CourseType } from "@/features/course/types"
+import { ModalEmitirTermoResponsabilidade } from "../_components/ModalEmitirTermoResponsabilidade"
 

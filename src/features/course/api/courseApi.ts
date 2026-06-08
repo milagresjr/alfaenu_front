@@ -40,9 +40,13 @@ export const getCourseById = async (id: number): Promise<CourseType> => {
 };
 
 // Criar um novo Curso
-export const createCourse = async (course: Omit<CourseType, 'id'>): Promise<CourseType> => {
+export const createCourse = async (formData: FormData): Promise<CourseType> => {
     try {
-        const response = await api.post<CourseType>(API_URL, course);
+        const response = await api.post<CourseType>(API_URL, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            }
+        });
         return response.data;
     } catch (error) {
         console.error('Erro ao criar Curso:', error);
@@ -60,12 +64,19 @@ export const alterarEstadoCourse = async (
 };
 
 // Atualizar um Curso existente
-export const updateCourse = async (id: number | undefined, course: Omit<CourseType, 'id'>): Promise<CourseType> => {
+export const updateCourse = async (formData: FormData): Promise<CourseType> => {
     try {
-        const response = await api.put<CourseType>(`${API_URL}/${id}`, course);
+        const id = formData.get('id'); // Pega o ID do FormData
+        formData.delete('id'); // Remove o ID do FormData para não enviar duplicado
+        
+        const response = await api.put<CourseType>(`${API_URL}/${id}`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            }
+        });
         return response.data;
     } catch (error) {
-        console.error(`Erro ao atualizar o Curso com ID ${id}:`, error);
+        console.error('Erro ao atualizar Curso:', error);
         throw error;
     }
 };

@@ -9,7 +9,7 @@ import { alert } from "@/lib/alert";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Plus } from "lucide-react";
-import { formatarDataLong } from "@/lib/helpers";
+import { formatarDataLong, formatarMoeda } from "@/lib/helpers";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@uidotdev/usehooks";
 import { Input } from "@/components/ui/input";
@@ -174,14 +174,18 @@ export default function CourseTable() {
         emptyMessage="Nenhum curso encontrado."
         columns={[
           {
+            //Header para mostrar a imagem
+            header: "Imagem",
+            accessor: (curso: CourseType) => curso.imagem ? <img src={curso.imagem} alt={curso.nome} className="w-16 h-16 object-cover rounded" /> : <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center text-gray-500">Sem imagem</div>,
+            width: "10%",
+          },
+          {
             header: "Nome",
             accessor: "nome",
-            width: "40%",
           },
           {
             header: "Local",
             accessor: "local",
-            width: "30%",
           },
           // {
           //   header: "Estado",
@@ -189,11 +193,16 @@ export default function CourseTable() {
           //   width: "10%",
           // },
           {
-            header: "Data",
-            accessor: (term: any) => (
-              <span>{formatarDataLong(term.created_at)}</span>
+            header: "Preço",
+            accessor: (item: any) => (
+              <span>{formatarMoeda(item.preco)}</span>
             ),
-            width: "15%",
+          },
+          {
+            header: "Duração",
+            accessor: (item: any) => (
+              <span>{item.duracao}</span>
+            ),
           },
           {
             header: "",

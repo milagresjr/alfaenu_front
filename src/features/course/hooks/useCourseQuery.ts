@@ -19,7 +19,7 @@ export const useCourses = (page = 1, per_page = 15, search = '', estado = '') =>
 
 export const useCreateCourse = () => {
     const mutation = useMutation({
-        mutationFn: (newCourse: CourseType) => createCourse(newCourse),
+        mutationFn: (newCourse: FormData) => createCourse(newCourse),
     });
 
     return mutation;
@@ -34,7 +34,7 @@ export const useAlterarEstadoCourse = () => {
 
 export const useUpdateCourse = () => {
     const mutation = useMutation({
-        mutationFn: ({id, ...data}: CourseType) => updateCourse(id, data),
+        mutationFn: (formData: FormData) => updateCourse(formData),
     });
 
     return mutation;

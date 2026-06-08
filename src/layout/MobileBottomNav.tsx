@@ -53,6 +53,7 @@ const allNavItems = [
     ],
   },
   { name: "Termos", icon: <FileText size={22} />, path: "/term" },
+  { name: "Cursos", icon: <FileText size={22} />, path: "/course" },
   { name: "Utilizadores", icon: <Users size={22} />, path: "/user" },
   { name: "Op. Caixas", icon: <Settings size={22} />, path: "/operation" },
 ];
@@ -67,26 +68,71 @@ export default function MobileBottomNav() {
   const userType = user?.type || UserType.EXTERNAL;
   const isInternal = userType === UserType.INTERNAL;
 
-  // Filtra os menus baseado no tipo de usuário
+  // Filtra os menus baseado no tipo de usuário (mesma lógica do AppSidebar)
   const navItems = useMemo(() => {
-    // Se for interno, mostra todos
+    // Se for usuário interno, mostra todos os menus
     if (isInternal) {
-      return allNavItems;
+      const filterInternalMenus = (items: typeof allNavItems) => {
+        return items
+          .map((item) => {
+            // Lista de paths restritos para usuários internos
+            const restrictedPaths = [
+              "/process-organization-pt",
+              "/process-organization-br",
+              "/process-organization/my-clients",
+            ];
+
+            // Se o item principal é restrito, não mostra
+            if (item.path && restrictedPaths.includes(item.path)) {
+              return null;
+            }
+
+            // Se tem subitems, filtra os subitems restritos
+            if (item.subItems) {
+              const restrictedSubPaths = [
+                "/process-organization-pt",
+                "/process-organization-br",
+                "/process-organization/my-clients",
+              ];
+
+              const filteredSubItems = item.subItems.filter(
+                (subItem) => !restrictedSubPaths.includes(subItem.path)
+              );
+
+              // Se não restou nenhum subitem, não mostra o item principal
+              if (filteredSubItems.length === 0) {
+                return null;
+              }
+
+              // Retorna o item com os subitems filtrados
+              return {
+                ...item,
+                subItems: filteredSubItems,
+              };
+            }
+
+            return item;
+          })
+          .filter((item): item is typeof allNavItems[0] => item !== null);
+      };
+
+      return filterInternalMenus(allNavItems);
     }
 
-    // Para externos, filtra
-    const filterExternalItems = (items: typeof allNavItems) => {
+    // Para usuários externos, filtra os menus
+    const filterExternalMenus = (items: typeof allNavItems) => {
       return items
         .map((item) => {
-          // Paths restritos para externos
+          // Lista de paths restritos para usuários externos
           const restrictedPaths = [
-            "/client",
-            "/contract",
-            "/services-operation",
-            "/pos",
-            "/user",
-            "/operation",
+            "/client",           // Clientes
+            "/contract",        // Contratos
+            "/services-operation", // Operações e Movimentos
+            "/pos",             // Gerar Documento (POS)
+            "/user",            // Utilizadores
+            "/operation",       // Operações e Caixa
             "/term",
+            "/course"
           ];
 
           // Se o item principal é restrito, não mostra
@@ -97,9 +143,9 @@ export default function MobileBottomNav() {
           // Se tem subitems, filtra os subitems restritos
           if (item.subItems) {
             const restrictedSubPaths = [
-              "/contract/subcontas",
+              "/contract/subcontas",  // Subcontas
               "/service",
-              "/service-type",
+              "/service-type",         // Categoria de serviços
               "/contract",
             ];
 
@@ -124,7 +170,7 @@ export default function MobileBottomNav() {
         .filter((item): item is typeof allNavItems[0] => item !== null);
     };
 
-    return filterExternalItems(allNavItems);
+    return filterExternalMenus(allNavItems);
   }, [isInternal]);
 
   // Fecha submenu ao clicar fora

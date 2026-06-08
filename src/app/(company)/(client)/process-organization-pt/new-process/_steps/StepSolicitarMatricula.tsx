@@ -33,6 +33,7 @@ import { MyClienteType } from "@/features/myClient/types"
 import { useCreateSolicitacaoMatricula } from "@/features/solicitacao-matricula/hooks/useSoliMatriculaQuery"
 import { toast } from "react-toastify"
 import { useCourses } from "@/features/course/hooks/useCourseQuery"
+import { CourseType } from "@/features/course/types"
 
 // Schema de validação
 const matriculaSchema = z.object({
@@ -57,6 +58,7 @@ interface StepSolicitarMatriculaProps {
   onBack: () => void
   onSuccess: (data: any) => void
   cliente?: MyClienteType | null
+  cursoSelected: CourseType | null
 }
 
 // Dados simulados dos cursos (vindo da API)
@@ -96,7 +98,8 @@ const cursosSimulados = [
 export function StepSolicitarMatricula({
   onBack,
   onSuccess,
-  cliente
+  cliente,
+  cursoSelected
 }: StepSolicitarMatriculaProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [documentos, setDocumentos] = useState<DocumentoAnexo[]>([])
@@ -220,7 +223,7 @@ export function StepSolicitarMatricula({
 
       // Adicionar dados do formulário
       formData.append('cliente_id', data.cliente_id)
-      formData.append('curso_id', data.curso_id)
+      formData.append('curso_id', String(cursoSelected?.id))
       formData.append('cliente_nome', data.cliente_nome)
       formData.append('curso_nome', data.curso_nome)
       if (data.observacoes) {
@@ -301,37 +304,13 @@ export function StepSolicitarMatricula({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>
-                    Curso *
+                    Curso
                   </Label>
-                  <Select
-                    onValueChange={(value) => {
-                      setCursoSelecionado(value)
-                      setValue("curso_id", value)
-                      const curso = allCourses?.find(c => String(c.id) === value)
-                      if (curso) {
-                        setValue("curso_nome", curso.nome)
-                      }
-                    }}
-                  >
-                    <SelectTrigger className={cn(errors.curso_id && "border-red-500", "w-full")}>
-                      <SelectValue placeholder="Selecione o curso" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {allCourses?.map((curso) => (
-                        <SelectItem key={curso.id} value={String(curso.id)}>
-                          <div className="flex flex-col">
-                            <span>{curso.nome}</span>
-                            <span className="text-left text-xs text-muted-foreground">
-                              {curso.local}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {errors.curso_id && (
-                    <p className="text-sm text-red-500">{errors.curso_id.message}</p>
-                  )}
+                   <Input
+                    value={cursoSelected?.nome || ""}
+                    disabled
+                    className="bg-muted/50"
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -339,7 +318,7 @@ export function StepSolicitarMatricula({
                     Local do Curso
                   </Label>
                   <Input
-                    value={cursosSimulados.find(c => c.id === cursoSelecionado)?.local || ""}
+                    value={cursoSelected?.local || ""}
                     disabled
                     className="bg-muted/50"
                   />
