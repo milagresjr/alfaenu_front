@@ -207,7 +207,7 @@ export function ModalSelecionarCurso({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="w-full max-w-[95vw] sm:max-w-[90vw] md:max-w-[80vw] lg:max-w-[70vw] xl:max-w-[60vw] max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
+      <DialogContent className="w-full h-full max-w-none max-h-none sm:max-w-none sm:max-h-none md:max-w-none md:max-h-none lg:max-w-none lg:max-h-none xl:max-w-none xl:max-h-none rounded-none overflow-hidden flex flex-col p-0 gap-0">
         <DialogHeader className="p-6 pb-4 border-b">
           <div className="flex items-center justify-between">
             <div>
@@ -304,7 +304,7 @@ export function ModalSelecionarCurso({
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
                 {filteredCourses.map((course: CourseType) => {
                   const isSelected = selectedCourse?.id === course.id
                   const isHovered = hoveredCourseId === course.id
@@ -415,7 +415,7 @@ export function ModalSelecionarCurso({
           <div className="flex justify-between items-center">
             {selectedCourse && (
               <div className="text-sm text-muted-foreground">
-                Curso selecionado: <span className="font-semibold text-foreground">{selectedCourse.nome}</span>
+                Curso selecionado: <span className="font-semibold text-foreground">{selectedCourse.nome} - {formatarMoeda(Number(selectedCourse.preco))}</span>
               </div>
             )}
             <div className="flex gap-3 ml-auto">

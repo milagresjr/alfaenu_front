@@ -249,6 +249,7 @@ export function ModalPreencherMinuta({
 
     try {
       const payload = {
+        cliente_id: cliente?.id,
         nome_completo: formData.nome_completo,
         naturalidade: formData.naturalidade,
         nacionalidade: formData.nacionalidade,

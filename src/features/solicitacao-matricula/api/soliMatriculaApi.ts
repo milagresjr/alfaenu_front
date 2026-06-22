@@ -18,3 +18,25 @@ export const createSolicitacaoMatricula = async (formData: FormData | Solicitaca
     }
 };
 
+// Buscar solicitações de matrícula por cliente
+export const getSolicitacaoMatriculaByClienteId = async (clienteId: string): Promise<SolicitacaoMatriculaType> => {
+    try {
+        const response = await api.get<SolicitacaoMatriculaType>(`${API_URL}/cliente/${clienteId}`);
+        return response.data;
+    } catch (error) {
+        console.error("Erro ao buscar solicitações de matrícula por cliente:", error);
+        throw error;
+    }
+};
+
+// Buscar uma solicitação de matrícula por ID
+export const getSolicitacaoMatriculaById = async (id: string): Promise<SolicitacaoMatriculaType> => {
+    try {
+        const response = await api.get<SolicitacaoMatriculaType>(`${API_URL}/${id}`);
+        return response.data;
+    } catch (error) {
+        console.error("Erro ao buscar solicitação de matrícula por ID:", error);
+        throw error;
+    }
+};
+

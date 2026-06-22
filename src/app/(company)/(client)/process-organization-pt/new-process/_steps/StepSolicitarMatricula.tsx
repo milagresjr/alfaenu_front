@@ -34,13 +34,14 @@ import { useCreateSolicitacaoMatricula } from "@/features/solicitacao-matricula/
 import { toast } from "react-toastify"
 import { useCourses } from "@/features/course/hooks/useCourseQuery"
 import { CourseType } from "@/features/course/types"
+import { formatarMoeda } from "@/lib/helpers"
 
 // Schema de validação
 const matriculaSchema = z.object({
-  curso_id: z.string().min(1, "Selecione um curso"),
-  curso_nome: z.string().min(1, "Nome do curso é obrigatório"),
-  cliente_id: z.string().min(1, "Cliente não identificado"),
-  cliente_nome: z.string().min(1, "Nome do cliente é obrigatório"),
+  curso_id: z.string(),
+  curso_nome: z.string(),
+  cliente_id: z.string(),
+  cliente_nome: z.string(),
   observacoes: z.string().optional(),
 })
 
@@ -121,6 +122,8 @@ export function StepSolicitarMatricula({
   } = useForm<MatriculaFormData>({
     resolver: zodResolver(matriculaSchema),
     defaultValues: {
+      curso_id: cursoSelected?.id?.toString() || "",
+      curso_nome: cursoSelected?.nome || "",
       cliente_id: cliente?.id?.toString() || "",
       cliente_nome: cliente?.nome || "",
       observacoes: "",
@@ -268,6 +271,11 @@ export function StepSolicitarMatricula({
     }
   }
 
+  function onError(error: any) {
+    console.error("Erro de validação do formulário:", error)
+    toast.error("Erro de validação do formulário. Verifique os campos.")
+  }
+
   // Verificar se o formulário é válido (3 documentos anexados)
   const isFormValid = isValid && documentos.length === 3
 
@@ -292,7 +300,7 @@ export function StepSolicitarMatricula({
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+        <form onSubmit={handleSubmit(onSubmit, onError)} className="space-y-6">
           {/* Dados do Curso */}
           <Card>
             <CardContent className="p-6 space-y-4">
@@ -301,7 +309,7 @@ export function StepSolicitarMatricula({
                 <h3 className="text-lg font-semibold">Dados do Curso</h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label>
                     Curso
@@ -324,7 +332,18 @@ export function StepSolicitarMatricula({
                   />
                 </div>
 
-                <div className="space-y-2 md:col-span-2">
+                <div className="space-y-2">
+                  <Label>
+                    Preco
+                  </Label>
+                  <Input
+                    value={cursoSelected?.preco ? formatarMoeda(Number(cursoSelected.preco)) : ""}
+                    disabled
+                    className="bg-muted/50"
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-2 lg:col-span-3">
                   <Label>
                     Observações (opcional)
                   </Label>
@@ -474,7 +493,7 @@ export function StepSolicitarMatricula({
             </Button>
             <Button
               type="submit"
-              disabled={isSubmitting || !isFormValid}
+              disabled={isSubmitting}
               className="gap-2"
             >
               {isSubmitting ? (

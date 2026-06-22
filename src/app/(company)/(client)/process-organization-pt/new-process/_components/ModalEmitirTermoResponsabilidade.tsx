@@ -61,18 +61,19 @@ interface TermoFormValues {
   observacoes: string
 }
 
+// TODOS OS CAMPOS INICIAM VAZIOS
 const initialFormValues: TermoFormValues = {
   nome_completo: "",
   apelido: "",
   data_nascimento: undefined,
-  nacionalidade: "Angolana",
+  nacionalidade: "",
   naturalidade: "",
-  genero: "M",
+  genero: "M", // Mantém um valor padrão para o select, mas você pode mudar para "" se quiser
   rua_bairro: "",
   municipio: "",
   provincia: "",
   telefone: "",
-  tipo_doc_identidade: "bi",
+  tipo_doc_identidade: "bi", // Mantém um valor padrão para o select
   num_doc: "",
   data_emissao_doc: undefined,
   data_validade_doc: undefined,
@@ -144,23 +145,9 @@ function getInitialValues(
   values?: Partial<TermoFormValues>,
   cliente?: MyClienteType | null
 ): TermoFormValues {
+  // RETORNA APENAS OS VALORES INICIAIS VAZIOS, IGNORANDO O CLIENTE
   return {
     ...initialFormValues,
-    ...values,
-    nome_completo: cliente?.nome ?? values?.nome_completo ?? initialFormValues.nome_completo,
-    data_nascimento: cliente?.data_nascimento 
-      ? parseClientDate(cliente?.data_nascimento as any) 
-      : values?.data_nascimento ?? initialFormValues.data_nascimento,
-    naturalidade: cliente?.naturalidade ?? values?.naturalidade ?? initialFormValues.naturalidade,
-    num_doc: cliente?.n_passaporte ?? cliente?.n_bi ?? values?.num_doc ?? initialFormValues.num_doc,
-    data_emissao_doc: cliente?.data_emissao || cliente?.emitido_em
-      ? parseClientDate(cliente?.data_emissao ?? cliente?.emitido_em)
-      : values?.data_emissao_doc ?? initialFormValues.data_emissao_doc,
-    data_validade_doc: cliente?.valido_ate
-      ? parseClientDate(cliente?.valido_ate)
-      : values?.data_validade_doc ?? initialFormValues.data_validade_doc,
-    local_emissao_doc: cliente?.emitido_em ?? values?.local_emissao_doc ?? initialFormValues.local_emissao_doc,
-    telefone: cliente?.telefone ?? values?.telefone ?? initialFormValues.telefone,
   }
 }
 
@@ -177,17 +164,7 @@ export function ModalEmitirTermoResponsabilidade({
   )
   const [errors, setErrors] = useState<Partial<Record<keyof TermoFormValues, string>>>({})
 
-  const clientePrefill = {
-    nome_completo: Boolean(cliente?.nome),
-    data_nascimento: Boolean(cliente?.data_nascimento),
-    naturalidade: Boolean(cliente?.naturalidade),
-    num_doc: Boolean(cliente?.n_passaporte || cliente?.n_bi),
-    data_emissao_doc: Boolean(cliente?.data_emissao || cliente?.emitido_em),
-    data_validade_doc: Boolean(cliente?.valido_ate),
-    local_emissao_doc: Boolean(cliente?.emitido_em),
-    telefone: Boolean(cliente?.telefone),
-  }
-
+  // Resetar o formulário quando o modal abrir
   useEffect(() => {
     if (open) {
       setFormData(getInitialValues(initialValues, cliente))
@@ -302,6 +279,9 @@ export function ModalEmitirTermoResponsabilidade({
         local_emissao_doc: formData.local_emissao_doc,
       }
 
+      // console.log("Dados do termo: ", payload);
+      // return;
+
       const response = await api.post('termo-responsabilidade/gerar-pdf', payload, {
         responseType: 'blob'
       })
@@ -367,7 +347,7 @@ export function ModalEmitirTermoResponsabilidade({
             <div className="col-span-full mb-2">
               <div className="flex items-center gap-2 pb-2 border-b">
                 <FileText className="h-4 w-4 text-primary" />
-                <h3 className="text-md font-semibold">Dados Pessoais</h3>
+                <h3 className="text-md font-semibold">Dados do Responsavel</h3>
               </div>
             </div>
 
@@ -382,7 +362,6 @@ export function ModalEmitirTermoResponsabilidade({
                 onChange={(e) => handleTextChange("nome_completo", e.target.value)}
                 placeholder="Nome completo do viajante"
                 className={cn(errors.nome_completo ? "border-red-500" : "", "w-full")}
-                // disabled={clientePrefill.nome_completo}
               />
               {errors.nome_completo && (
                 <p className="text-sm text-red-500">{errors.nome_completo}</p>
@@ -414,7 +393,6 @@ export function ModalEmitirTermoResponsabilidade({
                 id="data_nascimento"
                 value={formData.data_nascimento ? format(formData.data_nascimento, "yyyy-MM-dd") : ""}
                 onChange={(e) => handleDateChange("data_nascimento", e.target.value ? new Date(e.target.value) : undefined)}
-                // disabled={clientePrefill.data_nascimento}
                 className={cn(
                   "h-9 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden",
                   "bg-transparent text-gray-800 dark:text-white/90",
@@ -447,7 +425,6 @@ export function ModalEmitirTermoResponsabilidade({
                 onChange={(e) => handleTextChange("naturalidade", e.target.value)}
                 placeholder="Ex: Luanda"
                 className={cn(errors.naturalidade ? "border-red-500" : "", "w-full")}
-                // disabled={clientePrefill.naturalidade}
               />
               {errors.naturalidade && <p className="text-sm text-red-500">{errors.naturalidade}</p>}
             </div>
@@ -526,7 +503,6 @@ export function ModalEmitirTermoResponsabilidade({
                 onChange={(e) => handleTextChange("telefone", e.target.value)}
                 placeholder="Ex: 923456789"
                 className={cn(errors.telefone ? "border-red-500" : "", "w-full")}
-                // disabled={clientePrefill.telefone}
               />
               {errors.telefone && <p className="text-sm text-red-500">{errors.telefone}</p>}
             </div>
@@ -566,7 +542,6 @@ export function ModalEmitirTermoResponsabilidade({
                 onChange={(e) => handleTextChange("num_doc", e.target.value)}
                 placeholder={formData.tipo_doc_identidade === "bi" ? "Número do BI" : "Número do Passaporte"}
                 className={cn(errors.num_doc ? "border-red-500" : "", "w-full")}
-                // disabled={clientePrefill.num_doc}
               />
               {errors.num_doc && <p className="text-sm text-red-500">{errors.num_doc}</p>}
             </div>
@@ -579,7 +554,6 @@ export function ModalEmitirTermoResponsabilidade({
                 id="data_emissao_doc"
                 value={formData.data_emissao_doc ? format(formData.data_emissao_doc, "yyyy-MM-dd") : ""}
                 onChange={(e) => handleDateChange("data_emissao_doc", e.target.value ? new Date(e.target.value) : undefined)}
-                // disabled={clientePrefill.data_emissao_doc}
                 className={cn(
                   "h-9 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden",
                   "bg-transparent text-gray-800 dark:text-white/90",
@@ -598,7 +572,6 @@ export function ModalEmitirTermoResponsabilidade({
                 id="data_validade_doc"
                 value={formData.data_validade_doc ? format(formData.data_validade_doc, "yyyy-MM-dd") : ""}
                 onChange={(e) => handleDateChange("data_validade_doc", e.target.value ? new Date(e.target.value) : undefined)}
-                // disabled={clientePrefill.data_validade_doc}
                 className={cn(
                   "h-9 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden",
                   "bg-transparent text-gray-800 dark:text-white/90",
@@ -618,7 +591,6 @@ export function ModalEmitirTermoResponsabilidade({
                 onChange={(e) => handleTextChange("local_emissao_doc", e.target.value)}
                 placeholder="Ex: Luanda"
                 className={cn(errors.local_emissao_doc ? "border-red-500" : "", "w-full")}
-                // disabled={clientePrefill.local_emissao_doc}
               />
               {errors.local_emissao_doc && <p className="text-sm text-red-500">{errors.local_emissao_doc}</p>}
             </div>

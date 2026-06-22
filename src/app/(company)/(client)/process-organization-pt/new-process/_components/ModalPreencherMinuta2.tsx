@@ -237,6 +237,7 @@ export function ModalPreencherMinuta2({
 
     try {
       const payload = {
+        cliente_id: cliente?.id,
         nome: formData.nome,
         data_nascimento: formatDateForPayload(formData.data_nascimento),
         local_nascimento: formData.local_nascimento,
