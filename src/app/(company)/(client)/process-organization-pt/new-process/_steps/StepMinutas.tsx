@@ -14,10 +14,11 @@ import {
   BookOpen,
   CheckCircle,
   Download,
-  Eye,
   XCircle,
   Clock,
-  AlertCircle
+  AlertCircle,
+  Plane,
+  Building2
 } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import { ModalPreencherMinuta } from "../_components/ModalPreencherMinuta"
@@ -30,9 +31,17 @@ import { ModalSelecionarCurso } from "../_components/ModalSelecionarCurso"
 import { CourseType } from "@/features/course/types"
 import { ModalEmitirTermoResponsabilidade } from "../_components/ModalEmitirTermoResponsabilidade"
 import { ModalEmitirFormulario } from "../_components/ModalEmitirFormulario"
+import { ModalSolicitarAgendamento } from "../_components/ModalSolicitarAgendamento"
+import { ModalAgendamentoExistente } from "../_components/ModalAgendamentoExistente"
 import { useGetSolicitacaoMatriculaByClienteId } from "@/features/solicitacao-matricula/hooks/useSoliMatriculaQuery"
 import { useCreateDocumentoProfundoStatus, useGetDocumentoProfundoStatusByClienteId, useUpdateDocumentoProfundoStatus } from "@/features/documentos-profundo/hooks/useDocumentoProfundoQuery"
 import { DocumentoProfundoStatus } from "@/features/documentos-profundo/types"
+import { useAuthStore } from "@/store/useAuthStore"
+import { api } from "@/services/api"
+import { alert } from "@/lib/alert"
+import { useBaixarDeclaracao, useGetMotivoRejeicao } from "@/features/solicitacao-matricula/hooks/useSoliMatriculaQuery"
+import { useGetSolicitacaoAgendamentoByClienteId } from "@/features/solicitacao-agendamento/hooks/useSoliAgendamentoQuery"
+import { useGetProcessoProgressByClienteId } from "@/features/processo-progress/hooks/useProcessoProgress"
 
 type TipoMinuta =
   | "minuta1"
@@ -41,6 +50,8 @@ type TipoMinuta =
   | "termo_responsabilidade"
   | "solicitar_agendamento"
   | "solicitar_matricula"
+  | "print_voo"
+  | "reserva_hotel"
 
 interface Minuta {
   id: TipoMinuta
@@ -67,7 +78,7 @@ const minutas = (solicitacaoMatricula: any): Minuta[] => [
   },
   {
     id: "solicitar_matricula",
-    titulo: "Solicitar Matrícula",
+    titulo: 'Solicitar Matrícula',
     descricao: "Solicitação de matrícula na instituição de ensino",
     icone: BookOpen,
     cor: "from-cyan-500 to-sky-500",
@@ -126,6 +137,30 @@ const minutas = (solicitacaoMatricula: any): Minuta[] => [
       "Comprovante de matrícula",
     ],
   },
+  {
+    id: "print_voo",
+    titulo: "Print de Voo",
+    descricao: "Comprovante de reserva ou bilhete de passagem aérea",
+    icone: Plane,
+    cor: "from-orange-500 to-amber-500",
+    documentos: [
+      "Bilhete de passagem",
+      "Comprovante de reserva",
+      "Itinerário de voo",
+    ],
+  },
+  {
+    id: "reserva_hotel",
+    titulo: "Reserva de Hotel",
+    descricao: "Comprovante de reserva de hospedagem durante a estada",
+    icone: Building2,
+    cor: "from-green-500 to-emerald-500",
+    documentos: [
+      "Comprovante de reserva",
+      "Detalhes da hospedagem",
+      "Período da estada",
+    ],
+  },
 ]
 
 export default function StepMinutas({
@@ -137,15 +172,18 @@ export default function StepMinutas({
   const [selectedMinuta, setSelectedMinuta] = useState<TipoMinuta | null>(
     data.minutaSelecionada || null
   )
-  const [showDetails, setShowDetails] = useState<TipoMinuta | null>(null);
   const [showMinutaModal, setShowMinutaModal] = useState(false)
   const [selectedMinutaId, setSelectedMinutaId] = useState<TipoMinuta | null>(null)
   const [showMinutaModal2, setShowMinutaModal2] = useState(false);
   const [showMatriculaPage, setShowMatriculaPage] = useState(false);
   const [showTermoResponsabilidadeModal, setShowTermoResponsabilidadeModal] = useState(false);
   const [showFormularioModal, setShowFormularioModal] = useState(false);
+  const [showAgendamentoModal, setShowAgendamentoModal] = useState(false);
+  const [showAgendamentoExistenteModal, setShowAgendamentoExistenteModal] = useState(false);
   const [isModalOpenSelectedCurso, setIsModalOpenSelectedCurso] = useState(false)
   const [selectedCourse, setSelectedCourse] = useState<CourseType | null>(null)
+
+  const { user } = useAuthStore();
   
   // USAR useRef para controlar se já foi inicializado
   const isInitialized = useRef(false);
@@ -153,9 +191,20 @@ export default function StepMinutas({
 
   const saveProcessoProgress = useSaveProcessoProgress();
   const { data: solicitacaoMatricula } = useGetSolicitacaoMatriculaByClienteId(String(data.cliente?.id));
+  const { data: solicitacaoAgendamento } = useGetSolicitacaoAgendamentoByClienteId(String(data.cliente?.id));
   const { data: documentoProfundoStatus, refetch: refetchStatus } = useGetDocumentoProfundoStatusByClienteId(String(data.cliente?.id));
+  const { data: processoProgress } = useGetProcessoProgressByClienteId(data.cliente?.id ?? 0);
+
+  const financiadorIdValue = data.financiador_id ?? processoProgress?.financiador_id;
+  const baixarDeclaracaoMutation = useBaixarDeclaracao();
+  const { data: motivoRejeicao } = useGetMotivoRejeicao(
+    solicitacaoMatricula?.status === 'rejeitado' ? solicitacaoMatricula.id : ''
+  );
   const createStatusMutation = useCreateDocumentoProfundoStatus();
   const updateStatusMutation = useUpdateDocumentoProfundoStatus();
+
+  console.log("SOLICITACAO DA MATRICULA: ", solicitacaoMatricula);
+  console.log("STATUS DO DOCUMENTO PROFUNDO: ", documentoProfundoStatus);
 
   // LÓGICA CORRIGIDA: Inicializar status apenas uma vez
   useEffect(() => {
@@ -245,16 +294,16 @@ export default function StepMinutas({
                status.status_solicitacao_agendamento === 'rejeitado';
       
       case 'formulario':
-        return status.status_formulario == true;
+        return false;
       
       case 'termo_responsabilidade':
-        return status.status_termo_responsabilidade == true;
+        return false;
       
       case 'minuta1':
-        return status.status_minuta1 == true;
+        return false;
       
       case 'minuta2':
-        return status.status_minuta2 == true;
+        return false;
       
       default:
         return false;
@@ -296,6 +345,7 @@ export default function StepMinutas({
       case 'concluido':
         return 'text-green-600 bg-green-100 border-green-500';
       case 'reprovado':
+      case 'rejeitado':
         return 'text-red-600 bg-red-100 border-red-500';
       case 'pendente':
         return 'text-yellow-600 bg-yellow-100 border-yellow-500';
@@ -313,6 +363,7 @@ export default function StepMinutas({
       case 'concluido':
         return <CheckCircle className="h-4 w-4" />;
       case 'reprovado':
+      case 'rejeitado':
         return <XCircle className="h-4 w-4" />;
       case 'pendente':
         return <Clock className="h-4 w-4" />;
@@ -329,6 +380,7 @@ export default function StepMinutas({
       case 'aprovado':
         return 'Aprovado';
       case 'reprovado':
+      case 'rejeitado':
         return 'Rejeitado';
       case 'pendente':
         return 'Pendente';
@@ -341,9 +393,83 @@ export default function StepMinutas({
     }
   };
 
+  // Função para pegar o texto do botão de ação
+  const getActionButtonText = (minutaId: TipoMinuta): string => {
+    switch (minutaId) {
+      case 'minuta1': return 'Criar Minuta 1';
+      case 'minuta2': return 'Criar Minuta 2';
+      case 'formulario': return 'Criar Formulário';
+      case 'termo_responsabilidade': return 'Emitir Termo';
+      case 'solicitar_matricula': return 'Solicitar Matrícula';
+      case 'solicitar_agendamento': return 'Solicitar Agendamento';
+      case 'print_voo': return 'Adicionar Voo';
+      case 'reserva_hotel': return 'Adicionar Hotel';
+      default: return 'Abrir';
+    }
+  };
+
   const handleSelectCourse = (course: CourseType) => {
     setSelectedCourse(course);
     setShowMatriculaPage(true);
+  }
+
+  const handleEmitirTermo = async () => {
+    const confirmed = await alert.confirm(
+      'Emitir Termo de Responsabilidade',
+      'Deseja emitir o termo de responsabilidade?',
+      'Aceitar/Emitir',
+      'Cancelar'
+    );
+
+    if (!confirmed || !data.cliente?.id) return;
+
+
+    try {
+      const response = await api.post('termo-responsabilidade/gerar-pdf', {
+        cliente_id: data.cliente.id,
+        financiador_id: financiadorIdValue,
+      }, {
+        responseType: 'blob'
+      });
+
+      const contentType = String(response.headers['content-type']) || ''
+      if (!contentType.includes('application/pdf')) {
+        const text = await (response.data as Blob).text()
+        console.error('Resposta não é PDF:', text.substring(0, 500))
+        throw new Error('Erro ao gerar termo de responsabilidade')
+      }
+
+      if ((response.data as Blob).size === 0) {
+        throw new Error('PDF vazio')
+      }
+
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `termo_responsabilidade_${data.cliente.nome}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+
+      toast.success('Termo de responsabilidade emitido com sucesso!');
+      updateDocumentStatus('termo_responsabilidade');
+      refetchStatus();
+    } catch (error: any) {
+      console.error('Erro ao emitir termo de responsabilidade:', error);
+      if (error.response && error.response.data instanceof Blob) {
+        try {
+          const errorText = await error.response.data.text()
+          const errorJson = JSON.parse(errorText)
+          toast.error(errorJson.message || 'Erro ao emitir termo de responsabilidade')
+        } catch {
+          toast.error('Erro ao emitir termo de responsabilidade')
+        }
+      } else {
+        toast.error(error.message || 'Erro ao emitir termo de responsabilidade')
+      }
+    }
   }
 
   const handleSelect = (minutaId: TipoMinuta) => {
@@ -351,6 +477,17 @@ export default function StepMinutas({
     if (isCardDisabled(minutaId, documentoProfundoStatus!!)) {
       toast.warning('Este documento já foi concluído!');
       return;
+    }
+
+    // Verifica se a solicitação de matrícula foi aprovada para minutas e formulário
+    if (minutaId === "minuta1" || minutaId === "minuta2" || minutaId === "formulario") {
+      if (solicitacaoMatricula?.status !== 'aprovado') {
+        alert.warning(
+          'Solicitação de Matrícula Necessária',
+          'É preciso primeiro fazer a solicitação de matrícula e ser aprovada.'
+        );
+        return;
+      }
     }
 
     setSelectedMinuta(minutaId)
@@ -367,9 +504,143 @@ export default function StepMinutas({
     } else if (minutaId === "minuta2") {
       setShowMinutaModal2(true)
     } else if(minutaId === "termo_responsabilidade") {
-      setShowTermoResponsabilidadeModal(true)
+      handleEmitirTermo()
+    } else if (minutaId === "solicitar_agendamento") {
+      setShowAgendamentoModal(true)
     } else if (minutaId === "formulario") {
       setShowFormularioModal(true)
+    } else if (minutaId === "print_voo" || minutaId === "reserva_hotel") {
+      toast.info("Funcionalidade em desenvolvimento")
+    }
+  }
+
+  const handleRedownload = async (minutaId: TipoMinuta) => {
+    if (minutaId === 'formulario') {
+      if (!data.cliente?.id) return
+     
+      try {
+        const response = await api.post('formulario/gerar-pdf', {
+          ...data,
+          cliente: null,
+          cliente_id: data.cliente.id,
+          residencia_outro_pais: false,
+          autorizacao_residencia: "",
+          num_autorizacao_residencia: "",
+          validade_autorizacao_residencia: "",
+          data_prevista_chegada: "",
+          data_prevista_saida: "",
+          despesas_proprio: false,
+          despesas_garante: false,
+          despesas_dinheiro: false,
+          despesas_cheques: false,
+          despesas_cartoes: false,
+          despesas_alojamento: false,
+          despesas_transporte: false,
+          despesas_alojamento_fornecido: false,
+          despesas_todas_cobertas: false,
+          despesas_outro_especificar: "",
+          despesas_dinheiro_garante: false,
+          despesas_transporte_garante: false,
+          despesas_garante_outro_especificar: "",
+        }, {
+          responseType: 'blob'
+        })
+
+        const blob = new Blob([response.data], { type: 'application/pdf' })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `formulario_${data.cliente.nome}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        window.URL.revokeObjectURL(url)
+
+        toast.success('Formulário baixado novamente!')
+      } catch (error) {
+        console.error('Erro ao baixar formulário:', error)
+        toast.error('Erro ao baixar formulário')
+      }
+    } else if (minutaId === 'minuta1') {
+      setShowMinutaModal(true)
+    } else if (minutaId === 'minuta2') {
+      setShowMinutaModal2(true)
+    } else if (minutaId === 'termo_responsabilidade') {
+      if (!data.cliente?.id) return
+      try {
+        const response = await api.post('termo-responsabilidade/gerar-pdf', {
+          cliente_id: data.cliente.id,
+          financiador_id: financiadorIdValue,
+        }, {
+          responseType: 'blob'
+        })
+
+        const contentType = String(response.headers['content-type']) || ''
+        if (!contentType.includes('application/pdf')) {
+          const text = await (response.data as Blob).text()
+          console.error('Resposta não é PDF:', text.substring(0, 500))
+          throw new Error('Erro ao gerar termo de responsabilidade')
+        }
+
+        if ((response.data as Blob).size === 0) {
+          throw new Error('PDF vazio')
+        }
+
+        const blob = new Blob([response.data], { type: 'application/pdf' })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `termo_responsabilidade_${data.cliente.nome}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        window.URL.revokeObjectURL(url)
+
+        toast.success('Termo de responsabilidade baixado novamente!')
+      } catch (error: any) {
+        console.error('Erro ao baixar termo de responsabilidade:', error)
+        if (error.response && error.response.data instanceof Blob) {
+          try {
+            const errorText = await error.response.data.text()
+            const errorJson = JSON.parse(errorText)
+            toast.error(errorJson.message || 'Erro ao baixar termo de responsabilidade')
+          } catch {
+            toast.error('Erro ao baixar termo de responsabilidade')
+          }
+        } else {
+          toast.error(error.message || 'Erro ao baixar termo de responsabilidade')
+        }
+      }
+    } else if (minutaId === 'solicitar_matricula') {
+      if (!solicitacaoMatricula?.id) return
+      try {
+        const blob = await baixarDeclaracaoMutation.mutateAsync(solicitacaoMatricula.id)
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = solicitacaoMatricula.declaracao_nome || `declaracao_matricula.pdf`
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        window.URL.revokeObjectURL(url)
+        toast.success('Declaração baixada com sucesso!')
+      } catch (error) {
+        console.error('Erro ao baixar declaração:', error)
+        toast.error('Erro ao baixar declaração')
+      }
+    } else if (minutaId === 'solicitar_agendamento') {
+      if (!solicitacaoAgendamento?.agendamento_url) {
+        toast.error('URL do agendamento não disponível.')
+        return
+      }
+      const a = document.createElement('a')
+      a.href = solicitacaoAgendamento.agendamento_url
+      a.download = solicitacaoAgendamento.agendamento_nome || 'agendamento.pdf'
+      a.target = '_blank'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      toast.success('Agendamento baixado com sucesso!')
     }
   }
 
@@ -388,17 +659,17 @@ export default function StepMinutas({
   }
 
   // Atualizar status após conclusão de cada documento
-  const updateDocumentStatus = (minutaId: TipoMinuta) => {
+  const updateDocumentStatus = async (minutaId: TipoMinuta): Promise<void> => {
     if (!documentoProfundoStatus || !data.cliente?.id) return;
 
     const updatedStatus = { ...documentoProfundoStatus };
 
     switch (minutaId) {
       case 'solicitar_matricula':
-        updatedStatus.status_solicitacao_matricula = 'aprovado';
+        updatedStatus.status_solicitacao_matricula = 'pendente';
         break;
       case 'solicitar_agendamento':
-        updatedStatus.status_solicitacao_agendamento = 'aprovado';
+        updatedStatus.status_solicitacao_agendamento = 'pendente';
         break;
       case 'formulario':
         updatedStatus.status_formulario = true;
@@ -426,7 +697,7 @@ export default function StepMinutas({
       updatedStatus.status_geral = 'concluido';
     }
 
-    updateStatusMutation.mutate({ 
+    await updateStatusMutation.mutateAsync({ 
       clienteId: String(data.cliente.id), 
       newSolicitacao: updatedStatus 
     });
@@ -434,15 +705,19 @@ export default function StepMinutas({
 
   useEffect(() => {
     // Salvar o progresso da etapa de minutas no backend
+    console.log("DADOS ATUAIS DO CLIEWNTE", data);
     if (data.cliente?.id) {
       saveProcessoProgress.mutate({
         cliente_id: data.cliente.id,
+        utilizador_id: String(user?.id),
         current_step: 6,
         tipo_visto: data.tipoVisto || '',
         subtipo: data.subtipo || '',
         financiamento: data.financiamento || '',
         financiamento_origem: data.financiamentoOrigem || '',
         documentos_profundo: selectedMinuta || '',
+        financiador_id: String(data.financiador_id),
+        financiador_nome: String(data.financiador_nome),
         status: 'em_progresso',
       }, {
         onSuccess: () => {
@@ -498,9 +773,10 @@ export default function StepMinutas({
            {minutas(solicitacaoMatricula).map((minuta, index) => {
               const Icon = minuta.icone
               const isSelected = selectedMinuta === minuta.id
-              const isExpanded = showDetails === minuta.id
-              
-              // Obtém o status atual do documento
+
+              const statusSolicitacao = minuta.status;
+               
+               // Obtém o status atual do documento
               const currentStatus = getDocumentStatus(minuta.id, documentoProfundoStatus);
               const disabled = isCardDisabled(minuta.id, documentoProfundoStatus);
               
@@ -517,12 +793,10 @@ export default function StepMinutas({
                 >
                   <Card
                     className={cn(
-                      "transition-all hover:shadow-lg border-2 group cursor-pointer w-full flex flex-col relative",
-                      disabled && "opacity-70 cursor-not-allowed",
-                      !disabled && "hover:border-gray-300",
+                      "transition-all hover:shadow-lg border-2 w-full flex flex-col relative",
+                      disabled && "opacity-70",
                       hasStatus && currentStatus && getStatusColor(currentStatus).split(' ')[2] // Pega a cor da borda
                     )}
-                    onClick={disabled ? undefined : () => handleSelect(minuta.id)}
                   >
                     {/* Badge de status */}
                     {hasStatus && currentStatus && (
@@ -538,9 +812,8 @@ export default function StepMinutas({
                     <CardContent className="p-4 flex-1 flex flex-col">
                       <div className="flex items-start gap-4 flex-1">
                         <div className={cn(
-                          "p-3 rounded-xl bg-gradient-to-br text-white shadow-md transition-transform shrink-0",
-                          minuta.cor,
-                          !disabled && "group-hover:scale-110"
+                          "p-3 rounded-xl bg-gradient-to-br text-white shadow-md shrink-0",
+                          minuta.cor
                         )}>
                           <Icon className="h-5 w-5" />
                         </div>
@@ -556,68 +829,75 @@ export default function StepMinutas({
                             {minuta.descricao}
                           </p>
 
-                          {/* Botões de ação - só visíveis se não estiver desabilitado */}
-                          {!disabled && (
-                            <div className="flex gap-2 mt-3">
+                          {/* Botões */}
+                          <div className="mt-3 flex flex-col md:flex-row gap-2">
+                            {!disabled && (
+                              <>
+                                <Button
+                                  type="button"
+                                  variant="secondary"
+                                  size="sm"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleSelect(minuta.id)
+                                  }}
+                                  className="gap-1"
+                                >
+                                  {getActionButtonText(minuta.id)}
+                                </Button>
+                                {minuta.id === 'solicitar_agendamento' && (
+                                  <Button
+                                    type="button"
+                                    variant="secondary"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setShowAgendamentoExistenteModal(true)
+                                    }}
+                                    className="gap-1"
+                                  >
+                                    Já possuo um agendamento
+                                  </Button>
+                                )}
+                              </>
+                            )}
+
+                            {/* Botão de download para documentos concluídos */}
+                            {((currentStatus === 'concluido' && ['minuta1', 'minuta2', 'formulario', 'termo_responsabilidade'].includes(minuta.id)) || (
+                              minuta.id === 'solicitar_matricula' && currentStatus === 'aprovado' && solicitacaoMatricula?.declaracao_url
+                            ) || (
+                              minuta.id === 'solicitar_agendamento' && currentStatus === 'aprovado' && solicitacaoAgendamento?.agendamento_url
+                            )) && (
                               <Button
                                 type="button"
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  setShowDetails(isExpanded ? null : minuta.id)
-                                }}
-                                className="gap-1"
-                              >
-                                <Eye className="h-3 w-3" />
-                                {isExpanded ? "Ocultar detalhes" : "Ver detalhes"}
-                              </Button>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  console.log("Download:", minuta.id)
+                                  handleRedownload(minuta.id)
                                 }}
                                 className="gap-1"
                               >
                                 <Download className="h-3 w-3" />
-                                Baixar exemplo
+                                {minuta.id === 'solicitar_matricula' ? 'Baixar Declaração' : minuta.id === 'solicitar_agendamento' ? 'Baixar Agendamento' : 'Download'}
                               </Button>
-                            </div>
-                          )}
+                            )}
+                          </div>
 
-                          {/* Detalhes expandidos */}
-                          {isExpanded && minuta.documentos && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              className="mt-3 pt-3 border-t"
-                            >
-                              <p className="text-sm font-medium mb-2">
-                                Documentos necessários:
+                          {/* Motivo da rejeição */}
+                          {minuta.id === 'solicitar_matricula' && currentStatus === 'rejeitado' && motivoRejeicao?.motivo_rejeicao && (
+                            <div className="mt-3 p-2 bg-red-50 dark:bg-red-950/20 border border-red-200 rounded-lg">
+                              <p className="text-xs font-medium text-red-600 dark:text-red-400 flex items-center gap-1">
+                                <XCircle className="h-3 w-3" />
+                                Motivo da rejeição:
                               </p>
-                              <ul className="space-y-1">
-                                {minuta.documentos.map((doc, i) => (
-                                  <li key={i} className="text-sm text-muted-foreground flex items-center gap-2">
-                                    <div className="w-1 h-1 rounded-full bg-primary shrink-0" />
-                                    {doc}
-                                  </li>
-                                ))}
-                              </ul>
-                            </motion.div>
+                              <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                                {motivoRejeicao.motivo_rejeicao}
+                              </p>
+                            </div>
                           )}
                         </div>
 
-                        {!disabled && !hasStatus && (
-                          <div className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                              <span className="text-primary text-lg">→</span>
-                            </div>
-                          </div>
-                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -633,6 +913,17 @@ export default function StepMinutas({
         open={showMinutaModal}
         onOpenChange={setShowMinutaModal}
         cliente={data.cliente}
+        initialValues={{
+          data_prevista_estadia: solicitacaoMatricula?.data_prevista_chegada
+            ? new Date(solicitacaoMatricula.data_prevista_chegada)
+            : undefined,
+          inicio_formacao_profissional: solicitacaoMatricula?.data_inicio
+            ? new Date(solicitacaoMatricula.data_inicio)
+            : undefined,
+          termino_formacao_profissional: solicitacaoMatricula?.data_prevista_saida
+            ? new Date(solicitacaoMatricula.data_prevista_saida)
+            : undefined,
+        }}
         onSuccess={(pdfUrl) => {
           // handleMinutaSuccess(pdfUrl);
           // updateDocumentStatus('minuta1');
@@ -644,6 +935,11 @@ export default function StepMinutas({
         open={showMinutaModal2}
         onOpenChange={setShowMinutaModal2}
         cliente={data.cliente}
+        initialValues={{
+          data_prevista_chegada: solicitacaoMatricula?.data_prevista_chegada
+            ? new Date(solicitacaoMatricula.data_prevista_chegada)
+            : undefined,
+        }}
         onSuccess={(pdfUrl) => {
           // handleMinutaSuccess(pdfUrl);
           // updateDocumentStatus('minuta2');
@@ -675,7 +971,16 @@ export default function StepMinutas({
       <ModalEmitirFormulario
         open={showFormularioModal}
         onOpenChange={setShowFormularioModal}
+        data={data}
         cliente={data.cliente}
+        initialValues={{
+          data_prevista_chegada: solicitacaoMatricula?.data_prevista_chegada
+            ? new Date(solicitacaoMatricula.data_prevista_chegada)
+            : undefined,
+          data_prevista_saida: solicitacaoMatricula?.data_prevista_saida
+            ? new Date(solicitacaoMatricula.data_prevista_saida)
+            : undefined,
+        }}
         onSuccess={(pdfUrl) => {
           setData((prev) => ({
             ...prev,
@@ -683,6 +988,26 @@ export default function StepMinutas({
           }))
           updateDocumentStatus('formulario')
           refetchStatus()
+        }}
+      />
+
+      <ModalSolicitarAgendamento
+        open={showAgendamentoModal}
+        onOpenChange={setShowAgendamentoModal}
+        cliente={data.cliente}
+        onSuccess={async () => {
+          await updateDocumentStatus('solicitar_agendamento');
+          refetchStatus();
+        }}
+      />
+
+      <ModalAgendamentoExistente
+        open={showAgendamentoExistenteModal}
+        onOpenChange={setShowAgendamentoExistenteModal}
+        cliente={data.cliente}
+        onSuccess={async () => {
+          await updateDocumentStatus('solicitar_agendamento');
+          refetchStatus();
         }}
       />
     </>

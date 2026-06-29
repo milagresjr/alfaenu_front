@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ClientSection } from "./_components/ClientSection";
 import FloatingButton from "./_components/FloatingButton";
@@ -5,6 +6,11 @@ import { OrderSummary } from "./_components/OrderSummary";
 import { ServicesCard } from "./_components/ServicesCard";
 import { ChevronLeft } from "lucide-react";
 import { InfoHeader } from "./_components/InfoHeader";
+
+export const metadata: Metadata = {
+  title: "Ponto de Venda",
+  description: "Sistema de ponto de venda (POS) do Alfaenu",
+};
 
 
 export default function Page() {

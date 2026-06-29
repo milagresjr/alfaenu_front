@@ -14,6 +14,7 @@ import { useMyClientes } from "@/features/myClient/hooks/useMyClientsQuery"
 import { useMyClienteStore } from "@/features/myClient/store/useMyClienteStore"
 import { useDebounce } from "@uidotdev/usehooks"
 import { MyClienteType } from "@/features/myClient/types"
+import { useAuthStore } from "@/store/useAuthStore"
 
 export default function StepCliente({ setData, next }: Omit<StepProps, "back">) {
 
@@ -31,7 +32,9 @@ export default function StepCliente({ setData, next }: Omit<StepProps, "back">) 
     "todos"
   );
 
-  const { data: dataCliente, isLoading, isError } = useMyClientes(page, perPage, debouncedSearch, selected !== 'todos' ? selected : '');
+  const { user } = useAuthStore();
+
+  const { data: dataCliente, isLoading, isError } = useMyClientes(String(user?.id), page, perPage, debouncedSearch, selected !== 'todos' ? selected : '');
 
   const [clientes, setClientes] = useState<Cliente[]>([
     { id: 1, nome: "João Silva", email: "joao@email.com", telefone: "(11) 99999-9999", documento: "123.456.789-00" },

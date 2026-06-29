@@ -1,5 +1,5 @@
 import { api } from '@/services/api';
-import { SolicitacaoMatriculaType } from '../types';
+import { SolicitacaoMatriculaType, MotivoRejeicaoResponse } from '../types';
 
 const API_URL = '/solicitacao-matricula'; // URL base para a API de solicitações de matrícula
 
@@ -36,6 +36,30 @@ export const getSolicitacaoMatriculaById = async (id: string): Promise<Solicitac
         return response.data;
     } catch (error) {
         console.error("Erro ao buscar solicitação de matrícula por ID:", error);
+        throw error;
+    }
+};
+
+// Baixar declaração de matrícula
+export const baixarDeclaracao = async (id: string): Promise<Blob> => {
+    try {
+        const response = await api.get(`${API_URL}/${id}/declaracao/download`, {
+            responseType: 'blob',
+        });
+        return response.data;
+    } catch (error) {
+        console.error("Erro ao baixar declaração:", error);
+        throw error;
+    }
+};
+
+// Obter motivo da rejeição
+export const getMotivoRejeicao = async (id: string): Promise<MotivoRejeicaoResponse> => {
+    try {
+        const response = await api.get<MotivoRejeicaoResponse>(`${API_URL}/${id}/motivo-rejeicao`);
+        return response.data;
+    } catch (error) {
+        console.error("Erro ao buscar motivo de rejeição:", error);
         throw error;
     }
 };

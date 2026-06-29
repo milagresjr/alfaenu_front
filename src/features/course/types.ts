@@ -1,3 +1,5 @@
+import { CentroFormacaoType } from "../centroFormacao/types";
+
 export type CourseType = {
   id?: number;
   nome: string;
@@ -6,4 +8,6 @@ export type CourseType = {
   duracao: string;
   descricao: string;
   imagem?: File | string | null;
+  centro_id?: number;
+  centro?: CentroFormacaoType;
 };

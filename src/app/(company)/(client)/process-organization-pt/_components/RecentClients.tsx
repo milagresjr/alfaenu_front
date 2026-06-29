@@ -9,22 +9,17 @@ import { alert } from "@/lib/alert";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
 import { Plus } from "lucide-react";
-import { formatarDataLong } from "@/lib/helpers";
 import { useEffect, useState } from "react";
 import { useDebounce } from "@uidotdev/usehooks";
 import { Input } from "@/components/ui/input";
-import { PaginationComponent } from "@/components/pagination/Pagination";
-import { StatCard } from "@/components/StatCard/stat-card";
-import { useMemo } from "react";
 import { useProgress } from "@bprogress/next";
-import LoadingDialog from "../../../../(full-width-pages)/pos/_components/LoadingDialog";
-import { DropdownActions } from "@/components/dropdown-action-menu/drop-actions-menu";
 import { useMyClienteStore } from "@/features/myClient/store/useMyClienteStore";
-import { useDeleteMyCliente, useMyClientes } from "@/features/myClient/hooks/useMyClientsQuery";
+import { useDeleteMyCliente } from "@/features/myClient/hooks/useMyClientsQuery";
 import { MyClienteType } from "@/features/myClient/types";
-import { useDeleteProcessoProgress, useProcessoProgress } from "@/features/processo-progress/hooks/useProcessoProgress";
+import { useDeleteProcessoProgress, useProcessoProgressByUser } from "@/features/processo-progress/hooks/useProcessoProgress";
 import { useClienteProcessoStore } from "@/features/processo-progress/store/clienteProcessoStore";
 import { Button } from "@/components/ui/button";
+import { useAuthStore } from "@/store/useAuthStore";
 
 
 export default function RecentClients() {
@@ -45,9 +40,11 @@ export default function RecentClients() {
 
   const { setCliente, setStep } = useClienteProcessoStore();
 
-  const { data, isLoading, isError } = useProcessoProgress();
+  const { user } = useAuthStore();
 
-  console.log("Data", data);
+  const { data, isLoading, isError } = useProcessoProgressByUser(String(user?.id));
+
+  console.log("DATA PRA ANALISAR", data);
 
   // const { data, isLoading, isError } = useMyClientes(page, perPage, debouncedSearch, selected !== 'todos' ? selected : '');
 

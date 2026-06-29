@@ -15,10 +15,10 @@ export interface PaginatedCourse {
 const API_URL = '/courses'; // URL base para a API de Cursos
 
 // Obter todos os Cursos
-export const getAllCourse = async (per_page: number, page: number, search?: string, estado?: string): Promise<PaginatedCourse> => {
+export const getAllCourse = async (per_page: number, page: number, search?: string, estado?: string, centro_id?: number): Promise<PaginatedCourse> => {
     try {
         const response = await api.get<PaginatedCourse>(API_URL, {
-            params: { per_page, page, search , estado},
+            params: { per_page, page, search , estado, centro_id},
         });
 
         return response.data;

@@ -16,6 +16,8 @@ export type MyClienteType = {
   emitido_em?: string;
   data_emissao?: string;
   valido_ate?: string;
+  pais_nascimento?: string;
+  tipo_documento_viagem?: string;
   estado?: 'ativo' | 'inativo';
   created_at?: string;
   updated_at?: string;

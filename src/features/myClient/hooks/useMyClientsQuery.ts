@@ -1,11 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { MyClienteType } from "../types";
 import { alterarEstadoMyCliente, createMyCliente, deleteMyCliente, getAllMyCliente, updateMyCliente } from "../api/myClientApi";
 
-export const useMyClientes = (page = 1, per_page = 15, search = '', estado = '') => {
+export const useMyClientes = (id: string, page = 1, per_page = 15, search = '', estado = '') => {
     const { data, isLoading, isError } = useQuery({
-        queryKey: ["myclientes", per_page, page, search, estado],
-        queryFn: () => getAllMyCliente(per_page, page, search, estado),
+        queryKey: ["myclientes", id, per_page, page, search, estado],
+        queryFn: () => getAllMyCliente(id, per_page, page, search, estado),
         staleTime: 1000 * 60 * 5,
         networkMode: 'always',
         //keepPreviousData: true, 
@@ -20,7 +19,7 @@ export const useMyClientes = (page = 1, per_page = 15, search = '', estado = '')
 
 export const useCreateMyCliente = () => {
     const mutation = useMutation({
-        mutationFn: (newClient: MyClienteType) => createMyCliente(newClient),
+        mutationFn: (formData: FormData) => createMyCliente(formData),
     });
 
     return mutation;
@@ -39,7 +38,7 @@ export const useAlterarEstadoMyCliente = () => {
 
 export const useUpdateMyCliente = () => {
     const mutation = useMutation({
-        mutationFn: ({id, ...data}: MyClienteType) => updateMyCliente(id,data),
+        mutationFn: (formData: FormData) => updateMyCliente(formData),
     });
 
     return mutation;

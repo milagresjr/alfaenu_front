@@ -53,8 +53,12 @@ export default function SignUpForm() {
         //Fazer login automático após registro
         handleLogin(data.email, data.password);
       },
-      onError: (error) => {
-        toast.error("Erro ao registrar usuário");
+      onError: (error: any) => {
+        if (error.response?.status === 422 && error.response?.data?.errors?.email) {
+          toast.error("Este email já está cadastrado.");
+        } else {
+          toast.error("Erro ao registrar usuário");
+        }
         console.error("Erro ao registrar usuário:", error);
       },
     });

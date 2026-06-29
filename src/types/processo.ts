@@ -22,14 +22,18 @@ export type TipoMinuta =
   | "termo_responsabilidade" 
   | "solicitar_agendamento" 
   | "solicitar_matricula"
+  | "print_voo"
+  | "reserva_hotel"
 
 export interface ProcessoData {
   cliente: MyClienteType | null
   tipoVisto: TipoVisto | null
   subtipo: Subtipo | null
   financiamento: Financiamento | null
-  financiamentoOrigem?: OrigemFinanciamento | null // Adicionado
-  minutaSelecionada?: TipoMinuta | null // Adicionado
+  financiamentoOrigem?: OrigemFinanciamento | null
+  financiador_id?: number | null
+  financiador_nome?: string | null
+  minutaSelecionada?: TipoMinuta | null
   createdAt?: Date
   status?: "rascunho" | "em_andamento" | "concluido"
   solicitacaoMatricula?: {

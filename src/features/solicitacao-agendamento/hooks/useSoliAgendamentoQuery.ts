@@ -1,0 +1,53 @@
+import { useMutation, useQuery } from '@tanstack/react-query'
+import {
+  createSolicitacaoAgendamento,
+  getSolicitacaoAgendamentoByClienteId,
+  getSolicitacaoAgendamentoById,
+  getMotivoRejeicaoAgendamento,
+  downloadAgendamentoPdf,
+  getDescricaoAtiva,
+} from '../api/soliAgendamentoApi'
+
+export const useCreateSolicitacaoAgendamento = () => {
+  return useMutation({
+    mutationFn: (formData: FormData) => createSolicitacaoAgendamento(formData),
+  })
+}
+
+export const useGetSolicitacaoAgendamentoByClienteId = (clienteId: string) => {
+  return useQuery({
+    queryKey: ['solicitacaoAgendamento', clienteId],
+    queryFn: () => getSolicitacaoAgendamentoByClienteId(clienteId),
+    enabled: !!clienteId,
+  })
+}
+
+export const useGetSolicitacaoAgendamentoById = (id: string) => {
+  return useQuery({
+    queryKey: ['solicitacaoAgendamento', id],
+    queryFn: () => getSolicitacaoAgendamentoById(id),
+    enabled: !!id,
+  })
+}
+
+export const useGetMotivoRejeicaoAgendamento = (id: string) => {
+  return useQuery({
+    queryKey: ['motivoRejeicaoAgendamento', id],
+    queryFn: () => getMotivoRejeicaoAgendamento(id),
+    enabled: !!id,
+  })
+}
+
+export const useDownloadAgendamentoPdf = () => {
+  return useMutation({
+    mutationFn: (id: string) => downloadAgendamentoPdf(id),
+  })
+}
+
+export const useGetDescricaoAtiva = () => {
+  return useQuery({
+    queryKey: ['descricaoAgendamentoAtiva'],
+    queryFn: () => getDescricaoAtiva(),
+    staleTime: 1000 * 60 * 10,
+  })
+}

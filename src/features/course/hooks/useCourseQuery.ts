@@ -2,10 +2,10 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { CourseType } from "../types";
 import { createCourse, getCourseById, getAllCourse, updateCourse, deleteCourse, alterarEstadoCourse } from "../api/courseApi";
 
-export const useCourses = (page = 1, per_page = 15, search = '', estado = '') => {
+export const useCourses = (page = 1, per_page = 15, search = '', estado = '', centro_id?: number) => {
     const { data, isLoading, isError } = useQuery({
-        queryKey: ["courses", per_page, page, search, estado],
-        queryFn: () => getAllCourse(per_page, page, search, estado),
+        queryKey: ["courses", per_page, page, search, estado, centro_id],
+        queryFn: () => getAllCourse(per_page, page, search, estado, centro_id),
         staleTime: 1000 * 60 * 5,
         networkMode: 'always',
     });

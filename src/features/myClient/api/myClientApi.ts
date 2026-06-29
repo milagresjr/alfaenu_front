@@ -15,9 +15,9 @@ export interface PaginatedCliente {
 const API_URL = '/my-clients'; // URL base para a API de Clientes
 
 // Obter todas as Clientes
-export const getAllMyCliente = async (per_page: number, page: number, search?: string, estado?: string): Promise<PaginatedCliente> => {
+export const getAllMyCliente = async ( id: number | string, per_page: number, page: number, search?: string, estado?: string): Promise<PaginatedCliente> => {
     try {
-        const response = await api.get<PaginatedCliente>(API_URL, {
+        const response = await api.get<PaginatedCliente>(`${API_URL}/user/${id}`, {
             params: { per_page, page, search , estado},
         });
 
@@ -41,9 +41,11 @@ export const getClienteById = async (id: number): Promise<MyClienteType> => {
 };
 
 // Criar um novo Cliente
-export const createMyCliente = async (Cliente: Omit<MyClienteType, 'id'>): Promise<MyClienteType> => {
+export const createMyCliente = async (formData: FormData): Promise<MyClienteType> => {
     try {
-        const response = await api.post<MyClienteType>(API_URL, Cliente);
+        const response = await api.post<MyClienteType>(API_URL, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
         return response.data;
     } catch (error) {
         console.error('Erro ao criar Cliente:', error);
@@ -62,12 +64,16 @@ export const alterarEstadoMyCliente = async (
 
 
 // Atualizar um Cliente existente
-export const updateMyCliente = async (id: number | undefined, Cliente: Omit<MyClienteType, 'id'>): Promise<MyClienteType> => {
+export const updateMyCliente = async (formData: FormData): Promise<MyClienteType> => {
     try {
-        const response = await api.put<MyClienteType>(`${API_URL}/${id}`, Cliente);
+        const id = formData.get('id') as string;
+        formData.delete('id');
+        const response = await api.put<MyClienteType>(`${API_URL}/${id}`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        });
         return response.data;
     } catch (error) {
-        console.error(`Erro ao atualizar a Cliente com ID ${id}:`, error);
+        console.error('Erro ao atualizar a Cliente:', error);
         throw error;
     }
 };

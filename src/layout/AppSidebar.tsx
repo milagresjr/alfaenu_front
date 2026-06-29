@@ -17,7 +17,11 @@ import {
   Briefcase,
   ArrowLeftRight,
   Settings,
-  TicketsPlaneIcon
+  TicketsPlaneIcon,
+  Wallet,
+  GraduationCap,
+  ClipboardCheck,
+  CalendarDays
 } from "lucide-react";
 import {
   Tooltip,
@@ -54,6 +58,7 @@ const allNavItems: NavItem[] = [
   },
   { icon: <Users />, name: "Clientes", path: "/process-organization/my-clients" },
   { icon: <Users />, name: "Clientes", path: "/client" },
+  { icon: <Wallet />, name: "Financiador", path: "/process-organization/financiador" },
   {
     icon: <FileText />,
     name: "Contratos",
@@ -73,7 +78,23 @@ const allNavItems: NavItem[] = [
     ],
   },
   { icon: <FileText />, name: "Termos", path: "/term" },
-  { icon: <FileText />, name: "Cursos", path: "/course" },
+  { icon: <ClipboardCheck />, name: "Solic. Matrícula", path: "/solicitacao-matricula" },
+  {
+    icon: <CalendarDays />,
+    name: "Solic. Agendamento",
+    subItems: [
+      { name: "Solicitações", path: "/solicitacao-agendamento" },
+      { name: "Descrições", path: "/solicitacao-agendamento/descricao" },
+    ],
+  },
+  {
+    name: "Formações",
+    icon: <GraduationCap />,
+    subItems: [
+      { name: "Cursos", path: "/course" },
+      { name: "Centros de Formações", path: "/centro-formacao" },
+    ],
+  },
   { icon: <Users />, name: "Utilizadores", path: "/user" },
   { icon: <Settings />, name: "Operações e Caixa", path: "/operation" }
 ];
@@ -114,6 +135,7 @@ const AppSidebar: React.FC = () => {
               "/process-organization-pt",
               "/process-organization-br",
               "/process-organization/my-clients",
+              "/process-organization/financiador",
             ];
 
             // Se o item principal é restrito, não mostra
@@ -171,7 +193,11 @@ const AppSidebar: React.FC = () => {
             "/user",            // Utilizadores
             "/operation",        // Operações e Caixa
             "/term",
-            "/course"
+            "/course",
+            "/centro-formacao",
+            "/solicitacao-matricula",
+            "/solicitacao-agendamento",
+            "/solicitacao-agendamento/descricao"
           ];
 
           // Se o item principal é restrito, não mostra
@@ -186,6 +212,10 @@ const AppSidebar: React.FC = () => {
               "/service",
               "/service-type",         // Categoria de serviços
               "/contract",
+              "/course",
+              "/centro-formacao",
+              "/solicitacao-agendamento",
+              "/solicitacao-agendamento/descricao",
             ];
 
             const filteredSubItems = item.subItems.filter(

@@ -4,7 +4,7 @@ import { Users, UserCheck, UserX, Edit, Trash, Lock, Unlock, Info, Search } from
 
 import { CourseType } from "@/features/course/types";
 import { TableMain } from "@/components/table";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { alert } from "@/lib/alert";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "react-toastify";
@@ -27,6 +27,8 @@ export default function CourseTable() {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(15);
+  const searchParams = useSearchParams();
+  const centroIdParam = searchParams.get("centro_id");
 
   const debouncedSearch = useDebounce(search, 500);
 
@@ -36,7 +38,7 @@ export default function CourseTable() {
     "todos"
   );
 
-  const { data: dataCourses, isLoading, isError } = useCourses(page, perPage, debouncedSearch, selected !== 'todos' ? selected : '');
+  const { data: dataCourses, isLoading, isError } = useCourses(page, perPage, debouncedSearch, selected !== 'todos' ? selected : '', centroIdParam ? Number(centroIdParam) : undefined);
 
   const router = useRouter();
 
@@ -54,9 +56,13 @@ export default function CourseTable() {
   const handleNewCurso = () => {
     setSelectedCourse(null);
     progress.start();
-    router.push(`/course/form`);
+    const url = centroIdParam ? `/course/form?centro_id=${centroIdParam}` : '/course/form';
+    router.push(url);
   };
 
+  const handleLimparFiltro = () => {
+    router.push('/course');
+  };
 
   const queryClient = useQueryClient();
 
@@ -162,10 +168,17 @@ export default function CourseTable() {
             className="pl-10"
           />
         </div>
-        <button onClick={handleNewCurso} className="bg-blue-600 px-4 py-2 rounded-md text-white flex gap-1">
-          <Plus />
-          Novo
-        </button>
+        <div className="flex items-center gap-2">
+          {centroIdParam && (
+            <button onClick={handleLimparFiltro} className="bg-gray-200 dark:bg-gray-700 px-3 py-2 rounded-md text-sm flex gap-1 items-center hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+              Limpar filtro
+            </button>
+          )}
+          <button onClick={handleNewCurso} className="bg-blue-600 px-4 py-2 rounded-md text-white flex gap-1">
+            <Plus />
+            Novo
+          </button>
+        </div>
       </div>
 
       <TableMain
@@ -186,6 +199,12 @@ export default function CourseTable() {
           {
             header: "Local",
             accessor: "local",
+          },
+          {
+            header: "Centro",
+            accessor: (curso: CourseType) => (
+              <span>{curso.centro?.nome || "-"}</span>
+            ),
           },
           // {
           //   header: "Estado",

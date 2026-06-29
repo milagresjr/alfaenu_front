@@ -6,11 +6,11 @@ import { StepProps } from "@/types/processo"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { 
-  ChevronLeft, 
-  CheckCircle, 
-  User, 
-  FileText, 
+import {
+  ChevronLeft,
+  CheckCircle,
+  User,
+  FileText,
   CreditCard,
   Send,
   Edit2,
@@ -20,7 +20,9 @@ import {
   Home,
   Mail,
   Clock,
-  Award
+  Award,
+  Building2,
+  Globe,
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import confetti from 'canvas-confetti'
@@ -56,6 +58,15 @@ export default function StepReview({ data, back }: StepReviewProps) {
   const formatFinanciamento = () => {
     if (!data.financiamento) return null
     return data.financiamento === "financiado" ? "Financiado" : "Auto Financiado"
+  }
+
+  const formatOrigem = () => {
+    if (!data.financiamentoOrigem) return null
+    return data.financiamentoOrigem === "nacional" ? "Nacional" : "Estrangeiro"
+  }
+
+  const formatOrigemIcon = () => {
+    return data.financiamentoOrigem === "nacional" ? Building2 : Globe
   }
 
   const handleSubmit = () => {
@@ -234,6 +245,25 @@ export default function StepReview({ data, back }: StepReviewProps) {
                     </Badge>
                   </div>
                 )}
+                {data.financiamentoOrigem && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Origem:</span>
+                    <Badge variant="outline" className="font-normal gap-1">
+                      {data.financiamentoOrigem === "nacional" ? (
+                        <Building2 className="h-3 w-3" />
+                      ) : (
+                        <Globe className="h-3 w-3" />
+                      )}
+                      {formatOrigem()}
+                    </Badge>
+                  </div>
+                )}
+                {data.financiador_nome && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Financiador:</span>
+                    <span className="font-medium">{data.financiador_nome}</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center pt-3 border-t">
                   <span className="text-muted-foreground">Status:</span>
                   <Badge className="bg-green-500/20 text-green-700 dark:text-green-400 border-green-500/30">
@@ -381,6 +411,45 @@ export default function StepReview({ data, back }: StepReviewProps) {
                 <Badge variant={data.financiamento === "financiado" ? "default" : "outline"}>
                   {formatFinanciamento()}
                 </Badge>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Origem do Financiamento */}
+        {data.financiamentoOrigem && (
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-lg font-semibold flex items-center gap-2">
+                <Globe className="h-5 w-5 text-primary" />
+                Origem do Financiamento
+              </CardTitle>
+              <Badge variant="secondary" className="gap-1">
+                <Edit2 className="h-3 w-3" />
+                Passo 5
+              </Badge>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Origem:</span>
+                  <Badge variant="outline" className="font-normal gap-1">
+                    {data.financiamentoOrigem === "nacional" ? (
+                      <Building2 className="h-3 w-3" />
+                    ) : (
+                      <Globe className="h-3 w-3" />
+                    )}
+                    {formatOrigem()}
+                  </Badge>
+                </div>
+                {data.financiador_nome && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">Financiador:</span>
+                    <span className="font-medium text-right">
+                      {data.financiador_nome}
+                    </span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

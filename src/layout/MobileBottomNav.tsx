@@ -12,6 +12,10 @@ import {
   ArrowLeftRight,
   Settings,
   TicketsPlaneIcon,
+  Wallet,
+  GraduationCap,
+  ClipboardCheck,
+  CalendarDays,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -34,6 +38,7 @@ const allNavItems = [
   },
   { name: "Clientes", icon: <Users size={22} />, path: "/process-organization/my-clients" },
   { name: "Clientes", icon: <Users size={22} />, path: "/client" },
+  { name: "Financiador", icon: <Wallet size={22} />, path: "/process-organization/financiador" },
   {
     name: "Contratos",
     icon: <FileText size={22} />,
@@ -53,7 +58,23 @@ const allNavItems = [
     ],
   },
   { name: "Termos", icon: <FileText size={22} />, path: "/term" },
-  { name: "Cursos", icon: <FileText size={22} />, path: "/course" },
+  { name: "Solic. Matrícula", icon: <ClipboardCheck size={22} />, path: "/solicitacao-matricula" },
+  {
+    name: "Solic. Agendamento",
+    icon: <CalendarDays size={22} />,
+    subItems: [
+      { name: "Solicitações", path: "/solicitacao-agendamento" },
+      { name: "Descrições", path: "/solicitacao-agendamento/descricao" },
+    ],
+  },
+  {
+    name: "Formações",
+    icon: <GraduationCap size={22} />,
+    subItems: [
+      { name: "Cursos", path: "/course" },
+      { name: "Centros de Formações", path: "/centro-formacao" },
+    ],
+  },
   { name: "Utilizadores", icon: <Users size={22} />, path: "/user" },
   { name: "Op. Caixas", icon: <Settings size={22} />, path: "/operation" },
 ];
@@ -80,6 +101,7 @@ export default function MobileBottomNav() {
               "/process-organization-pt",
               "/process-organization-br",
               "/process-organization/my-clients",
+              "/process-organization/financiador",
             ];
 
             // Se o item principal é restrito, não mostra
@@ -132,10 +154,12 @@ export default function MobileBottomNav() {
             "/user",            // Utilizadores
             "/operation",       // Operações e Caixa
             "/term",
-            "/course"
+            "/course",
+            "/centro-formacao",
+            "/solicitacao-matricula",
+            "/solicitacao-agendamento",
+            "/solicitacao-agendamento/descricao"
           ];
-
-          // Se o item principal é restrito, não mostra
           if (item.path && restrictedPaths.includes(item.path)) {
             return null;
           }
@@ -147,6 +171,10 @@ export default function MobileBottomNav() {
               "/service",
               "/service-type",         // Categoria de serviços
               "/contract",
+              "/course",
+              "/centro-formacao",
+              "/solicitacao-agendamento",
+              "/solicitacao-agendamento/descricao",
             ];
 
             const filteredSubItems = item.subItems.filter(

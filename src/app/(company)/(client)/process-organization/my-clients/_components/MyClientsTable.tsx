@@ -22,6 +22,7 @@ import { ClientDialogCreate } from "./ClientDialogCreate";
 import { useMyClienteStore } from "@/features/myClient/store/useMyClienteStore";
 import { useAlterarEstadoMyCliente, useDeleteMyCliente, useMyClientes } from "@/features/myClient/hooks/useMyClientsQuery";
 import { MyClienteType } from "@/features/myClient/types";
+import { useAuthStore } from "@/store/useAuthStore";
 
 
 export default function MyClientsTable() {
@@ -45,7 +46,9 @@ export default function MyClientsTable() {
     "todos"
   );
 
-  const { data, isLoading, isError } = useMyClientes(page, perPage, debouncedSearch, selected !== 'todos' ? selected : '');
+  const { user } = useAuthStore();
+
+  const { data, isLoading, isError } = useMyClientes(String(user?.id), page, perPage, debouncedSearch, selected !== 'todos' ? selected : '');
 
   const router = useRouter();
 

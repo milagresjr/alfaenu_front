@@ -1,0 +1,25 @@
+export type FinanciadorType = {
+  id?: number;
+  nome_completo: string;
+  nacionalidade?: string;
+  local_nascimento?: string;
+  data_nascimento?: string;
+  sexo?: string;
+  municipio?: string;
+  bairro?: string;
+  rua?: string;
+  num_apartamento?: string;
+  andar?: string;
+  localidade?: string;
+  cod_postal?: string;
+  telefone?: string;
+  tipo_documento?: string;
+  numero_documento?: string;
+  data_emissao_documento?: string;
+  local_emissao_documento?: string;
+  data_validade_documento?: string;
+  tipo_financiador?: string;
+  estado?: 'ativo' | 'inativo';
+  created_at?: string;
+  updated_at?: string;
+};

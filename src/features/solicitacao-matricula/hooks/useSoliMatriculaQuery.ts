@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { createSolicitacaoMatricula, getSolicitacaoMatriculaByClienteId, getSolicitacaoMatriculaById } from "../api/soliMatriculaApi";
+import { createSolicitacaoMatricula, getSolicitacaoMatriculaByClienteId, getSolicitacaoMatriculaById, baixarDeclaracao, getMotivoRejeicao } from "../api/soliMatriculaApi";
 
 
 
@@ -26,6 +26,24 @@ export const useGetSolicitacaoMatriculaById = (id: string) => {
         queryKey: ['solicitacaoMatricula', id],
         queryFn: () => getSolicitacaoMatriculaById(id),
         enabled: !!id, // A consulta só será executada se id for válido
+    });
+
+    return { data, isError, isLoading };
+};
+
+export const useBaixarDeclaracao = () => {
+    const mutation = useMutation({
+        mutationFn: (id: string) => baixarDeclaracao(id),
+    });
+
+    return mutation;
+};
+
+export const useGetMotivoRejeicao = (id: string) => {
+    const { data, isError, isLoading } = useQuery({
+        queryKey: ['motivoRejeicao', id],
+        queryFn: () => getMotivoRejeicao(id),
+        enabled: !!id,
     });
 
     return { data, isError, isLoading };

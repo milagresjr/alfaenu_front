@@ -10,19 +10,21 @@ import Button from "@/components/ui-old/button/Button";
 import Label from "@/components/form/Label";
 import Input from "@/components/form/input/InputField";
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQueryClient } from "@tanstack/react-query";
 import { useProgress } from "@bprogress/next";
 import { useCreateCourse, useUpdateCourse } from "../hooks/useCourseQuery";
 import TextArea from "@/components/form/input/TextArea";
 import { CourseType } from "../types";
+import { useCentrosFormacao } from "@/features/centroFormacao/hooks/useCentroFormacaoQuery";
 
 const schema = z.object({
     nome: z.string().min(1, { message: "Campo obrigatório" }),
     local: z.string().min(1, { message: "Campo obrigatório" }),
     preco: z.coerce.string(),
     duracao: z.string().min(1, { message: "Campo obrigatório" }),
-    descricao: z.string()
+    descricao: z.string(),
+    centro_id: z.string().min(1, "Selecione um centro de formação"),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -35,7 +37,8 @@ export function FormCourse() {
             local: "",
             preco: "0",
             duracao: "",
-            descricao: ""
+            descricao: "",
+            centro_id: "",
         }
     });
 
@@ -47,6 +50,13 @@ export function FormCourse() {
     const router = useRouter();
     const mode = selectedCourse ? "edit" : "create";
     const queryClient = useQueryClient();
+
+    const searchParams = useSearchParams();
+    const centroIdParam = searchParams.get("centro_id");
+
+    const redirectUrl = centroIdParam ? `/course?centro_id=${centroIdParam}` : "/course";
+
+    const { data: centrosData } = useCentrosFormacao(1, 999, "");
     
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [imageFile, setImageFile] = useState<File | null>(null);
@@ -62,6 +72,7 @@ export function FormCourse() {
     
     // Se descricao pode ser vazia, ainda assim enviar
     formData.append('descricao', data.descricao || '');
+    formData.append('centro_id', data.centro_id);
     
     // Adiciona a imagem se existir - use o mesmo nome do campo do Postman
     if (imageFile) {
@@ -79,7 +90,7 @@ export function FormCourse() {
                 toast.success("Curso criado com sucesso");
                 setImagePreview(null);
                 setImageFile(null);
-                route.push("/course");
+                route.push(redirectUrl);
             },
             onError: (error: any) => {
                 console.error('Erro completo:', error);
@@ -152,6 +163,7 @@ export function FormCourse() {
             setValue('preco', String(selectedCourse.preco));
             setValue('duracao', selectedCourse.duracao);
             setValue('descricao', selectedCourse.descricao);
+            setValue('centro_id', String(selectedCourse.centro_id ?? ''));
             // Se houver imagem no curso, carregue aqui
             if (selectedCourse.imagem) {
                 if (typeof selectedCourse.imagem === 'string') {
@@ -164,10 +176,14 @@ export function FormCourse() {
             }
         } else {
             reset();
+            // Se veio da listagem com centro_id, pré-seleciona
+            if (centroIdParam) {
+                setValue('centro_id', centroIdParam);
+            }
             setImagePreview(null);
             setImageFile(null);
         }
-    }, [selectedCourse, setValue, reset]);
+    }, [selectedCourse, setValue, reset, centroIdParam]);
 
     return (
         <div className="rounded-xl border border-gray-200 bg-white dark:border-white/5 dark:bg-white/3 p-4">
@@ -197,6 +213,24 @@ export function FormCourse() {
                         <Label>Local</Label>
                         <Input type="text" placeholder="Local" name="local" register={register} error={!!errors.local} />
                         {errors.local && <p className="mt-1.5 text-xs text-error-500">{errors.local.message}</p>}
+                    </div>
+
+                    <div className="col-span-6 md:col-span-3">
+                        <Label>Centro de Formação <span className="text-error-500">*</span></Label>
+                        <select
+                            {...register("centro_id")}
+                            className="h-11 w-full rounded-lg border border-gray-300 dark:border-white/10 bg-gray-900 dark:bg-gray-800 px-4 py-2.5 text-sm text-gray-800 dark:text-white/90 shadow-theme-xs focus:border-brand-300 focus:ring-brand-500/20 focus:outline-hidden appearance-none"
+                        >
+                            <option value="">Selecione um centro</option>
+                            {centrosData?.data?.map((centro) => (
+                                <option key={centro.id} value={centro.id}>
+                                    {centro.nome}
+                                </option>
+                            ))}
+                        </select>
+                        {errors.centro_id && (
+                            <p className="mt-1.5 text-xs text-error-500">{errors.centro_id.message}</p>
+                        )}
                     </div>
 
                     <div className="col-span-6 md:col-span-3">

@@ -1,5 +1,14 @@
+import type { Metadata } from 'next'
 // import { Outfit } from 'next/font/google';
 import localFont from 'next/font/local';
+
+export const metadata: Metadata = {
+  title: {
+    default: 'Alfaenu',
+    template: '%s | Alfaenu',
+  },
+  description: 'Alfaenu - Agência de Viagens e Serviços',
+}
 import './globals.css';
 import './app.css';
 import './react-quill.css';

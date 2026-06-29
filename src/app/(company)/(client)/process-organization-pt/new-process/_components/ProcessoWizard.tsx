@@ -17,11 +17,14 @@ import { Save, ArrowLeft, ArrowRight } from "lucide-react"
 import { toast } from "react-toastify"
 import { useSearchParams } from "next/navigation"
 import { api } from "@/services/api"
+import { useAuthStore } from "@/store/useAuthStore"
 
 export default function ProcessoWizard() {
 
   const searchParams = useSearchParams();
   const clienteId = searchParams.get("clienteId");
+
+  const { user } = useAuthStore();
 
   const [step, setStep] = useState(1)
   const [data, setData] = useState<ProcessoData>({
@@ -30,6 +33,8 @@ export default function ProcessoWizard() {
     subtipo: null,
     financiamento: null,
     financiamentoOrigem: null,
+    financiador_id: null,
+    financiador_nome: null,
     minutaSelecionada: null,
     status: "rascunho",
   })
@@ -100,6 +105,8 @@ export default function ProcessoWizard() {
           subtipo: processoData.subtipo,
           financiamento: processoData.financiamento,
           financiamentoOrigem: processoData.financiamento_origem,
+          financiador_id: processoData.financiador_id ?? null,
+          financiador_nome: processoData.financiador_nome ?? null,
           minutaSelecionada: processoData.minutaSelecionada,
           status: processoData.status,
         });
@@ -137,13 +144,30 @@ export default function ProcessoWizard() {
     const saveProgress = async () => {
       if (data.cliente && data.cliente.id) {
         try {
-          await api.post('/processo/progress', {
+          const payload = {
             cliente_id: data.cliente.id,
+            utilizador_id: user?.id,
             current_step: step,
             tipo_visto: data.tipoVisto,
             subtipo: data.subtipo,
             financiamento: data.financiamento,
             financiamento_origem: data.financiamentoOrigem,
+            financiador_id: data.financiador_id ? Number(data.financiador_id) : null,
+            financiador_nome: data.financiador_nome,
+            minuta_selecionada: data.minutaSelecionada,
+            status: data.status,
+          };
+          console.log("Meu payload: ",payload);
+          await api.post('/processo/progress', {
+            cliente_id: data.cliente.id,
+            utilizador_id: user?.id,
+            current_step: step,
+            tipo_visto: data.tipoVisto,
+            subtipo: data.subtipo,
+            financiamento: data.financiamento,
+            financiamento_origem: data.financiamentoOrigem,
+            financiador_id: data.financiador_id ? Number(data.financiador_id) : null, 
+            financiador_nome: data.financiador_nome,
             minuta_selecionada: data.minutaSelecionada,
             status: data.status,
           });

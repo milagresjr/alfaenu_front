@@ -1,11 +1,27 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ProcessoProgressType } from "../types";
-import { deleteProcessoProgress, getProcessoProgress, getProcessoProgressByClienteId, resetProgress, saveProcessoProgress, updateDataProcessoProgress } from "../api/processProgressApi";
+import { deleteProcessoProgress, getProcessoProgress, getProcessoProgressByClienteId, getProcessoProgressByUser, resetProgress, saveProcessoProgress, updateDataProcessoProgress } from "../api/processProgressApi";
 
 export const useProcessoProgress = () => {
     const { data, isLoading, isError } = useQuery({
         queryKey: ["processo-progress"],
         queryFn: () => getProcessoProgress(),
+        staleTime: 1000 * 60 * 5,
+        networkMode: 'always',
+        //keepPreviousData: true, 
+    });
+
+    return {
+        data,
+        isLoading,
+        isError,
+    };
+};
+
+export const useProcessoProgressByUser = (id: number | string) => {
+    const { data, isLoading, isError } = useQuery({
+        queryKey: ["processo-progress", id],
+        queryFn: () => getProcessoProgressByUser(id),
         staleTime: 1000 * 60 * 5,
         networkMode: 'always',
         //keepPreviousData: true, 

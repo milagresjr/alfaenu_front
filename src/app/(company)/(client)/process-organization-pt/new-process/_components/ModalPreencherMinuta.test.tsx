@@ -1,21 +1,28 @@
-// __tests__/components/ModalPreencherMinuta.test.tsx
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import { toast } from 'react-toastify'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { api } from '@/services/api'
 import { ModalPreencherMinuta } from './ModalPreencherMinuta'
 
-// Mock do URL
 global.URL.createObjectURL = vi.fn()
 global.URL.revokeObjectURL = vi.fn()
+
+const mockHtmlContent = '<!DOCTYPE html><html><body><p>Minuta gerada por IA</p></body></html>'
+
+function preencherFormulario() {
+  fireEvent.change(screen.getByLabelText('Duração do Estágio *'), { target: { value: '3 meses' } })
+  fireEvent.change(screen.getByLabelText('Local de Hospedagem *'), { target: { value: 'Rua das Flores, nº 45, Lisboa' } })
+  fireEvent.change(screen.getByLabelText('Data Prevista de Estadia *'), { target: { value: '2024-06-01' } })
+  fireEvent.change(screen.getByLabelText('Início da Formação Profissional *'), { target: { value: '2024-06-15' } })
+  fireEvent.change(screen.getByLabelText('Término da Formação Profissional *'), { target: { value: '2024-12-15' } })
+}
 
 describe('ModalPreencherMinuta', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
     vi.spyOn(api, 'post').mockResolvedValue({
-      headers: { 'content-type': 'application/pdf' },
-      data: new Blob(['PDF content'], { type: 'application/pdf' }),
+      data: { conteudo_html: mockHtmlContent },
     } as any)
     global.URL.createObjectURL = vi.fn().mockReturnValue('blob:mock-url')
     global.URL.revokeObjectURL = vi.fn()
@@ -25,9 +32,7 @@ describe('ModalPreencherMinuta', () => {
     vi.restoreAllMocks()
   })
 
-
-  // Teste 1: Renderiza o modal quando open=true
-  it('renderiza o modal corretamente quando aberto', () => {
+  it('renderiza o formulário corretamente quando aberto', () => {
     render(
       <ModalPreencherMinuta
         open={true}
@@ -36,14 +41,14 @@ describe('ModalPreencherMinuta', () => {
     )
 
     expect(screen.getByText('Preencher Minuta')).toBeInTheDocument()
-    expect(screen.getByText('Dados do Requerente')).toBeInTheDocument()
-    expect(screen.getByText('Dados da Formação')).toBeInTheDocument()
-    expect(screen.getByLabelText('Nome Completo *')).toBeInTheDocument()
-    expect(screen.getByLabelText('Naturalidade *')).toBeInTheDocument()
+    expect(screen.getByLabelText('Data Prevista de Estadia *')).toBeInTheDocument()
+    expect(screen.getByLabelText('Início da Formação Profissional *')).toBeInTheDocument()
+    expect(screen.getByLabelText('Término da Formação Profissional *')).toBeInTheDocument()
+    expect(screen.getByLabelText('Duração do Estágio *')).toBeInTheDocument()
+    expect(screen.getByLabelText('Local de Hospedagem *')).toBeInTheDocument()
   })
 
-  // Teste 2: Não renderiza quando open=false
-  it('não renderiza o modal quando fechado', () => {
+  it('não renderiza quando fechado', () => {
     render(
       <ModalPreencherMinuta
         open={false}
@@ -54,28 +59,6 @@ describe('ModalPreencherMinuta', () => {
     expect(screen.queryByText('Preencher Minuta')).not.toBeInTheDocument()
   })
 
-  // Teste 3: Preenche campos iniciais quando fornecidos
-  it('preenche os campos com initialValues quando fornecidos', () => {
-    const initialValues = {
-      nome_completo: 'João Silva',
-      naturalidade: 'São Paulo',
-      nacionalidade: 'Brasileira',
-    }
-
-    render(
-      <ModalPreencherMinuta
-        open={true}
-        onOpenChange={vi.fn()}
-        initialValues={initialValues}
-      />
-    )
-
-    expect(screen.getByLabelText('Nome Completo *')).toHaveValue('João Silva')
-    expect(screen.getByLabelText('Naturalidade *')).toHaveValue('São Paulo')
-    expect(screen.getByLabelText('Nacionalidade *')).toHaveValue('Brasileira')
-  })
-
-  // Teste 4: Valida campos obrigatórios antes de enviar
   it('exibe aviso quando campos obrigatórios estão vazios', async () => {
     render(
       <ModalPreencherMinuta
@@ -91,33 +74,7 @@ describe('ModalPreencherMinuta', () => {
     expect(api.post).not.toHaveBeenCalled()
   })
 
-  // Teste 5: Envia requisição com sucesso
-  it('envia requisição com dados válidos e baixa o PDF', async () => {
-    const mockBlob = new Blob(['PDF content'], { type: 'application/pdf' })
-    const mockUrl = 'blob:http://localhost:3000/123'
-
-    const apiPostMock = vi.spyOn(api, 'post').mockResolvedValue({
-      headers: { 'content-type': 'application/pdf' },
-      data: mockBlob,
-    } as any)
-
-    // Mock do URL.createObjectURL
-    global.URL.createObjectURL = vi.fn().mockReturnValue(mockUrl)
-    global.URL.revokeObjectURL = vi.fn()
-
-    // Mock do link download
-    const mockLink = document.createElement('a') as HTMLAnchorElement
-    mockLink.click = vi.fn()
-
-    const originalCreateElement = document.createElement.bind(document)
-    const createElementSpy = vi.spyOn(document, 'createElement')
-    createElementSpy.mockImplementation((tagName: string) => {
-      if (tagName === 'a') {
-        return mockLink as any
-      }
-      return originalCreateElement(tagName)
-    })
-
+  it('chama gerar-pdf e mostra iframe no preview', async () => {
     render(
       <ModalPreencherMinuta
         open={true}
@@ -125,25 +82,8 @@ describe('ModalPreencherMinuta', () => {
       />
     )
 
-    // Preenche campos obrigatórios
-    fireEvent.change(screen.getByLabelText('Nome Completo *'), { target: { value: 'João Silva Santos' } })
-    fireEvent.change(screen.getByLabelText('Naturalidade *'), { target: { value: 'São Paulo/SP' } })
-    fireEvent.change(screen.getByLabelText('Nacionalidade *'), { target: { value: 'Brasileira' } })
-    fireEvent.change(screen.getByLabelText('Número do Passaporte *'), { target: { value: 'AB123456' } })
-    fireEvent.change(screen.getByLabelText('Escola Profissional *'), { target: { value: 'Senac SP' } })
-    fireEvent.change(screen.getByLabelText('Curso *'), { target: { value: 'Desenvolvimento Web' } })
-    fireEvent.change(screen.getByLabelText('Duração do Curso *'), { target: { value: '6 meses' } })
-    fireEvent.change(screen.getByLabelText('Duração do Estágio *'), { target: { value: '3 meses' } })
-    fireEvent.change(screen.getByLabelText('Local de Hospedagem *'), { target: { value: 'Hotel Central' } })
+    preencherFormulario()
 
-    // Preenche campos de data
-    fireEvent.change(screen.getByLabelText('Data de Emissão *'), { target: { value: '2024-01-01' } })
-    fireEvent.change(screen.getByLabelText('Data de Validade *'), { target: { value: '2029-01-01' } })
-    fireEvent.change(screen.getByLabelText('Data Prevista de Estadia *'), { target: { value: '2024-06-01' } })
-    fireEvent.change(screen.getByLabelText('Início da Formação Profissional *'), { target: { value: '2024-06-15' } })
-    fireEvent.change(screen.getByLabelText('Término da Formação Profissional *'), { target: { value: '2024-12-15' } })
-
-    // Envia formulário
     const gerarButton = screen.getByRole('button', { name: /gerar minuta/i })
     fireEvent.click(gerarButton)
 
@@ -151,28 +91,66 @@ describe('ModalPreencherMinuta', () => {
       expect(api.post).toHaveBeenCalledWith(
         'minuta1/gerar-pdf',
         expect.objectContaining({
-          nome_completo: 'João Silva Santos',
-          naturalidade: 'São Paulo/SP',
-          nacionalidade: 'Brasileira',
-          num_passaporte: 'AB123456',
-          escola_profissional: 'Senac SP',
-          curso: 'Desenvolvimento Web',
-          duracao_curso: '6 meses',
           duracao_estagio: '3 meses',
-          local_hospedagem: 'Hotel Central',
+          local_hospedagem: 'Rua das Flores, nº 45, Lisboa',
+          data_prevista_estadia: '2024-06-01',
+          inicio_formacao_profissional: '2024-06-15',
+          termino_formacao_profissional: '2024-12-15',
         }),
-        { responseType: 'blob' }
       )
 
-      expect(toast.success).toHaveBeenCalledWith('Minuta gerada com sucesso!')
+      expect(screen.getByText('Pré-visualizar Minuta')).toBeInTheDocument()
+    })
+
+    await waitFor(() => {
+      const iframe = document.querySelector('iframe')
+      expect(iframe).toBeInTheDocument()
+      expect(iframe).toHaveAttribute('srcdoc', mockHtmlContent)
     })
   })
 
-  // Teste 6: Trata erro na requisição
-  it('exibe erro quando a requisição falha', async () => {
-    vi.spyOn(api, 'post').mockResolvedValue({
-      headers: { 'content-type': 'application/json' },
-      data: new Blob(['{"message":"Erro interno"}'], { type: 'application/json' }),
+  it('mostra botoes Cancelar, Regenerar e Aprovar no preview, e Baixar apos aprovar', async () => {
+    render(
+      <ModalPreencherMinuta
+        open={true}
+        onOpenChange={vi.fn()}
+      />
+    )
+
+    preencherFormulario()
+
+    const gerarButton = screen.getByRole('button', { name: /gerar minuta/i })
+    fireEvent.click(gerarButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Pré-visualizar Minuta')).toBeInTheDocument()
+    })
+
+    await waitFor(() => {
+      expect(document.querySelector('iframe')).toBeInTheDocument()
+    })
+
+    expect(screen.getByRole('button', { name: /cancelar/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /regenerar/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /aprovar/i })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /baixar/i })).not.toBeInTheDocument()
+
+    const aprovarButton = screen.getByRole('button', { name: /aprovar/i })
+    fireEvent.click(aprovarButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Minuta Aprovada')).toBeInTheDocument()
+    })
+
+    expect(screen.queryByRole('button', { name: /regenerar/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /aprovar/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /baixar/i })).toBeInTheDocument()
+  })
+
+  it('regenerar chama gerar-pdf novamente e atualiza o iframe', async () => {
+    const apiPostMock = vi.spyOn(api, 'post')
+    apiPostMock.mockResolvedValue({
+      data: { conteudo_html: '<html><body><p>Segunda versao</p></body></html>' },
     } as any)
 
     render(
@@ -182,33 +160,107 @@ describe('ModalPreencherMinuta', () => {
       />
     )
 
-    // Preenche campos obrigatórios para chegar na requisição
-    fireEvent.change(screen.getByLabelText('Nome Completo *'), { target: { value: 'João Silva Santos' } })
-    fireEvent.change(screen.getByLabelText('Naturalidade *'), { target: { value: 'São Paulo/SP' } })
-    fireEvent.change(screen.getByLabelText('Nacionalidade *'), { target: { value: 'Brasileira' } })
-    fireEvent.change(screen.getByLabelText('Número do Passaporte *'), { target: { value: 'AB123456' } })
-    fireEvent.change(screen.getByLabelText('Escola Profissional *'), { target: { value: 'Senac SP' } })
-    fireEvent.change(screen.getByLabelText('Curso *'), { target: { value: 'Desenvolvimento Web' } })
-    fireEvent.change(screen.getByLabelText('Duração do Curso *'), { target: { value: '6 meses' } })
-    fireEvent.change(screen.getByLabelText('Duração do Estágio *'), { target: { value: '3 meses' } })
-    fireEvent.change(screen.getByLabelText('Local de Hospedagem *'), { target: { value: 'Hotel Central' } })
-    fireEvent.change(screen.getByLabelText('Data de Emissão *'), { target: { value: '2024-01-01' } })
-    fireEvent.change(screen.getByLabelText('Data de Validade *'), { target: { value: '2029-01-01' } })
-    fireEvent.change(screen.getByLabelText('Data Prevista de Estadia *'), { target: { value: '2024-06-01' } })
-    fireEvent.change(screen.getByLabelText('Início da Formação Profissional *'), { target: { value: '2024-06-15' } })
-    fireEvent.change(screen.getByLabelText('Término da Formação Profissional *'), { target: { value: '2024-12-15' } })
+    preencherFormulario()
 
     const gerarButton = screen.getByRole('button', { name: /gerar minuta/i })
     fireEvent.click(gerarButton)
 
     await waitFor(() => {
-      expect(api.post).toHaveBeenCalled()
-      expect(toast.error).toHaveBeenCalledWith('Erro ao gerar minuta. Tente novamente.')
+      expect(screen.getByText('Pré-visualizar Minuta')).toBeInTheDocument()
+    })
+
+    await waitFor(() => {
+      expect(document.querySelector('iframe')).toBeInTheDocument()
+    })
+
+    const regenerarButton = screen.getByRole('button', { name: /regenerar/i })
+    fireEvent.click(regenerarButton)
+
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledTimes(2)
+    })
+
+    await waitFor(() => {
+      const iframe = document.querySelector('iframe')
+      expect(iframe).toBeInTheDocument()
+      expect(iframe).toHaveAttribute('srcdoc', '<html><body><p>Segunda versao</p></body></html>')
     })
   })
 
-  // Teste 7: Botão de cancelar fecha o modal
-  it('chama onOpenChange com false ao clicar em cancelar', () => {
+  it('chama baixar-pdf ao clicar em Baixar apos aprovacao', async () => {
+    const mockBlob = new Blob(['PDF content'], { type: 'application/pdf' })
+
+    const apiPostMock = vi.spyOn(api, 'post')
+    apiPostMock.mockResolvedValueOnce({
+      data: { conteudo_html: mockHtmlContent },
+    } as any)
+    apiPostMock.mockResolvedValueOnce({
+      data: mockBlob,
+    } as any)
+
+    render(
+      <ModalPreencherMinuta
+        open={true}
+        onOpenChange={vi.fn()}
+      />
+    )
+
+    preencherFormulario()
+
+    const gerarButton = screen.getByRole('button', { name: /gerar minuta/i })
+    fireEvent.click(gerarButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Pré-visualizar Minuta')).toBeInTheDocument()
+    })
+
+    await waitFor(() => {
+      expect(document.querySelector('iframe')).toBeInTheDocument()
+    })
+
+    const aprovarButton = screen.getByRole('button', { name: /aprovar/i })
+    fireEvent.click(aprovarButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Minuta Aprovada')).toBeInTheDocument()
+    })
+
+    const baixarButton = screen.getByRole('button', { name: /baixar/i })
+    fireEvent.click(baixarButton)
+
+    await waitFor(() => {
+      expect(api.post).toHaveBeenCalledWith(
+        'minuta1/baixar-pdf',
+        { cliente_id: undefined, conteudo_html: mockHtmlContent },
+        { responseType: 'blob' }
+      )
+      expect(toast.success).toHaveBeenCalledWith('Minuta gerada com sucesso!')
+    })
+  })
+
+  it('exibe erro quando gerar-pdf falha', async () => {
+    vi.spyOn(api, 'post').mockRejectedValue({
+      response: { data: { message: 'Cliente não possui solicitação de matrícula aprovada.' } },
+    })
+
+    render(
+      <ModalPreencherMinuta
+        open={true}
+        onOpenChange={vi.fn()}
+      />
+    )
+
+    preencherFormulario()
+
+    const gerarButton = screen.getByRole('button', { name: /gerar minuta/i })
+    fireEvent.click(gerarButton)
+
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith('Cliente não possui solicitação de matrícula aprovada.')
+    })
+  })
+
+  it('chama onOpenChange com false ao clicar em cancelar no form', () => {
     const onOpenChangeMock = vi.fn()
 
     render(
