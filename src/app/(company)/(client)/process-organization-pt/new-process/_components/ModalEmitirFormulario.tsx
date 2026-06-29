@@ -172,8 +172,8 @@ export function ModalEmitirFormulario({
         despesas_garante_outro_especificar: formData.despesas_garante_outro_especificar,
       }
 
-      console.log(payload);
-      return;
+      // console.log(payload);
+      // return;
 
       const response = await api.post('formulario/gerar-pdf', payload, {
         responseType: 'blob'
