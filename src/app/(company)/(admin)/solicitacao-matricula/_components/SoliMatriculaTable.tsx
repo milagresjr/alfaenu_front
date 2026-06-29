@@ -93,7 +93,7 @@ export default function SoliMatriculaTable() {
       onSuccess: () => {
         toast.success('Solicitação aprovada com sucesso!');
         setOpenAprovar(false);
-        setSelectedSolicitacao(null);
+        setOpenEnviarDeclaracao(true);
         refetch();
       },
       onError: (error: any) => {

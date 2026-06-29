@@ -174,9 +174,9 @@ export function StepSolicitarMatricula({
   }
 
   const processFiles = (files: File[]) => {
-    // Verificar se já existem documentos e se vai ultrapassar 3
-    if (documentos.length + files.length > 3) {
-      setErroDocumentos("Máximo de 3 documentos permitidos")
+    // Verificar se já existem documentos e se vai ultrapassar 2
+    if (documentos.length + files.length > 2) {
+      setErroDocumentos("Máximo de 2 documentos permitidos")
       return
     }
 
@@ -214,8 +214,8 @@ export function StepSolicitarMatricula({
 
   const onSubmit = async (data: MatriculaFormData) => {
     // Validar quantidade de documentos
-    if (documentos.length !== 3) {
-      setErroDocumentos("É obrigatório anexar exatamente 3 documentos")
+    if (documentos.length !== 2) {
+      setErroDocumentos("É obrigatório anexar exatamente 2 documentos")
       return
     }
 
@@ -276,8 +276,8 @@ export function StepSolicitarMatricula({
     toast.error("Erro de validação do formulário. Verifique os campos.")
   }
 
-  // Verificar se o formulário é válido (3 documentos anexados)
-  const isFormValid = isValid && documentos.length === 3
+  // Verificar se o formulário é válido (2 documentos anexados)
+  const isFormValid = isValid && documentos.length === 2
 
   return (
     <motion.div
@@ -370,13 +370,13 @@ export function StepSolicitarMatricula({
                   <Upload className="h-5 w-5 text-primary" />
                   <h3 className="text-lg font-semibold">Documentos Anexados</h3>
                 </div>
-                <div className={`text-sm font-medium ${documentos.length === 3 ? 'text-green-600' : 'text-muted-foreground'}`}>
-                  {documentos.length}/3 arquivos
+                <div className={`text-sm font-medium ${documentos.length === 2 ? 'text-green-600' : 'text-muted-foreground'}`}>
+                  {documentos.length}/2 arquivos
                 </div>
               </div>
 
               {/* Área de Upload */}
-              {documentos.length < 3 && (
+              {documentos.length < 2 && (
                 <div
                   className={cn(
                     "border-2 border-dashed rounded-lg p-8 text-center transition-colors",
@@ -407,7 +407,7 @@ export function StepSolicitarMatricula({
                       <span className="text-muted-foreground"> ou arraste e solte</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      PDF, JPG ou PNG (máx. 1MB cada) • Faltam {3 - documentos.length} arquivo(s)
+                      PDF, JPG ou PNG (máx. 1MB cada) • Faltam {2 - documentos.length} arquivo(s)
                     </p>
                   </label>
                 </div>
@@ -471,10 +471,10 @@ export function StepSolicitarMatricula({
 
               <div className="bg-amber-50 dark:bg-amber-950/20 border border-amber-200 rounded-lg p-3">
                 <p className="text-sm text-amber-600 dark:text-amber-400">
-                  ⚠️ Documentos obrigatórios: Passaporte, Certificado de Habilitações e Comprovante de Pagamento
+                  ⚠️ Documentos obrigatórios: Certificado de Habilitações e Comprovante de Pagamento
                 </p>
                 <p className="text-xs text-amber-500 dark:text-amber-500 mt-1">
-                  Formatos aceitos: PDF, JPG, PNG • Tamanho máximo: 1MB por arquivo • Exatamente 3 documentos
+                  Formatos aceitos: PDF, JPG, PNG • Tamanho máximo: 1MB por arquivo • Exatamente 2 documentos
                 </p>
               </div>
             </CardContent>
@@ -504,7 +504,7 @@ export function StepSolicitarMatricula({
               ) : (
                 <>
                   <CheckCircle className="h-4 w-4" />
-                  Enviar Solicitação ({documentos.length}/3)
+                  Enviar Solicitação ({documentos.length}/2)
                 </>
               )}
             </Button>

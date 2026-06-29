@@ -102,7 +102,7 @@ export default function SoliAgendamentoTable() {
       onSuccess: () => {
         toast.success('Solicitação aprovada com sucesso!')
         setOpenAprovar(false)
-        setSelectedSolicitacao(null)
+        setOpenEnviar(true)
         refetch()
       },
       onError: (error: any) => {

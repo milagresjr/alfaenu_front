@@ -155,7 +155,7 @@ export function EnviarDeclaracaoForm({
 
           <div className="space-y-2">
             <label className="text-sm font-medium">
-              Data de Início <span className="text-red-500">*</span>
+              Data de Início do Curso <span className="text-red-500">*</span>
             </label>
             <Input
               type="date"

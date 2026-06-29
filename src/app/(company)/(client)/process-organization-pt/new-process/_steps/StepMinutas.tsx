@@ -735,10 +735,10 @@ export default function StepMinutas({
     return (
       <StepSolicitarMatricula
         onBack={() => setShowMatriculaPage(false)}
-        onSuccess={(data) => {
+        onSuccess={async (data) => {
           setData((prev) => ({ ...prev, solicitacaoMatricula: data }))
-          // Atualiza o status após sucesso
-          updateDocumentStatus('solicitar_matricula');
+          await updateDocumentStatus('solicitar_matricula');
+          refetchStatus();
           setShowMatriculaPage(false);
         }}
         cliente={data?.cliente}

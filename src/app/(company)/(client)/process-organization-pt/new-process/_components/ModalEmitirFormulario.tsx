@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState, useRef } from "react"
 import {
   Dialog,
   DialogContent,
@@ -57,7 +57,7 @@ const initialFormValues: FormularioFormValues = {
   num_autorizacao_residencia: "",
   validade_autorizacao_residencia: undefined,
   despesas_proprio: false,
-  despesas_garante: false,
+  despesas_garante: true,
   despesas_dinheiro: false,
   despesas_cheques: false,
   despesas_cartoes: false,
@@ -101,12 +101,17 @@ export function ModalEmitirFormulario({
   )
   const [errors, setErrors] = useState<Partial<Record<keyof FormularioFormValues, string>>>({})
 
+  const initialValuesRef = useRef(initialValues)
+  const clienteRef = useRef(cliente)
+  initialValuesRef.current = initialValues
+  clienteRef.current = cliente
+
   useEffect(() => {
     if (open) {
-      setFormData(getInitialValues(initialValues, cliente))
+      setFormData(getInitialValues(initialValuesRef.current, clienteRef.current))
       setErrors({})
     }
-  }, [open, initialValues, cliente])
+  }, [open])
 
   const handleTextChange = (field: keyof FormularioFormValues, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -358,24 +363,22 @@ export function ModalEmitirFormulario({
                 />
                 <span className="text-sm font-medium">Próprio</span>
               </label>
-              <label className="flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="responsavel_despesas"
-                  checked={formData.despesas_garante}
-                  onChange={() => {
-                    setFormData((prev) => ({
-                      ...prev,
-  data_prevista_chegada: undefined,
-  data_prevista_saida: undefined,
-  despesas_proprio: false,
-                      despesas_garante: true,
-                    }))
-                  }}
-                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
-                />
-                <span className="text-sm font-medium">Garante</span>
-              </label>
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="responsavel_despesas"
+                    checked={formData.despesas_garante}
+                    onChange={() => {
+                      setFormData((prev) => ({
+                        ...prev,
+                        despesas_proprio: false,
+                        despesas_garante: true,
+                      }))
+                    }}
+                    className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                  />
+                  <span className="text-sm font-medium">Garante</span>
+                </label>
             </div>
 
             {formData.despesas_proprio && (
