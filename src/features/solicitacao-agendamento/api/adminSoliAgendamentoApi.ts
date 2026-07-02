@@ -90,3 +90,13 @@ export const deleteDescricao = async (id: string): Promise<void> => {
     throw error
   }
 }
+
+export const toggleDescricaoActive = async (id: string): Promise<SolicitacaoAgendamentoDescricaoType> => {
+  try {
+    const response = await api.patch<{ data: SolicitacaoAgendamentoDescricaoType }>(`/solicitacao-agendamento-descricao/${id}/toggle-active`)
+    return response.data.data
+  } catch (error) {
+    console.error('Erro ao alternar status da descrição:', error)
+    throw error
+  }
+}

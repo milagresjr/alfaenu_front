@@ -21,7 +21,9 @@ import {
   Wallet,
   GraduationCap,
   ClipboardCheck,
-  CalendarDays
+  CalendarDays,
+  Plane,
+  Building2
 } from "lucide-react";
 import {
   Tooltip,
@@ -85,6 +87,22 @@ const allNavItems: NavItem[] = [
     subItems: [
       { name: "Solicitações", path: "/solicitacao-agendamento" },
       { name: "Descrições", path: "/solicitacao-agendamento/descricao" },
+    ],
+  },
+  {
+    icon: <Plane />,
+    name: "Solic. Print Voo",
+    subItems: [
+      { name: "Solicitações", path: "/solicitacao-print-voo" },
+      { name: "Descrições", path: "/solicitacao-print-voo/descricao" },
+    ],
+  },
+  {
+    icon: <Building2 />,
+    name: "Solic. Reserva Hotel",
+    subItems: [
+      { name: "Solicitações", path: "/solicitacao-reserva-hotel" },
+      { name: "Descrições", path: "/solicitacao-reserva-hotel/descricao" },
     ],
   },
   {
@@ -197,7 +215,11 @@ const AppSidebar: React.FC = () => {
             "/centro-formacao",
             "/solicitacao-matricula",
             "/solicitacao-agendamento",
-            "/solicitacao-agendamento/descricao"
+            "/solicitacao-agendamento/descricao",
+            "/solicitacao-print-voo",
+            "/solicitacao-print-voo/descricao",
+            "/solicitacao-reserva-hotel",
+            "/solicitacao-reserva-hotel/descricao"
           ];
 
           // Se o item principal é restrito, não mostra
@@ -216,6 +238,10 @@ const AppSidebar: React.FC = () => {
               "/centro-formacao",
               "/solicitacao-agendamento",
               "/solicitacao-agendamento/descricao",
+              "/solicitacao-print-voo",
+              "/solicitacao-print-voo/descricao",
+              "/solicitacao-reserva-hotel",
+              "/solicitacao-reserva-hotel/descricao",
             ];
 
             const filteredSubItems = item.subItems.filter(

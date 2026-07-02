@@ -8,6 +8,7 @@ import {
   createDescricao,
   updateDescricao,
   deleteDescricao,
+  toggleDescricaoActive,
   GetAllSolicitacoesParams,
 } from '../api/adminSoliAgendamentoApi'
 
@@ -82,6 +83,16 @@ export const useDeleteDescricao = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (id: string) => deleteDescricao(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['descricoes-agendamento'] })
+    },
+  })
+}
+
+export const useToggleDescricaoActive = () => {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: (id: string) => toggleDescricaoActive(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['descricoes-agendamento'] })
     },

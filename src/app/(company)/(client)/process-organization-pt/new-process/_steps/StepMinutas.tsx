@@ -18,7 +18,8 @@ import {
   Clock,
   AlertCircle,
   Plane,
-  Building2
+  Building2,
+  AlertTriangle
 } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import { ModalPreencherMinuta } from "../_components/ModalPreencherMinuta"
@@ -33,6 +34,8 @@ import { ModalEmitirTermoResponsabilidade } from "../_components/ModalEmitirTerm
 import { ModalEmitirFormulario } from "../_components/ModalEmitirFormulario"
 import { ModalSolicitarAgendamento } from "../_components/ModalSolicitarAgendamento"
 import { ModalAgendamentoExistente } from "../_components/ModalAgendamentoExistente"
+import { ModalSolicitarPrintVoo } from "../_components/ModalSolicitarPrintVoo"
+import { ModalSolicitarReservaHotel } from "../_components/ModalSolicitarReservaHotel"
 import { useGetSolicitacaoMatriculaByClienteId } from "@/features/solicitacao-matricula/hooks/useSoliMatriculaQuery"
 import { useCreateDocumentoProfundoStatus, useGetDocumentoProfundoStatusByClienteId, useUpdateDocumentoProfundoStatus } from "@/features/documentos-profundo/hooks/useDocumentoProfundoQuery"
 import { DocumentoProfundoStatus } from "@/features/documentos-profundo/types"
@@ -41,6 +44,8 @@ import { api } from "@/services/api"
 import { alert } from "@/lib/alert"
 import { useBaixarDeclaracao, useGetMotivoRejeicao } from "@/features/solicitacao-matricula/hooks/useSoliMatriculaQuery"
 import { useGetSolicitacaoAgendamentoByClienteId } from "@/features/solicitacao-agendamento/hooks/useSoliAgendamentoQuery"
+import { useGetSolicitacaoPrintVooByClienteId, useGetMotivoRejeicaoPrintVoo } from "@/features/solicitacao-print-voo/hooks/usePrintVooQuery"
+import { useGetSolicitacaoReservaHotelByClienteId, useGetMotivoRejeicaoReservaHotel } from "@/features/solicitacao-reserva-hotel/hooks/useReservaHotelQuery"
 import { useGetProcessoProgressByClienteId } from "@/features/processo-progress/hooks/useProcessoProgress"
 
 type TipoMinuta =
@@ -180,6 +185,8 @@ export default function StepMinutas({
   const [showFormularioModal, setShowFormularioModal] = useState(false);
   const [showAgendamentoModal, setShowAgendamentoModal] = useState(false);
   const [showAgendamentoExistenteModal, setShowAgendamentoExistenteModal] = useState(false);
+  const [showPrintVooModal, setShowPrintVooModal] = useState(false);
+  const [showReservaHotelModal, setShowReservaHotelModal] = useState(false);
   const [isModalOpenSelectedCurso, setIsModalOpenSelectedCurso] = useState(false)
   const [selectedCourse, setSelectedCourse] = useState<CourseType | null>(null)
 
@@ -192,6 +199,8 @@ export default function StepMinutas({
   const saveProcessoProgress = useSaveProcessoProgress();
   const { data: solicitacaoMatricula } = useGetSolicitacaoMatriculaByClienteId(String(data.cliente?.id));
   const { data: solicitacaoAgendamento } = useGetSolicitacaoAgendamentoByClienteId(String(data.cliente?.id));
+  const { data: solicitacaoPrintVoo } = useGetSolicitacaoPrintVooByClienteId(String(data.cliente?.id));
+  const { data: solicitacaoReservaHotel } = useGetSolicitacaoReservaHotelByClienteId(String(data.cliente?.id));
   const { data: documentoProfundoStatus, refetch: refetchStatus } = useGetDocumentoProfundoStatusByClienteId(String(data.cliente?.id));
   const { data: processoProgress } = useGetProcessoProgressByClienteId(data.cliente?.id ?? 0);
 
@@ -199,6 +208,12 @@ export default function StepMinutas({
   const baixarDeclaracaoMutation = useBaixarDeclaracao();
   const { data: motivoRejeicao } = useGetMotivoRejeicao(
     solicitacaoMatricula?.status === 'rejeitado' ? solicitacaoMatricula.id : ''
+  );
+  const { data: motivoRejeicaoPrintVoo } = useGetMotivoRejeicaoPrintVoo(
+    solicitacaoPrintVoo?.status === 'rejeitado' ? solicitacaoPrintVoo.id : ''
+  );
+  const { data: motivoRejeicaoReservaHotel } = useGetMotivoRejeicaoReservaHotel(
+    solicitacaoReservaHotel?.status === 'rejeitado' ? solicitacaoReservaHotel.id : ''
   );
   const createStatusMutation = useCreateDocumentoProfundoStatus();
   const updateStatusMutation = useUpdateDocumentoProfundoStatus();
@@ -244,6 +259,8 @@ export default function StepMinutas({
           cliente_id: data.cliente?.id,
           status_solicitacao_matricula: "nao_enviado",
           status_solicitacao_agendamento: "nao_enviado",
+          status_solicitacao_print_voo: "nao_enviado",
+          status_solicitacao_reserva_hotel: "nao_enviado",
           status_formulario: false,
           status_termo_responsabilidade: false,
           status_minuta1: false,
@@ -293,6 +310,16 @@ export default function StepMinutas({
                status.status_solicitacao_agendamento === 'aprovado' ||
                status.status_solicitacao_agendamento === 'rejeitado';
       
+      case 'print_voo':
+        return status.status_solicitacao_print_voo === 'pendente' || 
+               status.status_solicitacao_print_voo === 'aprovado' ||
+               status.status_solicitacao_print_voo === 'rejeitado';
+      
+      case 'reserva_hotel':
+        return status.status_solicitacao_reserva_hotel === 'pendente' || 
+               status.status_solicitacao_reserva_hotel === 'aprovado' ||
+               status.status_solicitacao_reserva_hotel === 'rejeitado';
+      
       case 'formulario':
         return false;
       
@@ -320,6 +347,12 @@ export default function StepMinutas({
       
       case 'solicitar_agendamento':
         return status.status_solicitacao_agendamento;
+      
+      case 'print_voo':
+        return status.status_solicitacao_print_voo;
+      
+      case 'reserva_hotel':
+        return status.status_solicitacao_reserva_hotel;
       
       case 'formulario':
         return status.status_formulario ? 'concluido' : 'nao_enviado';
@@ -479,12 +512,23 @@ export default function StepMinutas({
       return;
     }
 
-    // Verifica se a solicitação de matrícula foi aprovada para minutas e formulário
-    if (minutaId === "minuta1" || minutaId === "minuta2" || minutaId === "formulario") {
+    // Verifica se a solicitação de matrícula foi aprovada para minutas, formulário, print voo e reserva hotel
+    if (minutaId === "minuta1" || minutaId === "minuta2" || minutaId === "formulario" || minutaId === "print_voo" || minutaId === "reserva_hotel") {
       if (solicitacaoMatricula?.status !== 'aprovado') {
         alert.warning(
           'Solicitação de Matrícula Necessária',
           'É preciso primeiro fazer a solicitação de matrícula e ser aprovada.'
+        );
+        return;
+      }
+    }
+
+    // Verifica se a solicitação de reserva de hotel foi aprovada para emissão de formulário
+    if (minutaId === "formulario") {
+      if (solicitacaoReservaHotel?.status !== 'aprovado') {
+        alert.warning(
+          'Reserva de Hotel Necessária',
+          'Para emitir o formulário é preciso primeiro fazer a solicitação de reserva de hotel e ser aprovada.'
         );
         return;
       }
@@ -509,8 +553,10 @@ export default function StepMinutas({
       setShowAgendamentoModal(true)
     } else if (minutaId === "formulario") {
       setShowFormularioModal(true)
-    } else if (minutaId === "print_voo" || minutaId === "reserva_hotel") {
-      toast.info("Funcionalidade em desenvolvimento")
+    } else if (minutaId === "print_voo") {
+      setShowPrintVooModal(true)
+    } else if (minutaId === "reserva_hotel") {
+      setShowReservaHotelModal(true)
     }
   }
 
@@ -641,6 +687,32 @@ export default function StepMinutas({
       a.click()
       a.remove()
       toast.success('Agendamento baixado com sucesso!')
+    } else if (minutaId === 'print_voo') {
+      if (!solicitacaoPrintVoo?.comprovativo_url) {
+        toast.error('Comprovativo não disponível.')
+        return
+      }
+      const a = document.createElement('a')
+      a.href = solicitacaoPrintVoo.comprovativo_url
+      a.download = solicitacaoPrintVoo.comprovativo_nome || 'comprovativo_voo.pdf'
+      a.target = '_blank'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      toast.success('Comprovativo baixado com sucesso!')
+    } else if (minutaId === 'reserva_hotel') {
+      if (!solicitacaoReservaHotel?.comprovativo_url) {
+        toast.error('Comprovativo não disponível.')
+        return
+      }
+      const a = document.createElement('a')
+      a.href = solicitacaoReservaHotel.comprovativo_url
+      a.download = solicitacaoReservaHotel.comprovativo_nome || 'comprovativo_hotel.pdf'
+      a.target = '_blank'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      toast.success('Comprovativo baixado com sucesso!')
     }
   }
 
@@ -671,6 +743,12 @@ export default function StepMinutas({
       case 'solicitar_agendamento':
         updatedStatus.status_solicitacao_agendamento = 'pendente';
         break;
+      case 'print_voo':
+        updatedStatus.status_solicitacao_print_voo = 'pendente';
+        break;
+      case 'reserva_hotel':
+        updatedStatus.status_solicitacao_reserva_hotel = 'pendente';
+        break;
       case 'formulario':
         updatedStatus.status_formulario = true;
         break;
@@ -689,6 +767,8 @@ export default function StepMinutas({
     if (
       updatedStatus.status_solicitacao_matricula === 'pendente' &&
       updatedStatus.status_solicitacao_agendamento === 'pendente' &&
+      updatedStatus.status_solicitacao_print_voo === 'pendente' &&
+      updatedStatus.status_solicitacao_reserva_hotel === 'pendente' &&
       updatedStatus.status_formulario === true &&
       updatedStatus.status_termo_responsabilidade === true &&
       updatedStatus.status_minuta1 === true &&
@@ -829,6 +909,21 @@ export default function StepMinutas({
                             {minuta.descricao}
                           </p>
 
+                          {/* Aviso: Solicitação de Matrícula Necessária */}
+                          {/* {((minuta.id === 'print_voo' || minuta.id === 'reserva_hotel') && solicitacaoMatricula?.status !== 'aprovado') && (
+                            <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                              <div className="flex items-center gap-2">
+                                <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+                                <p className="text-xs font-medium text-amber-700 dark:text-amber-300">
+                                  Solicitação de Matrícula Necessária
+                                </p>
+                              </div>
+                              <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                                É preciso primeiro fazer a solicitação de matrícula e ser aprovada.
+                              </p>
+                            </div>
+                          )} */}
+
                           {/* Botões */}
                           <div className="mt-3 flex flex-col md:flex-row gap-2">
                             {!disabled && (
@@ -867,7 +962,11 @@ export default function StepMinutas({
                               minuta.id === 'solicitar_matricula' && currentStatus === 'aprovado' && solicitacaoMatricula?.declaracao_url
                             ) || (
                               minuta.id === 'solicitar_agendamento' && currentStatus === 'aprovado' && solicitacaoAgendamento?.agendamento_url
-                            )) && (
+                            ) || (
+                              minuta.id === 'print_voo' && currentStatus === 'aprovado' && solicitacaoPrintVoo?.comprovativo_url
+                            ) || (
+                              minuta.id === 'reserva_hotel' && currentStatus === 'aprovado' && solicitacaoReservaHotel?.comprovativo_url
+                            )                            ) && (
                               <Button
                                 type="button"
                                 variant="outline"
@@ -879,7 +978,32 @@ export default function StepMinutas({
                                 className="gap-1"
                               >
                                 <Download className="h-3 w-3" />
-                                {minuta.id === 'solicitar_matricula' ? 'Baixar Declaração' : minuta.id === 'solicitar_agendamento' ? 'Baixar Agendamento' : 'Download'}
+                                {minuta.id === 'solicitar_matricula' ? 'Baixar Declaração' : minuta.id === 'solicitar_agendamento' ? 'Baixar Agendamento' : minuta.id === 'print_voo' ? 'Baixar Comprovativo' : minuta.id === 'reserva_hotel' ? 'Baixar Comprovativo' : 'Download'}
+                              </Button>
+                            )}
+
+                            {/* Botão Reconhecer no Consulado - apenas para termo_responsabilidade quando concluído */}
+                            {minuta.id === 'termo_responsabilidade' && currentStatus === 'concluido' && (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  toast.info(
+                                    <div className="flex flex-col gap-1">
+                                      <span className="font-semibold">Reconhecer no Consulado</span>
+                                      <span className="text-sm text-white">
+                                        Esta funcionalidade estará disponível em breve.
+                                      </span>
+                                    </div>,
+                                    { autoClose: 5000 }
+                                  )
+                                }}
+                                className="gap-1"
+                              >
+                                <FileSignature className="h-3 w-3" />
+                                Reconhecer no Consulado
                               </Button>
                             )}
                           </div>
@@ -893,6 +1017,30 @@ export default function StepMinutas({
                               </p>
                               <p className="text-sm text-red-600 dark:text-red-400 mt-1">
                                 {motivoRejeicao.motivo_rejeicao}
+                              </p>
+                            </div>
+                          )}
+
+                          {minuta.id === 'print_voo' && currentStatus === 'rejeitado' && motivoRejeicaoPrintVoo?.motivo_rejeicao && (
+                            <div className="mt-3 p-2 bg-red-50 dark:bg-red-950/20 border border-red-200 rounded-lg">
+                              <p className="text-xs font-medium text-red-600 dark:text-red-400 flex items-center gap-1">
+                                <XCircle className="h-3 w-3" />
+                                Motivo da rejeição:
+                              </p>
+                              <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                                {motivoRejeicaoPrintVoo.motivo_rejeicao}
+                              </p>
+                            </div>
+                          )}
+
+                          {minuta.id === 'reserva_hotel' && currentStatus === 'rejeitado' && motivoRejeicaoReservaHotel?.motivo_rejeicao && (
+                            <div className="mt-3 p-2 bg-red-50 dark:bg-red-950/20 border border-red-200 rounded-lg">
+                              <p className="text-xs font-medium text-red-600 dark:text-red-400 flex items-center gap-1">
+                                <XCircle className="h-3 w-3" />
+                                Motivo da rejeição:
+                              </p>
+                              <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                                {motivoRejeicaoReservaHotel.motivo_rejeicao}
                               </p>
                             </div>
                           )}
@@ -1007,6 +1155,30 @@ export default function StepMinutas({
         cliente={data.cliente}
         onSuccess={async () => {
           await updateDocumentStatus('solicitar_agendamento');
+          refetchStatus();
+        }}
+      />
+
+      <ModalSolicitarPrintVoo
+        open={showPrintVooModal}
+        onOpenChange={setShowPrintVooModal}
+        cliente={data.cliente}
+        dataPrevistaChegada={solicitacaoMatricula?.data_prevista_chegada}
+        dataPrevistaSaida={solicitacaoMatricula?.data_prevista_saida}
+        onSuccess={async () => {
+          await updateDocumentStatus('print_voo');
+          refetchStatus();
+        }}
+      />
+
+      <ModalSolicitarReservaHotel
+        open={showReservaHotelModal}
+        onOpenChange={setShowReservaHotelModal}
+        cliente={data.cliente}
+        dataPrevistaChegada={solicitacaoMatricula?.data_prevista_chegada}
+        dataPrevistaSaida={solicitacaoMatricula?.data_prevista_saida}
+        onSuccess={async () => {
+          await updateDocumentStatus('reserva_hotel');
           refetchStatus();
         }}
       />

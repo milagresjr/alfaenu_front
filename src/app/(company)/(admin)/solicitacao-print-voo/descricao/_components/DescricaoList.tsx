@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from "react"
-import { FileText, Plus, Pencil, Trash2, Loader2, ToggleLeft, ToggleRight } from "lucide-react"
+import { Plus, Pencil, Trash2, ToggleLeft, ToggleRight } from "lucide-react"
 import { toast } from "react-toastify"
 import { AxiosError } from "axios"
 import { TableMain } from "@/components/table"
@@ -11,36 +11,36 @@ import { DropdownActions } from "@/components/dropdown-action-menu/drop-actions-
 import { formatarDataLong } from "@/lib/helpers"
 import { alert } from "@/lib/alert"
 import {
-  useGetDescricoes,
-  useCreateDescricao,
-  useUpdateDescricao,
-  useDeleteDescricao,
-  useToggleDescricaoActive,
-} from "@/features/solicitacao-agendamento/hooks/useAdminSoliAgendamentoQuery"
-import { SolicitacaoAgendamentoDescricaoType } from "@/features/solicitacao-agendamento/types"
+  useGetDescricoesPrintVoo,
+  useCreateDescricaoPrintVoo,
+  useUpdateDescricaoPrintVoo,
+  useDeleteDescricaoPrintVoo,
+  useToggleDescricaoPrintVooActive,
+} from "@/features/solicitacao-print-voo/hooks/useAdminPrintVooQuery"
+import { SolicitacaoPrintVooDescricaoType } from "@/features/solicitacao-print-voo/types"
 import { DescricaoDialog } from "./DescricaoDialog"
 
 export default function DescricaoList() {
-  const { data: descricoes, isLoading, refetch } = useGetDescricoes()
-  const createMutation = useCreateDescricao()
-  const updateMutation = useUpdateDescricao()
-  const deleteMutation = useDeleteDescricao()
-  const toggleMutation = useToggleDescricaoActive()
+  const { data: descricoes, isLoading, refetch } = useGetDescricoesPrintVoo()
+  const createMutation = useCreateDescricaoPrintVoo()
+  const updateMutation = useUpdateDescricaoPrintVoo()
+  const deleteMutation = useDeleteDescricaoPrintVoo()
+  const toggleMutation = useToggleDescricaoPrintVooActive()
 
   const [openDialog, setOpenDialog] = useState(false)
-  const [selectedDescricao, setSelectedDescricao] = useState<SolicitacaoAgendamentoDescricaoType | null>(null)
+  const [selectedDescricao, setSelectedDescricao] = useState<SolicitacaoPrintVooDescricaoType | null>(null)
 
   const handleCreate = () => {
     setSelectedDescricao(null)
     setOpenDialog(true)
   }
 
-  const handleEdit = (descricao: SolicitacaoAgendamentoDescricaoType) => {
+  const handleEdit = (descricao: SolicitacaoPrintVooDescricaoType) => {
     setSelectedDescricao(descricao)
     setOpenDialog(true)
   }
 
-  const handleDelete = async (descricao: SolicitacaoAgendamentoDescricaoType) => {
+  const handleDelete = async (descricao: SolicitacaoPrintVooDescricaoType) => {
     const confirmed = await alert.confirm(
       'Excluir Descrição',
       `Tem certeza que deseja excluir esta descrição?`,
@@ -54,13 +54,14 @@ export default function DescricaoList() {
         toast.success('Descrição excluída com sucesso!')
         refetch()
       },
-      onError: (error: any) => {
-        toast.error(error?.response?.data?.message || 'Erro ao excluir descrição')
+      onError: (error: Error) => {
+        const err = error as unknown as AxiosError<{ message: string }>
+        toast.error(err?.response?.data?.message || 'Erro ao excluir descrição')
       },
     })
   }
 
-  const handleToggle = (descricao: SolicitacaoAgendamentoDescricaoType) => {
+  const handleToggle = (descricao: SolicitacaoPrintVooDescricaoType) => {
     toggleMutation.mutate(descricao.id, {
       onSuccess: () => {
         toast.success('Status da descrição atualizado com sucesso!')
@@ -84,8 +85,9 @@ export default function DescricaoList() {
             setSelectedDescricao(null)
             refetch()
           },
-          onError: (error: any) => {
-            toast.error(error?.response?.data?.message || 'Erro ao atualizar descrição')
+          onError: (error: Error) => {
+            const err = error as unknown as AxiosError<{ message: string }>
+            toast.error(err?.response?.data?.message || 'Erro ao atualizar descrição')
           },
         }
       )
@@ -96,8 +98,9 @@ export default function DescricaoList() {
           setOpenDialog(false)
           refetch()
         },
-        onError: (error: any) => {
-          toast.error(error?.response?.data?.message || 'Erro ao criar descrição')
+        onError: (error: Error) => {
+          const err = error as unknown as AxiosError<{ message: string }>
+          toast.error(err?.response?.data?.message || 'Erro ao criar descrição')
         },
       })
     }
@@ -107,7 +110,7 @@ export default function DescricaoList() {
     <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] p-4 min-h-[calc(100vh-130px)]">
       <div className="flex justify-between items-center my-4">
         <h1 className="text-2xl text-gray-700 dark:text-gray-300 font-semibold">
-          Descrições de Agendamento
+          Descrições de Print de Voo
         </h1>
         <Button onClick={handleCreate} className="gap-2">
           <Plus className="h-4 w-4" />
@@ -127,14 +130,14 @@ export default function DescricaoList() {
           },
           {
             header: "Descrição",
-            accessor: (descricao: SolicitacaoAgendamentoDescricaoType) => (
+            accessor: (descricao: SolicitacaoPrintVooDescricaoType) => (
               <span className="text-sm line-clamp-2 max-w-md">{descricao.descricao}</span>
             ),
             width: "55%",
           },
           {
             header: "Ativo",
-            accessor: (descricao: SolicitacaoAgendamentoDescricaoType) => (
+            accessor: (descricao: SolicitacaoPrintVooDescricaoType) => (
               <Badge variant="outline" className={descricao.status ? 'text-green-600 bg-green-100 border-green-500' : 'text-gray-600 bg-gray-100 border-gray-500'}>
                 {descricao.status ? 'Sim' : 'Não'}
               </Badge>
@@ -143,14 +146,14 @@ export default function DescricaoList() {
           },
           {
             header: "Criado em",
-            accessor: (descricao: SolicitacaoAgendamentoDescricaoType) => (
+            accessor: (descricao: SolicitacaoPrintVooDescricaoType) => (
               <span>{descricao.created_at ? formatarDataLong(descricao.created_at) : '-'}</span>
             ),
             width: "15%",
           },
           {
             header: "Ações",
-            accessor: (descricao: SolicitacaoAgendamentoDescricaoType) => (
+            accessor: (descricao: SolicitacaoPrintVooDescricaoType) => (
               <DropdownActions
                 actions={[
                   {

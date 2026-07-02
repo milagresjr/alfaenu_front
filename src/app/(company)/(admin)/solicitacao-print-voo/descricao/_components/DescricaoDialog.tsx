@@ -11,14 +11,14 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { Textarea } from "@/components/ui/textarea"
-import { FileText, Loader2, Info } from "lucide-react"
-import { SolicitacaoAgendamentoDescricaoType } from "@/features/solicitacao-agendamento/types"
+import { FileText, Info } from "lucide-react"
+import { SolicitacaoPrintVooDescricaoType } from "@/features/solicitacao-print-voo/types"
 
 interface DescricaoDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSave: (data: { descricao: string; status: boolean }, id?: string) => void
-  descricao?: SolicitacaoAgendamentoDescricaoType | null
+  descricao?: SolicitacaoPrintVooDescricaoType | null
   isLoading?: boolean
 }
 
@@ -65,8 +65,8 @@ export function DescricaoDialog({
           </DialogTitle>
           <DialogDescription>
             {descricao
-              ? 'Edite a descrição que será exibida no formulário de solicitação de agendamento.'
-              : 'Crie uma descrição que será exibida no formulário de solicitação de agendamento.'}
+              ? 'Edite a descrição que será exibida no formulário de solicitação de print de voo.'
+              : 'Crie uma descrição que será exibida no formulário de solicitação de print de voo.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -76,7 +76,7 @@ export function DescricaoDialog({
               Descrição <span className="text-red-500">*</span>
             </label>
             <Textarea
-              placeholder="Descreva as informações sobre o agendamento (ex: taxas, documentos necessários, etc.)"
+              placeholder="Descreva as informações sobre o print de voo (ex: taxas, documentos necessários, etc.)"
               value={texto}
               onChange={(e) => setTexto(e.target.value)}
               rows={5}
@@ -114,18 +114,8 @@ export function DescricaoDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
           </Button>
-          <Button onClick={handleSave} disabled={isLoading} className="gap-2">
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Salvando...
-              </>
-            ) : (
-              <>
-                <FileText className="h-4 w-4" />
-                {descricao ? 'Atualizar' : 'Criar'}
-              </>
-            )}
+          <Button onClick={handleSave} disabled={isLoading}>
+            {isLoading ? 'Salvando...' : descricao ? 'Atualizar' : 'Criar'}
           </Button>
         </DialogFooter>
       </DialogContent>

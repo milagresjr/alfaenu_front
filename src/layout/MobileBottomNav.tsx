@@ -16,6 +16,8 @@ import {
   GraduationCap,
   ClipboardCheck,
   CalendarDays,
+  Plane,
+  Building2,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -65,6 +67,22 @@ const allNavItems = [
     subItems: [
       { name: "Solicitações", path: "/solicitacao-agendamento" },
       { name: "Descrições", path: "/solicitacao-agendamento/descricao" },
+    ],
+  },
+  {
+    name: "Solic. Print Voo",
+    icon: <Plane size={22} />,
+    subItems: [
+      { name: "Solicitações", path: "/solicitacao-print-voo" },
+      { name: "Descrições", path: "/solicitacao-print-voo/descricao" },
+    ],
+  },
+  {
+    name: "Solic. Reserva Hotel",
+    icon: <Building2 size={22} />,
+    subItems: [
+      { name: "Solicitações", path: "/solicitacao-reserva-hotel" },
+      { name: "Descrições", path: "/solicitacao-reserva-hotel/descricao" },
     ],
   },
   {
@@ -158,7 +176,11 @@ export default function MobileBottomNav() {
             "/centro-formacao",
             "/solicitacao-matricula",
             "/solicitacao-agendamento",
-            "/solicitacao-agendamento/descricao"
+            "/solicitacao-agendamento/descricao",
+            "/solicitacao-print-voo",
+            "/solicitacao-print-voo/descricao",
+            "/solicitacao-reserva-hotel",
+            "/solicitacao-reserva-hotel/descricao"
           ];
           if (item.path && restrictedPaths.includes(item.path)) {
             return null;
@@ -175,6 +197,10 @@ export default function MobileBottomNav() {
               "/centro-formacao",
               "/solicitacao-agendamento",
               "/solicitacao-agendamento/descricao",
+              "/solicitacao-print-voo",
+              "/solicitacao-print-voo/descricao",
+              "/solicitacao-reserva-hotel",
+              "/solicitacao-reserva-hotel/descricao",
             ];
 
             const filteredSubItems = item.subItems.filter(
