@@ -120,7 +120,7 @@ const minutas = (solicitacaoMatricula: any): Minuta[] => [
   },
   {
     id: "minuta1",
-    titulo: "Minuta 1",
+    titulo: "Minuta 1 (DECLARAÇÃO DE ESTADA PREVISTA)",
     descricao: "Documento padrão para solicitação de visto de formação profissional",
     icone: FileSignature,
     cor: "from-violet-500 to-purple-500",
@@ -132,7 +132,7 @@ const minutas = (solicitacaoMatricula: any): Minuta[] => [
   },
   {
     id: "minuta2",
-    titulo: "Minuta 2",
+    titulo: "Minuta 2 (CARTA DE INTENÇÃO)",
     descricao: "Modelo alternativo para casos específicos de formação",
     icone: FileText,
     cor: "from-blue-500 to-indigo-500",
@@ -1071,6 +1071,7 @@ export default function StepMinutas({
           termino_formacao_profissional: solicitacaoMatricula?.data_prevista_saida
             ? new Date(solicitacaoMatricula.data_prevista_saida)
             : undefined,
+          local_hospedagem: solicitacaoReservaHotel?.endereco_arredores || '',
         }}
         onSuccess={(pdfUrl) => {
           // handleMinutaSuccess(pdfUrl);
@@ -1087,6 +1088,7 @@ export default function StepMinutas({
           data_prevista_chegada: solicitacaoMatricula?.data_prevista_chegada
             ? new Date(solicitacaoMatricula.data_prevista_chegada)
             : undefined,
+          local_hospedagem: solicitacaoReservaHotel?.endereco_arredores || '',
         }}
         onSuccess={(pdfUrl) => {
           // handleMinutaSuccess(pdfUrl);
