@@ -68,18 +68,30 @@ export default function EditorConteudo() {
                 </button>
             </div>
 
-            <ReactQuill
-                theme="snow"
-                value={conteudoTermo}
-                onChange={(content) => setConteudoTermo(content)}
-                placeholder="Escreva algo..."
-                className="rounded-lg quill-dark placeholder:dark:text-gray-200"
-                modules={modules}
-                formats={formats}
-                style={{
-                    height: fullscreen ? "90vh" : "", // altura muda conforme fullscreen
-                }}
-            />
+            {fullscreen ? (
+                <ReactQuill
+                    theme="snow"
+                    value={conteudoTermo}
+                    onChange={(content) => setConteudoTermo(content)}
+                    placeholder="Escreva algo..."
+                    className="rounded-lg quill-dark placeholder:dark:text-gray-200"
+                    modules={modules}
+                    formats={formats}
+                    style={{ height: "90vh" }}
+                />
+            ) : (
+                <div className="w-[794px] mx-auto">
+                    <ReactQuill
+                        theme="snow"
+                        value={conteudoTermo}
+                        onChange={(content) => setConteudoTermo(content)}
+                        placeholder="Escreva algo..."
+                        className="rounded-lg quill-dark placeholder:dark:text-gray-200"
+                        modules={modules}
+                        formats={formats}
+                    />
+                </div>
+            )}
         </div>
     );
 }

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getAllSolicitacoes, aprovarSolicitacao, rejeitarSolicitacao, enviarDeclaracao, GetAllSolicitacoesParams } from '../api/adminSoliMatriculaApi';
+import { getAllSolicitacoes, aprovarSolicitacao, rejeitarSolicitacao, enviarDeclaracao, baixarComprovativo, baixarCertificado, baixarPassaporte, GetAllSolicitacoesParams } from '../api/adminSoliMatriculaApi';
 
 export const useGetAllSolicitacoes = (params?: GetAllSolicitacoesParams) => {
   const { data, isLoading, isError, refetch } = useQuery({
@@ -42,5 +42,23 @@ export const useEnviarDeclaracao = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['solicitacoes-matricula'] });
     },
+  });
+};
+
+export const useBaixarComprovativo = () => {
+  return useMutation({
+    mutationFn: (id: string) => baixarComprovativo(id),
+  });
+};
+
+export const useBaixarCertificado = () => {
+  return useMutation({
+    mutationFn: (id: string) => baixarCertificado(id),
+  });
+};
+
+export const useBaixarPassaporte = () => {
+  return useMutation({
+    mutationFn: (id: string) => baixarPassaporte(id),
   });
 };

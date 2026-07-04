@@ -73,7 +73,29 @@ pre.ql-syntax {
   color: #f8fafc;
   padding: 0.75em 1em;
   border-radius: 0.5em;
-  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.conteudo-termo-preview {
+  word-break: normal;
+  overflow-wrap: break-word;
+  line-height: 1.6;
+  font-size: 14px;
+}
+
+.conteudo-termo-preview * {
+  word-break: normal;
+  overflow-wrap: break-word;
+}
+
+.conteudo-termo-preview p {
+  margin-bottom: 1em;
+}
+
+.conteudo-termo-preview pre {
+  white-space: pre-wrap;
 }
 
 /* BLOCKQUOTE */

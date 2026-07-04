@@ -40,6 +40,42 @@ export const rejeitarSolicitacao = async (id: string, motivo_rejeicao?: string):
   }
 };
 
+export const baixarComprovativo = async (id: string): Promise<Blob> => {
+  try {
+    const response = await api.get(`${API_URL}/${id}/comprovativo/download`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao baixar comprovativo:', error);
+    throw error;
+  }
+};
+
+export const baixarCertificado = async (id: string): Promise<Blob> => {
+  try {
+    const response = await api.get(`${API_URL}/${id}/certificado/download`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao baixar certificado:', error);
+    throw error;
+  }
+};
+
+export const baixarPassaporte = async (id: string): Promise<Blob> => {
+  try {
+    const response = await api.get(`${API_URL}/${id}/passaporte/download`, {
+      responseType: 'blob',
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Erro ao baixar passaporte:', error);
+    throw error;
+  }
+};
+
 export const enviarDeclaracao = async (id: string, formData: FormData): Promise<{ message: string; data: SolicitacaoMatriculaType }> => {
   try {
     const response = await api.post<{ message: string; data: SolicitacaoMatriculaType }>(

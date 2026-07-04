@@ -21,6 +21,7 @@ import { toast } from "react-toastify";
 import { useContratoStore } from "../store/useContratoStore";
 import { useQueryClient } from "@tanstack/react-query";
 import { alert } from "@/lib/alert";
+import Swal from "sweetalert2";
 import { api } from "@/services/api";
 import SelectServices from "./SelectService";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs"
@@ -277,6 +278,7 @@ export function FormContrato() {
     async function onSubmit(data: any) {
 
         if (validacaoForm(data)) {
+            console.log(data)
             return;
         }
 
@@ -458,13 +460,62 @@ export function FormContrato() {
     }
 
     async function confirmarCriacaoContrato(e: React.FormEvent) {
-        e.preventDefault(); // evita o submit automático do form
+        e.preventDefault();
+        if (created.isPending) return;
 
-        const confirmado = await alert.confirm("Criar Contrato", ``);
+        const data = getValues();
 
-        if (confirmado) {
-            handleSubmit(onSubmit, onError)(e);
+        if (validacaoForm(data)) return;
+
+        const erros = validarSubcontas(subcontas);
+        if (erros.length > 0) {
+            erros.forEach(item => toast.error(item));
+            return
         }
+
+        await Swal.fire({
+            title: "Criar Contrato",
+            text: "Tem certeza que deseja criar este contrato?",
+            icon: "question",
+            showCancelButton: true,
+            confirmButtonColor: "#27ae60",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Sim, confirmar",
+            cancelButtonText: "Cancelar",
+            preConfirm: () => {
+                return new Promise<void>((resolve, reject) => {
+                    const newData = {
+                        ...data,
+                        nota: notaSalva,
+                        termo_id: data.termo_id,
+                        cliente_id: cliente?.id,
+                        assinatura_cliente: assinaturaCliente,
+                        assinatura_user: assinaturaUser,
+                        servicos: servicosSelecionadosData,
+                        subcontas: subcontas
+                    };
+                    created.mutate(newData as unknown as ContratoType, {
+                        onSuccess: (response) => {
+                            toast.success('Contrato criado com sucesso!');
+                            queryClient.invalidateQueries({
+                                queryKey: ["contratos"],
+                                exact: false,
+                            });
+                            const documentoId = response?.data?.id;
+                            setIdContratoCreated(documentoId || null);
+                            limparCampos();
+                            setOpenDialogCreated(true);
+                            resolve();
+                        },
+                        onError: (error: any) => {
+                            const msg = error?.response?.data?.message || 'Erro ao criar contrato';
+                            toast.error(msg);
+                            reject(msg);
+                        },
+                    });
+                });
+            },
+        });
     }
 
     async function previewPdfDocumento(data: ContratoType) {
@@ -589,8 +640,8 @@ export function FormContrato() {
                             <Button className="h-[40px]" onClick={handleOpenSheetServicos} size="sm" type="button" variant="outline">
                                 + Adicionar Subcontas
                             </Button>
-                            <Button className="w-auto h-[40px]" size="sm" variant="primary" type="submit">
-                                Salvar
+                            <Button className="w-auto h-[40px]" size="sm" variant="primary" type="submit" disabled={created.isPending}>
+                                {created.isPending ? "Salvando..." : "Salvar"}
                             </Button>
                         </div>
                     </div>

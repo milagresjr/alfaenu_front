@@ -170,7 +170,7 @@ export function FormTermo() {
                             {getValues('titulo') || 'Sem titulo'}
                         </h4>
 
-                        <div className="mt-4 p-2 bg-gray-100 dark:bg-gray-900 border w-[794px] h-[1123px] rounded mx-auto">
+                        <div className="mt-4 p-8 bg-gray-100 dark:bg-gray-900 border w-[794px] max-h-[1123px] overflow-y-auto rounded mx-auto text-sm conteudo-termo-preview">
                             <div dangerouslySetInnerHTML={{ __html: conteudoTermo }} />
                         </div>
 

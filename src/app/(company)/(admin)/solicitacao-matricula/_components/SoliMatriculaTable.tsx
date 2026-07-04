@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from "react";
-import { Search, ClipboardCheck, CheckCircle, XCircle, Clock, AlertCircle, FileText, Upload, MoreVertical } from "lucide-react";
+import { Search, ClipboardCheck, CheckCircle, XCircle, Clock, AlertCircle, FileText, Upload, MoreVertical, Download } from "lucide-react";
 import { useDebounce } from "@uidotdev/usehooks";
 import { toast } from "react-toastify";
 import { TableMain } from "@/components/table";
@@ -10,11 +10,12 @@ import { StatCard } from "@/components/StatCard/stat-card";
 import { DropdownActions } from "@/components/dropdown-action-menu/drop-actions-menu";
 import { formatarDataLong } from "@/lib/helpers";
 import { Badge } from "@/components/ui/badge";
-import { useGetAllSolicitacoes, useAprovarSolicitacao, useRejeitarSolicitacao, useEnviarDeclaracao } from "@/features/solicitacao-matricula/hooks/useAdminSoliMatriculaQuery";
+import { useGetAllSolicitacoes, useAprovarSolicitacao, useRejeitarSolicitacao, useEnviarDeclaracao, useBaixarComprovativo, useBaixarCertificado, useBaixarPassaporte } from "@/features/solicitacao-matricula/hooks/useAdminSoliMatriculaQuery";
 import { SolicitacaoMatriculaType, SolicitacaoStatus } from "@/features/solicitacao-matricula/types";
 import { AprovarDialog } from "./AprovarDialog";
 import { RejeitarDialog } from "./RejeitarDialog";
 import { EnviarDeclaracaoForm } from "./EnviarDeclaracaoForm";
+import { DocumentosDialog } from "./DocumentosDialog";
 
 type FilterType = 'todos' | SolicitacaoStatus;
 
@@ -50,11 +51,15 @@ export default function SoliMatriculaTable() {
   const aprovarMutation = useAprovarSolicitacao();
   const rejeitarMutation = useRejeitarSolicitacao();
   const enviarDeclaracaoMutation = useEnviarDeclaracao();
+  const baixarComprovativoMutation = useBaixarComprovativo();
+  const baixarCertificadoMutation = useBaixarCertificado();
+  const baixarPassaporteMutation = useBaixarPassaporte();
 
   const [selectedSolicitacao, setSelectedSolicitacao] = useState<SolicitacaoMatriculaType | null>(null);
   const [openAprovar, setOpenAprovar] = useState(false);
   const [openRejeitar, setOpenRejeitar] = useState(false);
   const [openEnviarDeclaracao, setOpenEnviarDeclaracao] = useState(false);
+  const [openDocumentos, setOpenDocumentos] = useState(false);
 
   const stats = useMemo(() => [
     {
@@ -136,6 +141,27 @@ export default function SoliMatriculaTable() {
         },
       }
     );
+  };
+
+  const handleDownload = async (tipo: 'comprovativo' | 'certificado' | 'passaporte', solicitacao: SolicitacaoMatriculaType) => {
+    const mutation = tipo === 'comprovativo' ? baixarComprovativoMutation
+      : tipo === 'certificado' ? baixarCertificadoMutation
+      : baixarPassaporteMutation;
+
+    try {
+      const blob = await mutation.mutateAsync(solicitacao.id);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${tipo}_${solicitacao.cliente_nome.replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(url);
+      toast.success(`${tipo === 'comprovativo' ? 'Comprovativo' : tipo === 'certificado' ? 'Certificado' : 'Passaporte'} baixado com sucesso!`);
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || `Erro ao baixar ${tipo}`);
+    }
   };
 
   const solicitacoes = data?.data || [];
@@ -244,6 +270,15 @@ export default function SoliMatriculaTable() {
                 });
               }
 
+              actions.push({
+                label: 'Ver Documentos',
+                icon: <Download className="h-4 w-4" />,
+                onClick: () => {
+                  setSelectedSolicitacao(solicitacao);
+                  setOpenDocumentos(true);
+                },
+              });
+
               return <DropdownActions actions={actions} />;
             },
             width: "15%",
@@ -276,6 +311,18 @@ export default function SoliMatriculaTable() {
             isLoading={enviarDeclaracaoMutation.isPending}
             clienteNome={selectedSolicitacao.cliente_nome}
             cursoNome={selectedSolicitacao.curso_nome}
+          />
+          <DocumentosDialog
+            open={openDocumentos}
+            onOpenChange={setOpenDocumentos}
+            clienteNome={selectedSolicitacao.cliente_nome}
+            cursoNome={selectedSolicitacao.curso_nome}
+            onDownloadComprovativo={() => handleDownload('comprovativo', selectedSolicitacao)}
+            onDownloadCertificado={() => handleDownload('certificado', selectedSolicitacao)}
+            onDownloadPassaporte={() => handleDownload('passaporte', selectedSolicitacao)}
+            isLoadingComprovativo={baixarComprovativoMutation.isPending}
+            isLoadingCertificado={baixarCertificadoMutation.isPending}
+            isLoadingPassaporte={baixarPassaporteMutation.isPending}
           />
         </>
       )}
