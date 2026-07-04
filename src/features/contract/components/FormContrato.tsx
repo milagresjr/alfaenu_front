@@ -494,7 +494,7 @@ export function FormContrato() {
                         servicos: servicosSelecionadosData,
                         subcontas: subcontas
                     };
-                    console.log("Data do contrato", data);
+                    console.log("Data do contrato", newData);
                     return;
                     created.mutate(newData as unknown as ContratoType, {
                         onSuccess: (response) => {
