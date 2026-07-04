@@ -495,7 +495,7 @@ export function FormContrato() {
                         subcontas: subcontas
                     };
                     console.log("Data do contrato", newData);
-                    return;
+                    // return;
                     created.mutate(newData as unknown as ContratoType, {
                         onSuccess: (response) => {
                             toast.success('Contrato criado com sucesso!');
