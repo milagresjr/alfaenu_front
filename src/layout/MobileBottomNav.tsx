@@ -188,7 +188,8 @@ export default function MobileBottomNav() {
             "/solicitacao-print-voo",
             "/solicitacao-print-voo/descricao",
             "/solicitacao-reserva-hotel",
-            "/solicitacao-reserva-hotel/descricao"
+            "/solicitacao-reserva-hotel/descricao",
+            "/solicitacao-reconhecimento-consulado"
           ];
           if (item.path && restrictedPaths.includes(item.path)) {
             return null;
@@ -209,6 +210,7 @@ export default function MobileBottomNav() {
               "/solicitacao-print-voo/descricao",
               "/solicitacao-reserva-hotel",
               "/solicitacao-reserva-hotel/descricao",
+              "/solicitacao-reconhecimento-consulado",
             ];
 
             const filteredSubItems = item.subItems.filter(

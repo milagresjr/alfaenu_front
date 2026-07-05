@@ -55,8 +55,8 @@ export default function StepDetalhes({
     next()
   }
 
-  // Caso específico: Formação Profissional
-  if (data.subtipo === "formacao") {
+  // Caso específico: Formação Profissional ou Schengen Turismo
+  if (data.subtipo === "formacao" || (data.tipoVisto === "schengen" && data.subtipo === "turismo")) {
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}

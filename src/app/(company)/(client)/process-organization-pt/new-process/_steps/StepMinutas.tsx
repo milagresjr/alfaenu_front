@@ -19,7 +19,11 @@ import {
   AlertCircle,
   Plane,
   Building2,
-  AlertTriangle
+  AlertTriangle,
+  User,
+  Globe,
+  Wallet,
+  Tag
 } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import { ModalPreencherMinuta } from "../_components/ModalPreencherMinuta"
@@ -858,6 +862,64 @@ export default function StepMinutas({
             <p className="text-muted-foreground mt-1">
               Escolha o documento necessário para seu processo
             </p>
+          </div>
+
+          {/* Resumo das escolhas anteriores */}
+          <div className="bg-gradient-to-r from-primary/5 via-primary/[0.07] to-primary/10 rounded-xl border border-primary/20 p-4">
+            <div className="flex flex-wrap items-center gap-x-5 gap-y-2">
+              {data.cliente && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-primary/10">
+                      <User className="h-3.5 w-3.5 text-primary" />
+                    </div>
+                    <span className="text-sm font-medium text-foreground/90">{data.cliente.nome}</span>
+                  </div>
+                  <div className="hidden sm:block h-5 w-px bg-border" />
+                </>
+              )}
+              {data.tipoVisto && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-primary/10">
+                      <Globe className="h-3.5 w-3.5 text-primary" />
+                    </div>
+                    <span className="text-sm text-foreground/80">{data.tipoVisto === 'nacional' ? 'Visto Nacional' : 'Visto Schengen'}</span>
+                  </div>
+                  <div className="hidden sm:block h-5 w-px bg-border" />
+                </>
+              )}
+              {data.subtipo && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-primary/10">
+                      <Tag className="h-3.5 w-3.5 text-primary" />
+                    </div>
+                    <span className="text-sm text-foreground/80 capitalize">{data.subtipo}</span>
+                  </div>
+                  <div className="hidden sm:block h-5 w-px bg-border" />
+                </>
+              )}
+              {data.financiamento && (
+                <>
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 rounded-lg bg-primary/10">
+                      <Wallet className="h-3.5 w-3.5 text-primary" />
+                    </div>
+                    <span className="text-sm text-foreground/80">{data.financiamento === 'auto' ? 'Auto Financiado' : 'Financiado'}</span>
+                  </div>
+                  <div className="hidden sm:block h-5 w-px bg-border" />
+                </>
+              )}
+              {data.financiador_nome && (
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-primary/10">
+                    <Building2 className="h-3.5 w-3.5 text-primary" />
+                  </div>
+                  <span className="text-sm text-foreground/80">{data.financiador_nome}</span>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
