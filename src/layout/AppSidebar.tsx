@@ -55,8 +55,8 @@ const allNavItems: NavItem[] = [
     name: "Org. de Processos",
     icon: <TicketsPlaneIcon />,
     subItems: [
-      { name: "Portugal", path: "/process-organization-pt" },
-      { name: "Brasil", path: "/process-organization-br" },
+      { name: "🇵🇹 Portugal", path: "/process-organization-pt" },
+      { name: "🇧🇷 Brasil", path: "/process-organization-br" },
     ],
   },
   { icon: <Users />, name: "Clientes", path: "/process-organization/my-clients" },

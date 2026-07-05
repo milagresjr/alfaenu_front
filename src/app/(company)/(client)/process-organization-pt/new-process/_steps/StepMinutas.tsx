@@ -72,6 +72,30 @@ interface Minuta {
 
 const minutas = (solicitacaoMatricula: any): Minuta[] => [
   {
+    id: "print_voo",
+    titulo: "Print de Voo",
+    descricao: "Comprovante de reserva ou bilhete de passagem aérea",
+    icone: Plane,
+    cor: "from-orange-500 to-amber-500",
+    documentos: [
+      "Bilhete de passagem",
+      "Comprovante de reserva",
+      "Itinerário de voo",
+    ],
+  },
+  {
+    id: "reserva_hotel",
+    titulo: "Reserva de Hotel",
+    descricao: "Comprovante de reserva de hospedagem durante a estada",
+    icone: Building2,
+    cor: "from-green-500 to-emerald-500",
+    documentos: [
+      "Comprovante de reserva",
+      "Detalhes da hospedagem",
+      "Período da estada",
+    ],
+  },
+  {
     id: "solicitar_agendamento",
     titulo: "Solicitar Agendamento",
     descricao: "Formulário para agendamento de entrevista ou entrega de documentos",
@@ -142,30 +166,6 @@ const minutas = (solicitacaoMatricula: any): Minuta[] => [
       "Declaração da instituição",
       "Histórico acadêmico",
       "Comprovante de matrícula",
-    ],
-  },
-  {
-    id: "print_voo",
-    titulo: "Print de Voo",
-    descricao: "Comprovante de reserva ou bilhete de passagem aérea",
-    icone: Plane,
-    cor: "from-orange-500 to-amber-500",
-    documentos: [
-      "Bilhete de passagem",
-      "Comprovante de reserva",
-      "Itinerário de voo",
-    ],
-  },
-  {
-    id: "reserva_hotel",
-    titulo: "Reserva de Hotel",
-    descricao: "Comprovante de reserva de hospedagem durante a estada",
-    icone: Building2,
-    cor: "from-green-500 to-emerald-500",
-    documentos: [
-      "Comprovante de reserva",
-      "Detalhes da hospedagem",
-      "Período da estada",
     ],
   },
 ]
