@@ -47,6 +47,8 @@ import { useGetSolicitacaoAgendamentoByClienteId } from "@/features/solicitacao-
 import { useGetSolicitacaoPrintVooByClienteId, useGetMotivoRejeicaoPrintVoo } from "@/features/solicitacao-print-voo/hooks/usePrintVooQuery"
 import { useGetSolicitacaoReservaHotelByClienteId, useGetMotivoRejeicaoReservaHotel } from "@/features/solicitacao-reserva-hotel/hooks/useReservaHotelQuery"
 import { useGetProcessoProgressByClienteId } from "@/features/processo-progress/hooks/useProcessoProgress"
+import { ModalSolicitarReconhecimentoConsulado } from "../_components/ModalSolicitarReconhecimentoConsulado"
+import { useGetReconhecimentoConsuladoByClienteId, useGetMotivoRejeicaoReconhecimentoConsulado } from "@/features/solicitacao-reconhecimento-consulado/hooks/useReconhecimentoConsuladoQuery"
 
 type TipoMinuta =
   | "minuta1"
@@ -187,6 +189,7 @@ export default function StepMinutas({
   const [showAgendamentoExistenteModal, setShowAgendamentoExistenteModal] = useState(false);
   const [showPrintVooModal, setShowPrintVooModal] = useState(false);
   const [showReservaHotelModal, setShowReservaHotelModal] = useState(false);
+  const [showReconhecimentoConsuladoModal, setShowReconhecimentoConsuladoModal] = useState(false);
   const [isModalOpenSelectedCurso, setIsModalOpenSelectedCurso] = useState(false)
   const [selectedCourse, setSelectedCourse] = useState<CourseType | null>(null)
 
@@ -201,6 +204,7 @@ export default function StepMinutas({
   const { data: solicitacaoAgendamento } = useGetSolicitacaoAgendamentoByClienteId(String(data.cliente?.id));
   const { data: solicitacaoPrintVoo } = useGetSolicitacaoPrintVooByClienteId(String(data.cliente?.id));
   const { data: solicitacaoReservaHotel } = useGetSolicitacaoReservaHotelByClienteId(String(data.cliente?.id));
+  const { data: reconhecimentoConsulado } = useGetReconhecimentoConsuladoByClienteId(String(data.cliente?.id));
   const { data: documentoProfundoStatus, refetch: refetchStatus } = useGetDocumentoProfundoStatusByClienteId(String(data.cliente?.id));
   const { data: processoProgress } = useGetProcessoProgressByClienteId(data.cliente?.id ?? 0);
 
@@ -214,6 +218,9 @@ export default function StepMinutas({
   );
   const { data: motivoRejeicaoReservaHotel } = useGetMotivoRejeicaoReservaHotel(
     solicitacaoReservaHotel?.status === 'rejeitado' ? solicitacaoReservaHotel.id : ''
+  );
+  const { data: motivoRejeicaoReconhecimento } = useGetMotivoRejeicaoReconhecimentoConsulado(
+    reconhecimentoConsulado?.status === 'rejeitado' ? String(reconhecimentoConsulado.id) : ''
   );
   const createStatusMutation = useCreateDocumentoProfundoStatus();
   const updateStatusMutation = useUpdateDocumentoProfundoStatus();
@@ -261,6 +268,7 @@ export default function StepMinutas({
           status_solicitacao_agendamento: "nao_enviado",
           status_solicitacao_print_voo: "nao_enviado",
           status_solicitacao_reserva_hotel: "nao_enviado",
+          status_reconhecimento_termo_consulado: "nao_enviado",
           status_formulario: false,
           status_termo_responsabilidade: false,
           status_minuta1: false,
@@ -731,7 +739,7 @@ export default function StepMinutas({
   }
 
   // Atualizar status após conclusão de cada documento
-  const updateDocumentStatus = async (minutaId: TipoMinuta): Promise<void> => {
+  const updateDocumentStatus = async (minutaId: string): Promise<void> => {
     if (!documentoProfundoStatus || !data.cliente?.id) return;
 
     const updatedStatus = { ...documentoProfundoStatus };
@@ -754,6 +762,9 @@ export default function StepMinutas({
         break;
       case 'termo_responsabilidade':
         updatedStatus.status_termo_responsabilidade = true;
+        break;
+      case 'reconhecimento_consulado':
+        updatedStatus.status_reconhecimento_termo_consulado = 'pendente';
         break;
       case 'minuta1':
         updatedStatus.status_minuta1 = true;
@@ -982,29 +993,46 @@ export default function StepMinutas({
                               </Button>
                             )}
 
-                            {/* Botão Reconhecer no Consulado - apenas para termo_responsabilidade quando concluído */}
+                            {/* Reconhecimento no Consulado - sub-ação do Termo de Responsabilidade */}
                             {minuta.id === 'termo_responsabilidade' && currentStatus === 'concluido' && (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  toast.info(
-                                    <div className="flex flex-col gap-1">
-                                      <span className="font-semibold">Reconhecer no Consulado</span>
-                                      <span className="text-sm text-white">
-                                        Esta funcionalidade estará disponível em breve.
-                                      </span>
-                                    </div>,
-                                    { autoClose: 5000 }
-                                  )
-                                }}
-                                className="gap-1"
-                              >
-                                <FileSignature className="h-3 w-3" />
-                                Reconhecer no Consulado
-                              </Button>
+                              <>
+                                {(!documentoProfundoStatus?.status_reconhecimento_termo_consulado || documentoProfundoStatus?.status_reconhecimento_termo_consulado === 'nao_enviado') && (
+                                  <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      setShowReconhecimentoConsuladoModal(true)
+                                    }}
+                                    className="gap-1"
+                                  >
+                                    <FileSignature className="h-3 w-3" />
+                                    Reconhecer no Consulado
+                                  </Button>
+                                )}
+
+                                {documentoProfundoStatus?.status_reconhecimento_termo_consulado === 'pendente' && (
+                                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-700 border border-yellow-300">
+                                    <Clock className="h-3.5 w-3.5" />
+                                    Reconhecimento Pendente
+                                  </div>
+                                )}
+
+                                {documentoProfundoStatus?.status_reconhecimento_termo_consulado === 'aprovado' && (
+                                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700 border border-green-300">
+                                    <CheckCircle className="h-3.5 w-3.5" />
+                                    Reconhecido no Consulado
+                                  </div>
+                                )}
+
+                                {documentoProfundoStatus?.status_reconhecimento_termo_consulado === 'rejeitado' && (
+                                  <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-700 border border-red-300">
+                                    <XCircle className="h-3.5 w-3.5" />
+                                    Reconhecimento Rejeitado
+                                  </div>
+                                )}
+                              </>
                             )}
                           </div>
 
@@ -1041,6 +1069,18 @@ export default function StepMinutas({
                               </p>
                               <p className="text-sm text-red-600 dark:text-red-400 mt-1">
                                 {motivoRejeicaoReservaHotel.motivo_rejeicao}
+                              </p>
+                            </div>
+                          )}
+
+                          {minuta.id === 'termo_responsabilidade' && documentoProfundoStatus?.status_reconhecimento_termo_consulado === 'rejeitado' && motivoRejeicaoReconhecimento?.motivo_rejeicao && (
+                            <div className="mt-3 p-2 bg-red-50 dark:bg-red-950/20 border border-red-200 rounded-lg">
+                              <p className="text-xs font-medium text-red-600 dark:text-red-400 flex items-center gap-1">
+                                <XCircle className="h-3 w-3" />
+                                Motivo da rejeição (Reconhecimento no Consulado):
+                              </p>
+                              <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                                {motivoRejeicaoReconhecimento.motivo_rejeicao}
                               </p>
                             </div>
                           )}
@@ -1181,6 +1221,16 @@ export default function StepMinutas({
         dataPrevistaSaida={solicitacaoMatricula?.data_prevista_saida}
         onSuccess={async () => {
           await updateDocumentStatus('reserva_hotel');
+          refetchStatus();
+        }}
+      />
+
+      <ModalSolicitarReconhecimentoConsulado
+        open={showReconhecimentoConsuladoModal}
+        onOpenChange={setShowReconhecimentoConsuladoModal}
+        cliente={data.cliente}
+        onSuccess={async () => {
+          await updateDocumentStatus('reconhecimento_consulado');
           refetchStatus();
         }}
       />

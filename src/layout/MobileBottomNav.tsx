@@ -18,6 +18,7 @@ import {
   CalendarDays,
   Plane,
   Building2,
+  FileSignature,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
 
@@ -83,6 +84,13 @@ const allNavItems = [
     subItems: [
       { name: "Solicitações", path: "/solicitacao-reserva-hotel" },
       { name: "Descrições", path: "/solicitacao-reserva-hotel/descricao" },
+    ],
+  },
+  {
+    name: "Reconh. Consulado",
+    icon: <FileSignature size={22} />,
+    subItems: [
+      { name: "Solicitações", path: "/solicitacao-reconhecimento-consulado" },
     ],
   },
   {

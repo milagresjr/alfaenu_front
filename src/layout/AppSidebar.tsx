@@ -23,7 +23,8 @@ import {
   ClipboardCheck,
   CalendarDays,
   Plane,
-  Building2
+  Building2,
+  FileSignature
 } from "lucide-react";
 import {
   Tooltip,
@@ -103,6 +104,13 @@ const allNavItems: NavItem[] = [
     subItems: [
       { name: "Solicitações", path: "/solicitacao-reserva-hotel" },
       { name: "Descrições", path: "/solicitacao-reserva-hotel/descricao" },
+    ],
+  },
+  {
+    icon: <FileSignature />,
+    name: "Reconh. Consulado",
+    subItems: [
+      { name: "Solicitações", path: "/solicitacao-reconhecimento-consulado" },
     ],
   },
   {

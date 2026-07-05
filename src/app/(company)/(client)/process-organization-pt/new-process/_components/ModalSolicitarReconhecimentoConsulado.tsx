@@ -10,36 +10,36 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Label } from "@/components/ui/label"
 import { Input } from "@/components/ui/input"
-import { Loader2, Upload, FileText, AlertCircle, Trash2, Eye, CalendarDays } from "lucide-react"
+import { Label } from "@/components/ui/label"
+import { Loader2, Upload, FileText, AlertCircle, Trash2, Eye, FileSignature } from "lucide-react"
 import { toast } from "react-toastify"
 import { MyClienteType } from "@/features/myClient/types"
-import { useCreateAgendamentoExterno } from "@/features/solicitacao-agendamento/hooks/useSoliAgendamentoQuery"
+import { useCreateReconhecimentoConsulado } from "@/features/solicitacao-reconhecimento-consulado/hooks/useReconhecimentoConsuladoQuery"
 
-interface ModalAgendamentoExistenteProps {
+interface ModalSolicitarReconhecimentoConsuladoProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   cliente?: MyClienteType | null
   onSuccess?: () => void
 }
 
-export function ModalAgendamentoExistente({
+export function ModalSolicitarReconhecimentoConsulado({
   open,
   onOpenChange,
   cliente,
   onSuccess,
-}: ModalAgendamentoExistenteProps) {
+}: ModalSolicitarReconhecimentoConsuladoProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const [dataAgendamento, setDataAgendamento] = useState('')
+  const [dataDocumento, setDataDocumento] = useState('')
   const [comprovativo, setComprovativo] = useState<File | null>(null)
   const [erro, setErro] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const createAgendamentoExterno = useCreateAgendamentoExterno()
+  const createReconhecimentoConsulado = useCreateReconhecimentoConsulado()
 
   const handleClose = () => {
-    setDataAgendamento('')
+    setDataDocumento('')
     setComprovativo(null)
     setErro('')
     onOpenChange(false)
@@ -70,8 +70,8 @@ export function ModalAgendamentoExistente({
       return
     }
 
-    if (!dataAgendamento) {
-      setErro('A data do agendamento é obrigatória.')
+    if (!dataDocumento) {
+      setErro('A data do documento é obrigatória.')
       return
     }
 
@@ -86,17 +86,18 @@ export function ModalAgendamentoExistente({
     try {
       const formData = new FormData()
       formData.append('cliente_id', String(cliente.id))
-      formData.append('data_agendamento', dataAgendamento)
-      formData.append('agendamento', comprovativo)
+      formData.append('data_documento', dataDocumento)
+      formData.append('comprovativo', comprovativo)
 
-      createAgendamentoExterno.mutate(formData, {
+      createReconhecimentoConsulado.mutate(formData, {
         onSuccess: () => {
-          toast.success('Agendamento enviado com sucesso!')
+          toast.success('Reconhecimento de termo registado com sucesso!')
           handleClose()
           onSuccess?.()
         },
-        onError: (error: any) => {
-          const msg = error?.response?.data?.message || 'Erro ao enviar agendamento.'
+        onError: (error: Error) => {
+          const err = error as unknown as { response?: { data?: { message?: string } } }
+          const msg = err?.response?.data?.message || 'Erro ao registar reconhecimento de termo.'
           toast.error(msg)
           setErro(msg)
         },
@@ -105,9 +106,9 @@ export function ModalAgendamentoExistente({
         },
       })
     } catch (error) {
-      console.error('Erro ao enviar agendamento:', error)
-      toast.error('Erro ao enviar agendamento.')
-      setErro('Erro ao enviar agendamento.')
+      console.error('Erro ao enviar solicitação:', error)
+      toast.error('Erro ao enviar solicitação.')
+      setErro('Erro ao enviar solicitação.')
       setIsLoading(false)
     }
   }
@@ -118,30 +119,30 @@ export function ModalAgendamentoExistente({
         <div className="p-6">
           <DialogHeader>
             <DialogTitle className="text-2xl flex items-center gap-2">
-              <CalendarDays className="h-6 w-6 text-primary" />
-              Já possuo um agendamento
+              <FileSignature className="h-6 w-6 text-primary" />
+              Reconhecer Termo no Consulado
             </DialogTitle>
             <DialogDescription>
-              Informe a data do agendamento e anexe o documento PDF.
+              Envie o comprovativo de pagamento e a data do documento para reconhecimento no consulado.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
             <div className="space-y-2">
-              <Label htmlFor="data_agendamento">
-                Data do Agendamento <span className="text-red-500">*</span>
+              <Label htmlFor="data_documento">
+                Data do Documento <span className="text-red-500">*</span>
               </Label>
               <Input
-                id="data_agendamento"
+                id="data_documento"
                 type="date"
-                value={dataAgendamento}
-                onChange={(e) => setDataAgendamento(e.target.value)}
+                value={dataDocumento}
+                onChange={(e) => setDataDocumento(e.target.value)}
               />
             </div>
 
             <div className="space-y-2">
               <Label>
-                PDF do Agendamento <span className="text-red-500">*</span>
+                Comprovativo de Pagamento <span className="text-red-500">*</span>
               </Label>
               <div
                 className="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer hover:border-primary/50 transition-colors"
@@ -233,8 +234,8 @@ export function ModalAgendamentoExistente({
                 </>
               ) : (
                 <>
-                  <CalendarDays className="h-4 w-4" />
-                  Enviar
+                  <FileSignature className="h-4 w-4" />
+                  Reconhecer no Consulado
                 </>
               )}
             </Button>

@@ -9,5 +9,6 @@ export type DocumentoProfundoStatus = {
   status_termo_responsabilidade: boolean;
   status_minuta1: boolean;
   status_minuta2: boolean;
+  status_reconhecimento_termo_consulado: "nao_enviado" | "pendente" | "aprovado" | "rejeitado" | "enviado";
   status_geral: "em_andamento" | "concluido";
 }

@@ -67,3 +67,15 @@ export const getDescricaoAtiva = async (): Promise<SolicitacaoAgendamentoDescric
     return null
   }
 }
+
+export const createAgendamentoExterno = async (formData: FormData): Promise<SolicitacaoAgendamentoType> => {
+  try {
+    const response = await api.post<SolicitacaoAgendamentoType>('/solicitacao-agendamento/agendamento-externo', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+    return response.data
+  } catch (error) {
+    console.error('Erro ao criar agendamento externo:', error)
+    throw error
+  }
+}

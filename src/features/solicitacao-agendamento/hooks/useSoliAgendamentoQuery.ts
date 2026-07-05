@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import {
   createSolicitacaoAgendamento,
+  createAgendamentoExterno,
   getSolicitacaoAgendamentoByClienteId,
   getSolicitacaoAgendamentoById,
   getMotivoRejeicaoAgendamento,
@@ -11,6 +12,12 @@ import {
 export const useCreateSolicitacaoAgendamento = () => {
   return useMutation({
     mutationFn: (formData: FormData) => createSolicitacaoAgendamento(formData),
+  })
+}
+
+export const useCreateAgendamentoExterno = () => {
+  return useMutation({
+    mutationFn: (formData: FormData) => createAgendamentoExterno(formData),
   })
 }
 
