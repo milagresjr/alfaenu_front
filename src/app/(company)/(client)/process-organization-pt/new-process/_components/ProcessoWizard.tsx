@@ -11,7 +11,6 @@ import StepSubtipo from "../_steps/StepSubtipo"
 import StepDetalhes from "../_steps/StepDetalhes"
 import StepFinanciamentoOrigem from "../_steps/StepFinanciamentoOrigem"
 import StepMinutas from "../_steps/StepMinutas"
-import StepReview from "../_steps/StepReview"
 import { Button } from "@/components/ui/button"
 import { Save, ArrowLeft, ArrowRight } from "lucide-react"
 import { toast } from "react-toastify"
@@ -48,8 +47,7 @@ export default function ProcessoWizard() {
     "Subtipo",           // Step 3
     "Detalhes",          // Step 4
     "Origem do Finan.",  // Step 5
-    "Minutas",           // Step 6 - Sempre visível
-    "Revisão"            // Step 7
+    "Minutas",           // Step 6 - Redireciona para página de documentos
   ]
   
   const totalSteps = steps.length
@@ -71,8 +69,6 @@ export default function ProcessoWizard() {
         return StepFinanciamentoOrigem
       case "Minutas":
         return StepMinutas
-      case "Revisão":
-        return StepReview
       default:
         return StepCliente
     }
@@ -158,6 +154,7 @@ export default function ProcessoWizard() {
             status: data.status,
           };
           console.log("Meu payload: ",payload);
+          // return;
           await api.post('/processo/progress', {
             cliente_id: data.cliente.id,
             utilizador_id: user?.id,
@@ -203,8 +200,6 @@ export default function ProcessoWizard() {
       case "Origem do Finan.":
         return data.financiamentoOrigem !== null
       case "Minutas":
-        return data.minutaSelecionada !== null
-      case "Revisão":
         return true
       default:
         return true

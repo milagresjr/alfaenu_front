@@ -19,6 +19,7 @@ export type FinanciadorType = {
   local_emissao_documento?: string;
   data_validade_documento?: string;
   tipo_financiador?: string;
+  tipo_trabalho?: string;
   estado?: 'ativo' | 'inativo';
   created_at?: string;
   updated_at?: string;

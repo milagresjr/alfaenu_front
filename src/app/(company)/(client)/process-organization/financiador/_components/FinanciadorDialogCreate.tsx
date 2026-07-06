@@ -41,6 +41,7 @@ const financiadorSchema = z.object({
   local_emissao_documento: z.string().min(1, "Campo obrigatório"),
   data_validade_documento: z.string().min(1, "Campo obrigatório"),
   tipo_financiador: z.string().min(1, "Campo obrigatório"),
+  tipo_trabalho: z.string().min(1, "Campo obrigatório"),
 })
 
 type FormValues = z.infer<typeof financiadorSchema>
@@ -82,6 +83,7 @@ export function FinanciadorDialogCreate({
       local_emissao_documento: "",
       data_validade_documento: "",
       tipo_financiador: "",
+      tipo_trabalho: "",
     },
     mode: "onChange",
   });
@@ -165,6 +167,7 @@ export function FinanciadorDialogCreate({
       setValue("local_emissao_documento", selectedFinanciador.local_emissao_documento || '');
       setValue("data_validade_documento", formatDate(String(selectedFinanciador.data_validade_documento)));
       setValue("tipo_financiador", selectedFinanciador.tipo_financiador || '');
+      setValue("tipo_trabalho", selectedFinanciador.tipo_trabalho || '');
     } else {
       reset();
     }
@@ -345,6 +348,29 @@ export function FinanciadorDialogCreate({
                   </select>
                   {errors.tipo_financiador && (
                     <p className="mt-1.5 text-xs text-error-500">{errors.tipo_financiador.message}</p>
+                  )}
+                </div>
+
+                <div className="col-span-1">
+                  <label className="mb-1.5 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Tipo de Trabalho <span className="text-error-500">*</span>
+                  </label>
+                  <select
+                    {...register("tipo_trabalho")}
+                    className={cn(
+                      "h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden",
+                      "bg-gray-900 text-gray-800 dark:text-white/90",
+                      errors.tipo_trabalho
+                        ? "border-error-500 focus:border-error-300 focus:ring-error-500/20"
+                        : "border-gray-300 dark:border-white/10 focus:border-brand-300 focus:ring-brand-500/20"
+                    )}
+                  >
+                    <option value="">Selecione</option>
+                    <option value="por_conta_propria">Por conta própria</option>
+                    <option value="empregado">Empregado</option>
+                  </select>
+                  {errors.tipo_trabalho && (
+                    <p className="mt-1.5 text-xs text-error-500">{errors.tipo_trabalho.message}</p>
                   )}
                 </div>
               </div>

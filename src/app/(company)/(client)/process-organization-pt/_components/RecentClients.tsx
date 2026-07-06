@@ -44,7 +44,7 @@ export default function RecentClients() {
 
   const { data, isLoading, isError } = useProcessoProgressByUser(String(user?.id));
 
-  console.log("DATA PRA ANALISAR", data);
+  // console.log("DATA PRA ANALISAR", data);
 
   // const { data, isLoading, isError } = useMyClientes(page, perPage, debouncedSearch, selected !== 'todos' ? selected : '');
 
@@ -175,6 +175,14 @@ export default function RecentClients() {
               accessor: (item: any) => (
                 <div className="flex items-center gap-2">
                   <span>{item?.cliente?.n_bi ?? '-'}</span>
+                </div>
+              ),
+            },
+            {
+              header: "Tipo de Visto",
+              accessor: (item: any) => (
+                <div className="flex items-center gap-2">
+                  <span className="capitalize">{item?.tipo_visto ?? '-'}</span>
                 </div>
               ),
             },
