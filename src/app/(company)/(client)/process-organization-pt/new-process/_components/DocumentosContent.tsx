@@ -24,6 +24,9 @@ import {
   Tag,
   ArrowLeft,
   MapPin,
+  ShieldCheck,
+  Fingerprint,
+  FolderOpen,
 } from "lucide-react"
 import { useEffect, useState, useRef } from "react"
 import { ModalPreencherMinuta } from "../_components/ModalPreencherMinuta"
@@ -50,11 +53,17 @@ import { useBaixarDeclaracao, useGetMotivoRejeicao } from "@/features/solicitaca
 import { useGetSolicitacaoAgendamentoByClienteId } from "@/features/solicitacao-agendamento/hooks/useSoliAgendamentoQuery"
 import { useGetSolicitacaoPrintVooByClienteId, useGetMotivoRejeicaoPrintVoo } from "@/features/solicitacao-print-voo/hooks/usePrintVooQuery"
 import { useGetSolicitacaoReservaHotelByClienteId, useGetMotivoRejeicaoReservaHotel } from "@/features/solicitacao-reserva-hotel/hooks/useReservaHotelQuery"
+import { useGetSolicitacaoSeguroViagemByClienteId, useGetMotivoRejeicaoSeguroViagem } from "@/features/solicitacao-seguro-viagem/hooks/useSeguroViagemQuery"
+import { useGetSolicitacaoReconhecimentoRegistoCriminalByClienteId } from "@/features/solicitacao-reconhecimento-registo-criminal/hooks/useReconhecimentoRegistoCriminalQuery"
+
 import { useGetProcessoProgressByClienteId } from "@/features/processo-progress/hooks/useProcessoProgress"
 import { ModalSolicitarReconhecimentoConsulado } from "../_components/ModalSolicitarReconhecimentoConsulado"
 import { useGetReconhecimentoConsuladoByClienteId, useGetMotivoRejeicaoReconhecimentoConsulado } from "@/features/solicitacao-reconhecimento-consulado/hooks/useReconhecimentoConsuladoQuery"
 import { ProcessoData } from "@/types/processo"
 import { ModalPlanoTuristico } from "../_components/ModalPlanoTuristico"
+import { ModalSolicitarSeguroViagem } from "../_components/ModalSolicitarSeguroViagem"
+import { ModalSolicitarReconhecimentoRegistoCriminal } from "../_components/ModalSolicitarReconhecimentoRegistoCriminal"
+import { ModalOutrosDocumentosImportantes } from "../_components/ModalOutrosDocumentosImportantes"
 
 type TipoMinuta =
   | "minuta1"
@@ -66,6 +75,9 @@ type TipoMinuta =
   | "print_voo"
   | "reserva_hotel"
   | "plano_turistico"
+  | "seguro_viagem"
+  | "reconhecimento_registo_criminal"
+  | "outros_documentos_importantes"
 
 interface Minuta {
   id: TipoMinuta
@@ -108,6 +120,30 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
         "Comprovante de reserva",
         "Detalhes da hospedagem",
         "Período da estada",
+      ],
+    },
+    {
+      id: "seguro_viagem",
+      titulo: "Seguro de Viagem",
+      descricao: "Solicitação de seguro de viagem para o período da estada",
+      icone: ShieldCheck,
+      cor: "from-indigo-500 to-blue-500",
+      documentos: [
+        "Comprovativo de seguro",
+        "Detalhes da viagem",
+        "Período de cobertura",
+      ],
+    },
+    {
+      id: "reconhecimento_registo_criminal",
+      titulo: "Reconhecimento de Registo Criminal",
+      descricao: "Solicitação de reconhecimento do registo criminal",
+      icone: Fingerprint,
+      cor: "from-rose-500 to-red-500",
+      documentos: [
+        "Registo criminal",
+        "Comprovativo de entrega",
+        "Documento de identificação",
       ],
     },
     ...(isSchengen ? [{
@@ -195,6 +231,18 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
         "Comprovante de matrícula",
       ],
     },
+    {
+      id: "outros_documentos_importantes",
+      titulo: "Outros Documentos Importantes",
+      descricao: "Checklist de documentos complementares para o processo",
+      icone: FolderOpen,
+      cor: "from-teal-500 to-emerald-500",
+      documentos: [
+        "Extrato bancário do financiador",
+        "Declaração de serviço / Declaração autónoma",
+        "Recibo salarial do financiador",
+      ],
+    },
   ];
 
   return cards;
@@ -223,6 +271,9 @@ export default function DocumentosContent({
   const [isModalOpenSelectedCurso, setIsModalOpenSelectedCurso] = useState(false)
   const [selectedCourse, setSelectedCourse] = useState<CourseType | null>(null)
   const [showPlanoTuristicoModal, setShowPlanoTuristicoModal] = useState(false)
+  const [showSeguroViagemModal, setShowSeguroViagemModal] = useState(false)
+  const [showReconhecimentoRegistoCriminalModal, setShowReconhecimentoRegistoCriminalModal] = useState(false)
+  const [showOutrosDocumentosImportantesModal, setShowOutrosDocumentosImportantesModal] = useState(false)
 
   const { user } = useAuthStore();
 
@@ -235,6 +286,9 @@ export default function DocumentosContent({
   const { data: solicitacaoAgendamento } = useGetSolicitacaoAgendamentoByClienteId(String(data.cliente?.id));
   const { data: solicitacaoPrintVoo } = useGetSolicitacaoPrintVooByClienteId(String(data.cliente?.id));
   const { data: solicitacaoReservaHotel } = useGetSolicitacaoReservaHotelByClienteId(String(data.cliente?.id));
+  const { data: solicitacaoSeguroViagem } = useGetSolicitacaoSeguroViagemByClienteId(String(data.cliente?.id));
+  const { data: solicitacaoReconhecimentoRegistoCriminal } = useGetSolicitacaoReconhecimentoRegistoCriminalByClienteId(String(data.cliente?.id));
+
   const { data: reconhecimentoConsulado } = useGetReconhecimentoConsuladoByClienteId(String(data.cliente?.id));
   const { data: documentoProfundoStatus, refetch: refetchStatus } = useGetDocumentoProfundoStatusByClienteId(String(data.cliente?.id));
   const { data: processoProgress } = useGetProcessoProgressByClienteId(data.cliente?.id ?? 0);
@@ -249,6 +303,9 @@ export default function DocumentosContent({
   );
   const { data: motivoRejeicaoReservaHotel } = useGetMotivoRejeicaoReservaHotel(
     solicitacaoReservaHotel?.status === 'rejeitado' ? solicitacaoReservaHotel.id : ''
+  );
+  const { data: motivoRejeicaoSeguroViagem } = useGetMotivoRejeicaoSeguroViagem(
+    solicitacaoSeguroViagem?.status === 'rejeitado' ? String(solicitacaoSeguroViagem.id) : ''
   );
   const { data: motivoRejeicaoReconhecimento } = useGetMotivoRejeicaoReconhecimentoConsulado(
     reconhecimentoConsulado?.status === 'rejeitado' ? String(reconhecimentoConsulado.id) : ''
@@ -284,6 +341,9 @@ export default function DocumentosContent({
           status_solicitacao_agendamento: "nao_enviado",
           status_solicitacao_print_voo: "nao_enviado",
           status_solicitacao_reserva_hotel: "nao_enviado",
+          status_solicitacao_seguro_viagem: "nao_enviado",
+          status_solicitacao_reconhecimento_registo_criminal: "nao_enviado",
+          status_outros_documentos_importantes: "nao_enviado",
           status_reconhecimento_termo_consulado: "nao_enviado",
           status_formulario: false,
           status_termo_responsabilidade: false,
@@ -341,6 +401,19 @@ export default function DocumentosContent({
                status.status_solicitacao_reserva_hotel === 'aprovado' ||
                status.status_solicitacao_reserva_hotel === 'rejeitado';
 
+      case 'seguro_viagem':
+        return status.status_solicitacao_seguro_viagem === 'pendente' ||
+               status.status_solicitacao_seguro_viagem === 'aprovado' ||
+               status.status_solicitacao_seguro_viagem === 'rejeitado';
+
+      case 'reconhecimento_registo_criminal':
+        return status.status_solicitacao_reconhecimento_registo_criminal === 'pendente' ||
+               status.status_solicitacao_reconhecimento_registo_criminal === 'aprovado';
+
+      case 'outros_documentos_importantes':
+        return status.status_outros_documentos_importantes === 'pendente' ||
+               status.status_outros_documentos_importantes === 'aprovado';
+
       case 'formulario':
       case 'termo_responsabilidade':
       case 'minuta1':
@@ -370,6 +443,15 @@ export default function DocumentosContent({
 
       case 'reserva_hotel':
         return status.status_solicitacao_reserva_hotel;
+
+      case 'seguro_viagem':
+        return status.status_solicitacao_seguro_viagem;
+
+      case 'reconhecimento_registo_criminal':
+        return status.status_solicitacao_reconhecimento_registo_criminal;
+
+      case 'outros_documentos_importantes':
+        return status.status_outros_documentos_importantes;
 
       case 'formulario':
         return status.status_formulario ? 'concluido' : 'nao_enviado';
@@ -454,6 +536,9 @@ export default function DocumentosContent({
       case 'print_voo': return 'Adicionar Voo';
       case 'reserva_hotel': return 'Adicionar Hotel';
       case 'plano_turistico': return 'Criar Plano Turístico';
+      case 'seguro_viagem': return 'Solicitar Seguro de Viagem';
+      case 'reconhecimento_registo_criminal': return 'Solicitar Reconhecimento';
+      case 'outros_documentos_importantes': return 'Ver Checklist';
       default: return 'Abrir';
     }
   };
@@ -573,6 +658,12 @@ export default function DocumentosContent({
       setShowReservaHotelModal(true)
     } else if (minutaId === "plano_turistico") {
       setShowPlanoTuristicoModal(true)
+    } else if (minutaId === "seguro_viagem") {
+      setShowSeguroViagemModal(true)
+    } else if (minutaId === "reconhecimento_registo_criminal") {
+      setShowReconhecimentoRegistoCriminalModal(true)
+    } else if (minutaId === "outros_documentos_importantes") {
+      setShowOutrosDocumentosImportantesModal(true)
     }
   }
 
@@ -705,30 +796,58 @@ export default function DocumentosContent({
       toast.success('Agendamento baixado com sucesso!')
     } else if (minutaId === 'print_voo') {
       if (!solicitacaoPrintVoo?.comprovativo_url) {
-        toast.error('Comprovativo não disponível.')
+        toast.error('Documento não disponível.')
         return
       }
       const a = document.createElement('a')
       a.href = solicitacaoPrintVoo.comprovativo_url
-      a.download = solicitacaoPrintVoo.comprovativo_nome || 'comprovativo_voo.pdf'
+      a.download = solicitacaoPrintVoo.comprovativo_nome || 'documento_voo.pdf'
       a.target = '_blank'
       document.body.appendChild(a)
       a.click()
       a.remove()
-      toast.success('Comprovativo baixado com sucesso!')
+      toast.success('Documento baixado com sucesso!')
     } else if (minutaId === 'reserva_hotel') {
       if (!solicitacaoReservaHotel?.comprovativo_url) {
-        toast.error('Comprovativo não disponível.')
+        toast.error('Documento não disponível.')
         return
       }
       const a = document.createElement('a')
       a.href = solicitacaoReservaHotel.comprovativo_url
-      a.download = solicitacaoReservaHotel.comprovativo_nome || 'comprovativo_hotel.pdf'
+      a.download = solicitacaoReservaHotel.comprovativo_nome || 'documento_hotel.pdf'
+      a.target = '_blank'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      toast.success('Documento baixado com sucesso!')
+    } else if (minutaId === 'outros_documentos_importantes') {
+      toast.info('Nenhum documento para download.')
+    } else if (minutaId === 'reconhecimento_registo_criminal') {
+      if (!solicitacaoReconhecimentoRegistoCriminal?.comprovativo_url) {
+        toast.error('Comprovativo não disponível.')
+        return
+      }
+      const a = document.createElement('a')
+      a.href = solicitacaoReconhecimentoRegistoCriminal.comprovativo_url
+      a.download = solicitacaoReconhecimentoRegistoCriminal.comprovativo_nome || 'comprovativo_reconhecimento_registo_criminal.pdf'
       a.target = '_blank'
       document.body.appendChild(a)
       a.click()
       a.remove()
       toast.success('Comprovativo baixado com sucesso!')
+    } else if (minutaId === 'seguro_viagem') {
+      if (!solicitacaoSeguroViagem?.comprovativo_url) {
+        toast.error('Documento de seguro não disponível.')
+        return
+      }
+      const a = document.createElement('a')
+      a.href = solicitacaoSeguroViagem.comprovativo_url
+      a.download = solicitacaoSeguroViagem.comprovativo_nome || 'documento_seguro_viagem.pdf'
+      a.target = '_blank'
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      toast.success('Documento baixado com sucesso!')
     } else if (minutaId === 'plano_turistico') {
       setShowPlanoTuristicoModal(true)
     }
@@ -751,6 +870,15 @@ export default function DocumentosContent({
         break;
       case 'reserva_hotel':
         updatedStatus.status_solicitacao_reserva_hotel = 'pendente';
+        break;
+      case 'seguro_viagem':
+        updatedStatus.status_solicitacao_seguro_viagem = 'pendente';
+        break;
+      case 'reconhecimento_registo_criminal':
+        updatedStatus.status_solicitacao_reconhecimento_registo_criminal = 'pendente';
+        break;
+      case 'outros_documentos_importantes':
+        updatedStatus.status_outros_documentos_importantes = 'pendente';
         break;
       case 'formulario':
         updatedStatus.status_formulario = true;
@@ -777,6 +905,9 @@ export default function DocumentosContent({
       updatedStatus.status_solicitacao_agendamento === 'pendente' &&
       updatedStatus.status_solicitacao_print_voo === 'pendente' &&
       updatedStatus.status_solicitacao_reserva_hotel === 'pendente' &&
+      updatedStatus.status_solicitacao_seguro_viagem === 'pendente' &&
+      updatedStatus.status_solicitacao_reconhecimento_registo_criminal === 'pendente' &&
+      updatedStatus.status_outros_documentos_importantes === 'pendente' &&
       updatedStatus.status_formulario === true &&
       updatedStatus.status_termo_responsabilidade === true &&
       updatedStatus.status_minuta1 === true &&
@@ -852,10 +983,6 @@ export default function DocumentosContent({
       >
         <div className="space-y-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-sm mb-3">
-              <FileText className="h-3 w-3" />
-              <span className="font-medium">Documentação</span>
-            </div>
             <h2 className="text-2xl font-bold tracking-tight">
               Análise de documentos profundos
             </h2>
@@ -1018,7 +1145,9 @@ export default function DocumentosContent({
                               minuta.id === 'print_voo' && currentStatus === 'aprovado' && solicitacaoPrintVoo?.comprovativo_url
                             ) || (
                               minuta.id === 'reserva_hotel' && currentStatus === 'aprovado' && solicitacaoReservaHotel?.comprovativo_url
-                            )                            ) && (
+                            ) || (
+                              minuta.id === 'seguro_viagem' && currentStatus === 'aprovado' && solicitacaoSeguroViagem?.comprovativo_url
+                            )                           ) && (
                               <Button
                                 type="button"
                                 variant="outline"
@@ -1030,7 +1159,7 @@ export default function DocumentosContent({
                                 className="gap-1"
                               >
                                 <Download className="h-3 w-3" />
-                                {minuta.id === 'solicitar_matricula' ? 'Baixar Declaração' : minuta.id === 'solicitar_agendamento' ? 'Baixar Agendamento' : minuta.id === 'print_voo' ? 'Baixar Comprovativo' : minuta.id === 'reserva_hotel' ? 'Baixar Comprovativo' : minuta.id === 'plano_turistico' ? 'Baixar Plano Turístico' : 'Download'}
+                                {minuta.id === 'solicitar_matricula' ? 'Baixar Declaração' : minuta.id === 'solicitar_agendamento' ? 'Baixar Agendamento' : minuta.id === 'print_voo' ? 'Baixar Documento' : minuta.id === 'reserva_hotel' ? 'Baixar Documento' : minuta.id === 'seguro_viagem' ? 'Baixar Documento' : minuta.id === 'reconhecimento_registo_criminal' ? 'Baixar Comprovativo' : minuta.id === 'plano_turistico' ? 'Baixar Plano Turístico' : 'Download'}
                               </Button>
                             )}
 
@@ -1108,6 +1237,18 @@ export default function DocumentosContent({
                               </p>
                               <p className="text-sm text-red-600 dark:text-red-400 mt-1">
                                 {motivoRejeicaoReservaHotel.motivo_rejeicao}
+                              </p>
+                            </div>
+                          )}
+
+                          {minuta.id === 'seguro_viagem' && currentStatus === 'rejeitado' && motivoRejeicaoSeguroViagem?.motivo_rejeicao && (
+                            <div className="mt-3 p-2 bg-red-50 dark:bg-red-950/20 border border-red-200 rounded-lg">
+                              <p className="text-xs font-medium text-red-600 dark:text-red-400 flex items-center gap-1">
+                                <XCircle className="h-3 w-3" />
+                                Motivo da rejeição:
+                              </p>
+                              <p className="text-sm text-red-600 dark:text-red-400 mt-1">
+                                {motivoRejeicaoSeguroViagem.motivo_rejeicao}
                               </p>
                             </div>
                           )}
@@ -1268,6 +1409,39 @@ export default function DocumentosContent({
         }}
       />
 
+      <ModalSolicitarReconhecimentoRegistoCriminal
+        open={showReconhecimentoRegistoCriminalModal}
+        onOpenChange={setShowReconhecimentoRegistoCriminalModal}
+        cliente={data.cliente}
+        onSuccess={async () => {
+          await updateDocumentStatus('reconhecimento_registo_criminal');
+          refetchStatus();
+        }}
+      />
+
+      <ModalOutrosDocumentosImportantes
+        open={showOutrosDocumentosImportantesModal}
+        onOpenChange={setShowOutrosDocumentosImportantesModal}
+        cliente={data.cliente}
+        financiadorId={data.financiador_id}
+        onSuccess={async () => {
+          await updateDocumentStatus('outros_documentos_importantes');
+          refetchStatus();
+        }}
+      />
+
+      <ModalSolicitarSeguroViagem
+        open={showSeguroViagemModal}
+        onOpenChange={setShowSeguroViagemModal}
+        cliente={data.cliente}
+        dataPrevistaChegada={solicitacaoMatricula?.data_prevista_chegada}
+        dataPrevistaSaida={solicitacaoMatricula?.data_prevista_saida}
+        onSuccess={async () => {
+          await updateDocumentStatus('seguro_viagem');
+          refetchStatus();
+        }}
+      />
+
       <ModalPlanoTuristico
         open={showPlanoTuristicoModal}
         onOpenChange={setShowPlanoTuristicoModal}
@@ -1280,3 +1454,7 @@ export default function DocumentosContent({
     </>
   )
 }
+
+
+
+

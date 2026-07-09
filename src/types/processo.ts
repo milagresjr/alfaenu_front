@@ -25,6 +25,9 @@ export type TipoMinuta =
   | "print_voo"
   | "reserva_hotel"
   | "plano_turistico"
+  | "seguro_viagem"
+  | "reconhecimento_registo_criminal"
+  | "outros_documentos_importantes"
 
 export interface ProcessoData {
   cliente: MyClienteType | null

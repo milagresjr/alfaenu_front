@@ -24,6 +24,9 @@ import {
   CalendarDays,
   Plane,
   Building2,
+  ShieldCheck,
+  Fingerprint,
+  ScrollText,
   FileSignature
 } from "lucide-react";
 import {
@@ -104,6 +107,30 @@ const allNavItems: NavItem[] = [
     subItems: [
       { name: "Solicitações", path: "/solicitacao-reserva-hotel" },
       { name: "Descrições", path: "/solicitacao-reserva-hotel/descricao" },
+    ],
+  },
+  {
+    icon: <ShieldCheck />,
+    name: "Solic. Seguro Viagem",
+    subItems: [
+      { name: "Solicitações", path: "/solicitacao-seguro-viagem" },
+      { name: "Descrições", path: "/solicitacao-seguro-viagem/descricao" },
+    ],
+  },
+  {
+    icon: <Fingerprint />,
+    name: "Reconh. Registo Criminal",
+    subItems: [
+      { name: "Solicitações", path: "/solicitacao-reconhecimento-registo-criminal" },
+      { name: "Configuração", path: "/solicitacao-reconhecimento-registo-criminal/config" },
+    ],
+  },
+  {
+    icon: <ScrollText />,
+    name: "Reconh. Notário",
+    subItems: [
+      { name: "Solicitações", path: "/solicitacao-reconhecimento-notario" },
+      { name: "Configuração", path: "/solicitacao-reconhecimento-notario/config" },
     ],
   },
   {
@@ -228,7 +255,13 @@ const AppSidebar: React.FC = () => {
             "/solicitacao-print-voo/descricao",
             "/solicitacao-reserva-hotel",
             "/solicitacao-reserva-hotel/descricao",
-            "/solicitacao-reconhecimento-consulado"
+            "/solicitacao-seguro-viagem",
+            "/solicitacao-seguro-viagem/descricao",
+            "/solicitacao-reconhecimento-consulado",
+            "/solicitacao-reconhecimento-registo-criminal",
+            "/solicitacao-reconhecimento-registo-criminal/config",
+            "/solicitacao-reconhecimento-notario",
+            "/solicitacao-reconhecimento-notario/config"
           ];
 
           // Se o item principal é restrito, não mostra
@@ -251,7 +284,13 @@ const AppSidebar: React.FC = () => {
               "/solicitacao-print-voo/descricao",
               "/solicitacao-reserva-hotel",
               "/solicitacao-reserva-hotel/descricao",
+              "/solicitacao-seguro-viagem",
+              "/solicitacao-seguro-viagem/descricao",
               "/solicitacao-reconhecimento-consulado",
+              "/solicitacao-reconhecimento-registo-criminal",
+              "/solicitacao-reconhecimento-registo-criminal/config",
+              "/solicitacao-reconhecimento-notario",
+              "/solicitacao-reconhecimento-notario/config",
             ];
 
             const filteredSubItems = item.subItems.filter(

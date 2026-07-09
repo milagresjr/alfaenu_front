@@ -18,6 +18,9 @@ import {
   CalendarDays,
   Plane,
   Building2,
+  ShieldCheck,
+  Fingerprint,
+  ScrollText,
   FileSignature,
 } from "lucide-react";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -84,6 +87,30 @@ const allNavItems = [
     subItems: [
       { name: "Solicitações", path: "/solicitacao-reserva-hotel" },
       { name: "Descrições", path: "/solicitacao-reserva-hotel/descricao" },
+    ],
+  },
+  {
+    name: "Solic. Seguro Viagem",
+    icon: <ShieldCheck size={22} />,
+    subItems: [
+      { name: "Solicitações", path: "/solicitacao-seguro-viagem" },
+      { name: "Descrições", path: "/solicitacao-seguro-viagem/descricao" },
+    ],
+  },
+  {
+    name: "Reconh. Registo Criminal",
+    icon: <Fingerprint size={22} />,
+    subItems: [
+      { name: "Solicitações", path: "/solicitacao-reconhecimento-registo-criminal" },
+      { name: "Configuração", path: "/solicitacao-reconhecimento-registo-criminal/config" },
+    ],
+  },
+  {
+    name: "Reconh. Notário",
+    icon: <ScrollText size={22} />,
+    subItems: [
+      { name: "Solicitações", path: "/solicitacao-reconhecimento-notario" },
+      { name: "Configuração", path: "/solicitacao-reconhecimento-notario/config" },
     ],
   },
   {
@@ -189,7 +216,13 @@ export default function MobileBottomNav() {
             "/solicitacao-print-voo/descricao",
             "/solicitacao-reserva-hotel",
             "/solicitacao-reserva-hotel/descricao",
-            "/solicitacao-reconhecimento-consulado"
+            "/solicitacao-seguro-viagem",
+            "/solicitacao-seguro-viagem/descricao",
+            "/solicitacao-reconhecimento-consulado",
+            "/solicitacao-reconhecimento-registo-criminal",
+            "/solicitacao-reconhecimento-registo-criminal/config",
+            "/solicitacao-reconhecimento-notario",
+            "/solicitacao-reconhecimento-notario/config"
           ];
           if (item.path && restrictedPaths.includes(item.path)) {
             return null;
@@ -210,7 +243,13 @@ export default function MobileBottomNav() {
               "/solicitacao-print-voo/descricao",
               "/solicitacao-reserva-hotel",
               "/solicitacao-reserva-hotel/descricao",
+              "/solicitacao-seguro-viagem",
+              "/solicitacao-seguro-viagem/descricao",
               "/solicitacao-reconhecimento-consulado",
+              "/solicitacao-reconhecimento-registo-criminal",
+              "/solicitacao-reconhecimento-registo-criminal/config",
+              "/solicitacao-reconhecimento-notario",
+              "/solicitacao-reconhecimento-notario/config",
             ];
 
             const filteredSubItems = item.subItems.filter(

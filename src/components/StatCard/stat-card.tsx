@@ -2,11 +2,12 @@ import { ReactNode } from "react";
 
 interface StatCardProps {
   title: string;
-  value: string;
-  change: string;
+  value: string | number;
+  change?: string;
   icon: ReactNode;
   isActive?: boolean;
   onClick?: () => void;
+  className?: string;
 }
 
 export function StatCard({
@@ -44,15 +45,17 @@ export function StatCard({
           <p className="text-left text-sm text-gray-500 dark:text-gray-400">{title}</p>
         </div>
       </div>
-      <span
-        className={`text-sm font-medium ${
-          change.startsWith("+")
-            ? "text-green-600 dark:text-green-400"
-            : "text-red-600 dark:text-red-400"
-        }`}
-      >
-        {change}
-      </span>
+      {change !== undefined && (
+        <span
+          className={`text-sm font-medium ${
+            change.startsWith("+")
+              ? "text-green-600 dark:text-green-400"
+              : "text-red-600 dark:text-red-400"
+          }`}
+        >
+          {change}
+        </span>
+      )}
     </button>
   );
 }
