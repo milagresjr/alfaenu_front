@@ -15,6 +15,7 @@ import { useMyClienteStore } from "@/features/myClient/store/useMyClienteStore"
 import { useDebounce } from "@uidotdev/usehooks"
 import { MyClienteType } from "@/features/myClient/types"
 import { useAuthStore } from "@/store/useAuthStore"
+import { useProcessoProgressByUser } from "@/features/processo-progress/hooks/useProcessoProgress"
 
 export default function StepCliente({ setData, next }: Omit<StepProps, "back">) {
 
@@ -35,6 +36,9 @@ export default function StepCliente({ setData, next }: Omit<StepProps, "back">) 
   const { user } = useAuthStore();
 
   const { data: dataCliente, isLoading, isError } = useMyClientes(String(user?.id), page, perPage, debouncedSearch, selected !== 'todos' ? selected : '');
+
+  const { data: processosEmAndamento } = useProcessoProgressByUser(String(user?.id));
+  const clientesComProcesso = new Set(processosEmAndamento?.data?.map((p) => p.cliente_id) ?? []);
 
   const [clientes, setClientes] = useState<Cliente[]>([
     { id: 1, nome: "João Silva", email: "joao@email.com", telefone: "(11) 99999-9999", documento: "123.456.789-00" },
@@ -98,7 +102,7 @@ export default function StepCliente({ setData, next }: Omit<StepProps, "back">) 
 
         <div className="space-y-2 max-h-96 overflow-y-auto">
           <AnimatePresence>
-            {dataCliente?.data.map((cliente, index) => (
+            {dataCliente?.data.filter((cliente) => !clientesComProcesso.has(cliente.id!)).map((cliente, index) => (
               <motion.div
                 key={cliente.id}
                 initial={{ opacity: 0, y: 20 }}
@@ -144,9 +148,11 @@ export default function StepCliente({ setData, next }: Omit<StepProps, "back">) 
             ))}
           </AnimatePresence>
 
-          {dataCliente?.data.length === 0 && (
+          {dataCliente?.data.filter((cliente) => !clientesComProcesso.has(cliente.id!)).length === 0 && (
             <div className="text-center py-12 text-muted-foreground">
-              Nenhum cliente encontrado
+              {dataCliente?.data.length === 0
+                ? 'Nenhum cliente encontrado'
+                : 'Todos os clientes já possuem um processo em andamento'}
             </div>
           )}
         </div>

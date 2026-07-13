@@ -17,6 +17,7 @@ import { useMyClienteStore } from "@/features/myClient/store/useMyClienteStore";
 import { useDeleteMyCliente } from "@/features/myClient/hooks/useMyClientsQuery";
 import { MyClienteType } from "@/features/myClient/types";
 import { useDeleteProcessoProgress, useProcessoProgressByUser } from "@/features/processo-progress/hooks/useProcessoProgress";
+import { ProcessoProgressType } from "@/features/processo-progress/types";
 import { useClienteProcessoStore } from "@/features/processo-progress/store/clienteProcessoStore";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -82,12 +83,12 @@ export default function RecentClients() {
 
   const queryClient = useQueryClient();
 
-  const handleRemoveFromRecent = async (cliente: MyClienteType) => {
-    setSelectedMyCliente(cliente);
+  const handleRemoveFromRecent = async (item: ProcessoProgressType) => {
+    setSelectedMyCliente(item.cliente ?? null);
     const confirmed = await alert.confirm('Confirmar', 'Tem certeza que deseja excluir o processo do cliente?', 'Sim', 'Não');
     if (confirmed) {
       setSelectedMyCliente(null);
-      deleteProcessProgress.mutate(cliente.id, {
+      deleteProcessProgress.mutate(item.cliente_id, {
         onSuccess: () => {
           queryClient.invalidateQueries({
             queryKey: ["processo-progress"],
@@ -130,7 +131,7 @@ export default function RecentClients() {
         </h1>
       </div>
 
-      <div className="my-4 flex items-center justify-between gap-2">
+      <div className="my-4 flex flex-col-reverse md:flex-row items-center justify-between gap-2">
         <div className="relative w-full md:w-1/3">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
           <Input
@@ -140,7 +141,7 @@ export default function RecentClients() {
             className="pl-10"
           />
         </div>
-        <button onClick={handleNewProcess} className="bg-blue-600 px-4 py-2 rounded-md text-white flex gap-1">
+        <button onClick={handleNewProcess} className="bg-blue-600 px-4 py-2 rounded-md text-white flex justify-center md:justify-start gap-1 w-full md:w-auto">
           <Plus />
           Novo Processo
         </button>

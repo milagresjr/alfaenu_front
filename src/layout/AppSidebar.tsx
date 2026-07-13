@@ -27,7 +27,8 @@ import {
   ShieldCheck,
   Fingerprint,
   ScrollText,
-  FileSignature
+  FileSignature,
+  Search
 } from "lucide-react";
 import {
   Tooltip,
@@ -35,6 +36,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/store/useAuthStore";
 
 // Definição dos tipos de usuário
@@ -166,6 +168,7 @@ const AppSidebar: React.FC = () => {
   const [openSubmenu, setOpenSubmenu] = useState<{ type: "main" | "others"; index: number } | null>(null);
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
+  const [sidebarSearch, setSidebarSearch] = useState("");
 
   const isActive = useCallback((path: string) => path === pathname, [pathname]);
 
@@ -320,11 +323,32 @@ const AppSidebar: React.FC = () => {
     };
   }, [isInternal]);
 
+  // Filtro de pesquisa no sidebar
+  const searchedNavItems = useMemo(() => {
+    if (!sidebarSearch.trim()) return navItems;
+    const term = sidebarSearch.toLowerCase();
+    return navItems.filter((item) => {
+      if (item.name.toLowerCase().includes(term)) return true;
+      if (item.subItems?.some((sub) => sub.name.toLowerCase().includes(term))) return true;
+      return false;
+    });
+  }, [navItems, sidebarSearch]);
+
+  const searchedOthersItems = useMemo(() => {
+    if (!sidebarSearch.trim()) return filteredOthersItems;
+    const term = sidebarSearch.toLowerCase();
+    return filteredOthersItems.filter((item) => {
+      if (item.name.toLowerCase().includes(term)) return true;
+      if (item.subItems?.some((sub) => sub.name.toLowerCase().includes(term))) return true;
+      return false;
+    });
+  }, [filteredOthersItems, sidebarSearch]);
+
   // Abre submenu automaticamente se o path estiver ativo
   useEffect(() => {
     let matched = false;
     ["main", "others"].forEach((menuType) => {
-      const items = menuType === "main" ? navItems : filteredOthersItems;
+      const items = menuType === "main" ? searchedNavItems : searchedOthersItems;
       items.forEach((nav, index) => {
         if (nav.subItems?.some((sub) => isActive(sub.path))) {
           setOpenSubmenu({ type: menuType as "main" | "others", index });
@@ -333,7 +357,7 @@ const AppSidebar: React.FC = () => {
       });
     });
     if (!matched) setOpenSubmenu(null);
-  }, [pathname, isActive, navItems, filteredOthersItems]);
+  }, [pathname, isActive, searchedNavItems, searchedOthersItems]);
 
   // Define altura animada dos submenus
   useEffect(() => {
@@ -532,10 +556,22 @@ const AppSidebar: React.FC = () => {
                 >
                   {isExpanded || isMobileOpen ? "Menu" : <HorizontaLDots />}
                 </h2>
-                {renderMenuItems(navItems, "main")}
+
+                {(isExpanded || isMobileOpen) && (
+                  <div className="relative mb-4">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Input
+                      placeholder="Pesquisar..."
+                      value={sidebarSearch}
+                      onChange={(e) => setSidebarSearch(e.target.value)}
+                      className="pl-9 h-9 text-sm text-gray-600 dark:text-white"
+                    />
+                  </div>
+                )}
+                {renderMenuItems(searchedNavItems, "main")}
               </div>
 
-              {filteredOthersItems.length > 0 && (
+              {searchedOthersItems.length > 0 && (
                 <div className="">
                   <h2
                     className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${!isExpanded ? "lg:justify-center" : "justify-start"
@@ -543,7 +579,7 @@ const AppSidebar: React.FC = () => {
                   >
                     {isExpanded || isMobileOpen ? "Outros" : <HorizontaLDots />}
                   </h2>
-                  {renderMenuItems(filteredOthersItems, "others")}
+                  {renderMenuItems(searchedOthersItems, "others")}
                 </div>
               )}
             </div>

@@ -35,3 +35,27 @@ export const chartData = async (): Promise<ChartDataPaginated> => {
     throw error;
   }
 }
+
+export interface ExternalDashboardData {
+  totalActiveProcesses: number;
+  totalMyClients: number;
+  pendingDocuments: number;
+  monthlyProcesses: number[];
+  documentStatusCounts: {
+    pendente: number;
+    aprovado: number;
+    nao_enviado: number;
+    rejeitado: number;
+    concluido: number;
+  };
+}
+
+export const externalDashboardData = async (userId: number | string): Promise<ExternalDashboardData> => {
+  try {
+    const response = await api.get<ExternalDashboardData>(`${API_URL}/external-data/${userId}`);
+    return response.data;
+  } catch (error) {
+    console.log("Erro ao buscar dados do dashboard externo", error);
+    throw error;
+  }
+}

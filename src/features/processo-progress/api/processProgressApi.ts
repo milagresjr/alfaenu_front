@@ -16,9 +16,17 @@ export const getProcessoProgress = async (): Promise<ProcessoProgressType[]> => 
     }
 };
 
-export const getProcessoProgressByUser = async (id: number | string): Promise<ProcessoProgressType[]> => {
+export interface PaginatedProcessoProgress {
+    data: ProcessoProgressType[];
+    current_page: number;
+    per_page: number;
+    total: number;
+    last_page: number;
+}
+
+export const getProcessoProgressByUser = async (id: number | string): Promise<PaginatedProcessoProgress> => {
     try {
-        const response = await api.get<ProcessoProgressType[]>(`${API_URL}/utilizador/${id}`);
+        const response = await api.get<PaginatedProcessoProgress>(`${API_URL}/utilizador/${id}`);
         return response.data;
     } catch (error) {
         console.error('Erro ao buscar ProcessProgress:', error);

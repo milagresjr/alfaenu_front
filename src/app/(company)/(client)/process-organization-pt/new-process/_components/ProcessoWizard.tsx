@@ -230,9 +230,9 @@ export default function ProcessoWizard() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-200px)] py-8 w-full ">
-      <div className="w-6xl mx-auto px-4 lg:max-0 lg:w-full">
-        <div className="bg-card rounded-2xl w-full shadow-xl border p-6 md:p-8">
+    <div className="min-h-[calc(100vh-200px)] py-4 sm:py-8 w-full">
+      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+        <div className="bg-card rounded-2xl w-full shadow-xl border p-4 sm:p-6 md:p-8">
           {/* Header */}
           <div className="flex justify-between items-start mb-6 pb-4 border-b flex-wrap gap-4">
             <div className="flex-1">
@@ -254,14 +254,16 @@ export default function ProcessoWizard() {
           </div>
 
           {/* Progress */}
-          <StepProgress
-            currentStep={currentStepIndex}
-            totalSteps={totalSteps}
-            steps={steps}
-          />
+          <div className="overflow-x-auto pb-2 -mx-4 sm:-mx-0 px-4 sm:px-0">
+            <StepProgress
+              currentStep={currentStepIndex}
+              totalSteps={totalSteps}
+              steps={steps}
+            />
+          </div>
 
           {/* Steps Content */}
-          <div className="mt-8 min-h-[500px]">
+          <div className="mt-8">
             <AnimatePresence mode="wait">
               <CurrentStepComponent
                 key={step}

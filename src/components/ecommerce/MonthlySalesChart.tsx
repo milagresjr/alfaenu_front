@@ -18,7 +18,7 @@ interface MonthlySalesChartProps {
 
 export default function MonthlySalesChart({ monthlyContracts, monthlyDocs }: MonthlySalesChartProps) {
   const options: ApexOptions = {
-    colors: ["#465fff","#FF8C00"],
+    colors: ["#6366f1", "#10b981"],
     chart: {
       fontFamily: "Outfit, sans-serif",
       type: "bar",
@@ -31,7 +31,7 @@ export default function MonthlySalesChart({ monthlyContracts, monthlyDocs }: Mon
       bar: {
         horizontal: false,
         columnWidth: "39%",
-        borderRadius: 5,
+        borderRadius: 6,
         borderRadiusApplication: "end",
       },
     },
@@ -45,18 +45,8 @@ export default function MonthlySalesChart({ monthlyContracts, monthlyDocs }: Mon
     },
     xaxis: {
       categories: [
-        "Jan",
-        "Feb",
-        "Mar",
-        "Apr",
-        "May",
-        "Jun",
-        "Jul",
-        "Aug",
-        "Sep",
-        "Oct",
-        "Nov",
-        "Dec",
+        "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+        "Jul", "Ago", "Set", "Out", "Nov", "Dez",
       ],
       axisBorder: {
         show: false,
@@ -64,19 +54,38 @@ export default function MonthlySalesChart({ monthlyContracts, monthlyDocs }: Mon
       axisTicks: {
         show: false,
       },
+      labels: {
+        style: {
+          colors: "#9ca3af",
+          fontSize: "12px",
+        },
+      },
     },
     legend: {
       show: true,
       position: "top",
       horizontalAlign: "left",
       fontFamily: "Outfit",
+      labels: {
+        colors: "#6b7280",
+      },
+      markers: {
+        shape: "circle",
+      },
     },
     yaxis: {
       title: {
         text: undefined,
       },
+      labels: {
+        style: {
+          colors: "#9ca3af",
+          fontSize: "12px",
+        },
+      },
     },
     grid: {
+      borderColor: "#f3f4f6",
       yaxis: {
         lines: {
           show: true,
@@ -117,9 +126,10 @@ export default function MonthlySalesChart({ monthlyContracts, monthlyDocs }: Mon
   }
 
   return (
-    <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white px-5 pt-5 dark:border-gray-800 dark:bg-white/[0.03] sm:px-6 sm:pt-6">
-      <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-800 dark:text-white/90">
+    <div className="relative overflow-hidden rounded-xl border border-gray-200 bg-white px-5 pt-5 shadow-sm ring-1 ring-blue-500/20 transition-all duration-200 hover:shadow-md dark:border-white/[0.08] dark:bg-gray-900 dark:ring-white/[0.08] sm:px-6 sm:pt-6">
+      <div className="pointer-events-none absolute inset-0 rounded-xl bg-gradient-to-b from-blue-500/10 via-blue-500/5 to-transparent" />
+      <div className="relative flex items-center justify-between">
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400">
           Dados Mensais
         </h3>
 

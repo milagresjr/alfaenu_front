@@ -134,8 +134,8 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
         "Período de cobertura",
       ],
     },
-    {
-      id: "reconhecimento_registo_criminal",
+    ...(!isSchengen ? [{
+      id: "reconhecimento_registo_criminal" as TipoMinuta,
       titulo: "Reconhecimento de Registo Criminal",
       descricao: "Solicitação de reconhecimento do registo criminal",
       icone: Fingerprint,
@@ -145,7 +145,7 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
         "Comprovativo de entrega",
         "Documento de identificação",
       ],
-    },
+    }] : []),
     ...(isSchengen ? [{
       id: "plano_turistico" as TipoMinuta,
       titulo: "Plano Turístico",
