@@ -73,7 +73,7 @@ export default function DescricaoList() {
     })
   }
 
-  const handleSave = (data: { descricao: string; status: boolean }, id?: string) => {
+  const handleSave = (data: { descricao: string; tipo: string; status: boolean }, id?: string) => {
     if (id) {
       updateMutation.mutate(
         { id, data },
@@ -130,7 +130,16 @@ export default function DescricaoList() {
             accessor: (descricao: SolicitacaoAgendamentoDescricaoType) => (
               <span className="text-sm line-clamp-2 max-w-md">{descricao.descricao}</span>
             ),
-            width: "55%",
+            width: "45%",
+          },
+          {
+            header: "Tipo",
+            accessor: (descricao: SolicitacaoAgendamentoDescricaoType) => (
+              <Badge variant="outline" className={descricao.tipo === 'schengen' ? 'text-purple-600 bg-purple-100 border-purple-500' : 'text-blue-600 bg-blue-100 border-blue-500'}>
+                {descricao.tipo === 'schengen' ? 'Schengen' : 'Nacional'}
+              </Badge>
+            ),
+            width: "10%",
           },
           {
             header: "Ativo",

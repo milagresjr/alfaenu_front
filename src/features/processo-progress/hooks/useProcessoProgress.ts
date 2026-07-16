@@ -86,11 +86,49 @@ export const useDeleteProcessoProgress = () => {
     const queryClient = useQueryClient();
     const mutation = useMutation({
         mutationFn: (idCliente: number | undefined) => deleteProcessoProgress(idCliente),
-        onSuccess: () => {
+        onSuccess: (_data, clienteId) => {
             queryClient.invalidateQueries({
                 queryKey: ["processo-progress"],
                 exact: false,
             });
+            if (clienteId) {
+                queryClient.invalidateQueries({
+                    queryKey: ["documentoProfundoStatus", clienteId],
+                    exact: false,
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["solicitacaoMatricula", clienteId],
+                    exact: false,
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["solicitacaoAgendamento", clienteId],
+                    exact: false,
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["solicitacaoPrintVoo", clienteId],
+                    exact: false,
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["solicitacaoReservaHotel", clienteId],
+                    exact: false,
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["solicitacaoSeguroViagem", clienteId],
+                    exact: false,
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["reconhecimentoRegistoCriminal", clienteId],
+                    exact: false,
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["solicitacao-reconhecimento-notario", clienteId],
+                    exact: false,
+                });
+                queryClient.invalidateQueries({
+                    queryKey: ["reconhecimentoConsulado", clienteId],
+                    exact: false,
+                });
+            }
         },
     });
 

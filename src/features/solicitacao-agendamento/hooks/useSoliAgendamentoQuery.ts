@@ -51,10 +51,10 @@ export const useDownloadAgendamentoPdf = () => {
   })
 }
 
-export const useGetDescricaoAtiva = () => {
+export const useGetDescricaoAtiva = (tipo?: string) => {
   return useQuery({
-    queryKey: ['descricaoAgendamentoAtiva'],
-    queryFn: () => getDescricaoAtiva(),
+    queryKey: ['descricaoAgendamentoAtiva', tipo],
+    queryFn: () => getDescricaoAtiva(tipo),
     staleTime: 1000 * 60 * 10,
   })
 }

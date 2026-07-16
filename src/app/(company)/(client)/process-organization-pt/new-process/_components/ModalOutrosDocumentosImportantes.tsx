@@ -26,6 +26,10 @@ interface ModalOutrosDocumentosImportantesProps {
   onOpenChange: (open: boolean) => void
   cliente?: MyClienteType | null
   financiadorId?: number | string | null
+  checklistExtrato?: boolean
+  checklistDeclaracao?: boolean
+  checklistRecibo?: boolean
+  onChecklistChange?: (key: 'checklist_extrato_bancario' | 'checklist_declaracao' | 'checklist_recibo_salarial', value: boolean) => void
   onSuccess?: () => void
 }
 
@@ -48,6 +52,10 @@ export function ModalOutrosDocumentosImportantes({
   onOpenChange,
   cliente,
   financiadorId,
+  checklistExtrato = false,
+  checklistDeclaracao = false,
+  checklistRecibo = false,
+  onChecklistChange,
   onSuccess,
 }: ModalOutrosDocumentosImportantesProps) {
   const [step, setStep] = useState<Step>('checklist')
@@ -76,11 +84,16 @@ export function ModalOutrosDocumentosImportantes({
   const ultimosTresMeses = getUltimosTresMeses()
 
   useEffect(() => {
+    if (open) {
+      setExtratoChecked(checklistExtrato)
+      setDeclaracaoChecked(checklistDeclaracao)
+      setReciboChecked(checklistRecibo)
+    }
+  }, [open, checklistExtrato, checklistDeclaracao, checklistRecibo])
+
+  useEffect(() => {
     if (!open) {
       setStep('checklist')
-      setExtratoChecked(false)
-      setDeclaracaoChecked(false)
-      setReciboChecked(false)
       setDeclaracaoAutonomaUrl(null)
       setTipoEntrega(null)
       setEnderecoEntrega('')
@@ -113,6 +126,7 @@ export function ModalOutrosDocumentosImportantes({
       if (result.declaracao_autonoma_url) {
         setDeclaracaoAutonomaUrl(result.declaracao_autonoma_url)
         setDeclaracaoChecked(true)
+        onChecklistChange?.('checklist_declaracao', true)
         toast.success('Declaração autónoma gerada com sucesso!')
       }
     } catch {
@@ -242,7 +256,11 @@ export function ModalOutrosDocumentosImportantes({
                   <input
                     type="checkbox"
                     checked={extratoChecked}
-                    onChange={() => setExtratoChecked(!extratoChecked)}
+                    onChange={() => {
+                      const newVal = !extratoChecked
+                      setExtratoChecked(newVal)
+                      onChecklistChange?.('checklist_extrato_bancario', newVal)
+                    }}
                     className="hidden"
                   />
                   <div>
@@ -321,7 +339,11 @@ export function ModalOutrosDocumentosImportantes({
                     <input
                       type="checkbox"
                       checked={declaracaoChecked}
-                      onChange={() => setDeclaracaoChecked(!declaracaoChecked)}
+                      onChange={() => {
+                        const newVal = !declaracaoChecked
+                        setDeclaracaoChecked(newVal)
+                        onChecklistChange?.('checklist_declaracao', newVal)
+                      }}
                       className="hidden"
                     />
                     <div>
@@ -346,7 +368,11 @@ export function ModalOutrosDocumentosImportantes({
                   <input
                     type="checkbox"
                     checked={reciboChecked}
-                    onChange={() => setReciboChecked(!reciboChecked)}
+                    onChange={() => {
+                      const newVal = !reciboChecked
+                      setReciboChecked(newVal)
+                      onChecklistChange?.('checklist_recibo_salarial', newVal)
+                    }}
                     className="hidden"
                   />
                   <div>
@@ -386,6 +412,9 @@ export function ModalOutrosDocumentosImportantes({
                         setExtratoChecked(true)
                         setDeclaracaoChecked(true)
                         setReciboChecked(true)
+                        onChecklistChange?.('checklist_extrato_bancario', true)
+                        onChecklistChange?.('checklist_declaracao', true)
+                        onChecklistChange?.('checklist_recibo_salarial', true)
                         return
                       }
                       setErro('')

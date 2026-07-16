@@ -262,7 +262,8 @@ export function ClientDialogCreate({
       setValue("pais_nascimento", selectedMyCliente.pais_nascimento || '');
 
       const tipoDoc = selectedMyCliente.tipo_documento_viagem;
-      if (tipoDoc && tipoDoc !== "passaporte") {
+      const opcoesPassaporte = ["passaporte_comum", "passaporte_diplomatico", "passaporte_servico", "passaporte_oficial", "passaporte_especial"];
+      if (tipoDoc && !opcoesPassaporte.includes(tipoDoc) && tipoDoc !== "outro") {
         setValue("tipo_documento_viagem", "outro");
         setValue("outro_tipo_documento", tipoDoc);
       } else {
@@ -654,8 +655,12 @@ export function ClientDialogCreate({
                           )}
                         >
                           <option value="">Selecione</option>
-                          <option value="passaporte">Passaporte</option>
-                          <option value="outro">Outro</option>
+                          <option value="passaporte_comum">Passaporte Comum</option>
+                          <option value="passaporte_diplomatico">Passaporte Diplomático</option>
+                          <option value="passaporte_servico">Passaporte de Serviço</option>
+                          <option value="passaporte_oficial">Passaporte Oficial</option>
+                          <option value="passaporte_especial">Passaporte Especial</option>
+                          <option value="outro">Outro (especificar)</option>
                         </select>
                       </div>
 

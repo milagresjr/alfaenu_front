@@ -17,7 +17,7 @@ import { SolicitacaoAgendamentoDescricaoType } from "@/features/solicitacao-agen
 interface DescricaoDialogProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSave: (data: { descricao: string; status: boolean }, id?: string) => void
+  onSave: (data: { descricao: string; tipo: string; status: boolean }, id?: string) => void
   descricao?: SolicitacaoAgendamentoDescricaoType | null
   isLoading?: boolean
 }
@@ -30,6 +30,7 @@ export function DescricaoDialog({
   isLoading,
 }: DescricaoDialogProps) {
   const [texto, setTexto] = useState('')
+  const [tipo, setTipo] = useState('nacional')
   const [status, setStatus] = useState(false)
   const [erro, setErro] = useState('')
 
@@ -37,9 +38,11 @@ export function DescricaoDialog({
     if (open) {
       if (descricao) {
         setTexto(descricao.descricao)
+        setTipo(descricao.tipo || 'nacional')
         setStatus(descricao.status)
       } else {
         setTexto('')
+        setTipo('nacional')
         setStatus(false)
       }
       setErro('')
@@ -52,7 +55,7 @@ export function DescricaoDialog({
       return
     }
     setErro('')
-    onSave({ descricao: texto.trim(), status }, descricao?.id)
+    onSave({ descricao: texto.trim(), tipo, status }, descricao?.id)
   }
 
   return (
@@ -83,6 +86,36 @@ export function DescricaoDialog({
             />
           </div>
 
+          <div className="space-y-2">
+            <label className="text-sm font-medium">
+              Tipo de Visto <span className="text-red-500">*</span>
+            </label>
+            <div className="flex gap-4">
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="tipo"
+                  value="nacional"
+                  checked={tipo === 'nacional'}
+                  onChange={(e) => setTipo(e.target.value)}
+                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                />
+                <span className="text-sm">Nacional</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="radio"
+                  name="tipo"
+                  value="schengen"
+                  checked={tipo === 'schengen'}
+                  onChange={(e) => setTipo(e.target.value)}
+                  className="h-4 w-4 text-primary focus:ring-primary border-gray-300"
+                />
+                <span className="text-sm">Schengen</span>
+              </label>
+            </div>
+          </div>
+
           <div className="flex items-center gap-2">
             <input
               type="checkbox"
@@ -99,7 +132,7 @@ export function DescricaoDialog({
           <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 flex items-start gap-2">
             <Info className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 shrink-0" />
             <p className="text-xs text-blue-700 dark:text-blue-300">
-              Apenas uma descrição pode estar ativa por vez. Se esta for ativada, as demais serão desativadas automaticamente.
+              Apenas uma descrição por tipo de visto pode estar ativa por vez. Se esta for ativada, as demais do mesmo tipo serão desativadas automaticamente.
             </p>
           </div>
 

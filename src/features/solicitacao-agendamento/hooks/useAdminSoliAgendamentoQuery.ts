@@ -62,7 +62,7 @@ export const useGetDescricoes = () => {
 export const useCreateDescricao = () => {
   const queryClient = useQueryClient()
   return useMutation({
-    mutationFn: (data: { descricao: string; status?: boolean }) => createDescricao(data),
+    mutationFn: (data: { descricao: string; tipo: string; status?: boolean }) => createDescricao(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['descricoes-agendamento'] })
     },

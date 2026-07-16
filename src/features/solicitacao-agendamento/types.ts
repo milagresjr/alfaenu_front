@@ -40,6 +40,7 @@ export interface PaginatedSolicitacaoAgendamento {
 export interface SolicitacaoAgendamentoDescricaoType {
   id: string
   descricao: string
+  tipo: string
   status: boolean
   created_at?: string
   updated_at?: string

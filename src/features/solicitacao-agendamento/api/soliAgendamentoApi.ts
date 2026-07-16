@@ -55,9 +55,9 @@ export const downloadAgendamentoPdf = async (id: string): Promise<Blob> => {
   }
 }
 
-export const getDescricaoAtiva = async (): Promise<SolicitacaoAgendamentoDescricaoType | null> => {
+export const getDescricaoAtiva = async (tipo?: string): Promise<SolicitacaoAgendamentoDescricaoType | null> => {
   try {
-    const response = await api.get('/solicitacao-agendamento-descricao')
+    const response = await api.get('/solicitacao-agendamento-descricao', { params: { tipo } })
     const body = response.data
     const descricoes = body?.data ?? body
     const arr = Array.isArray(descricoes) ? descricoes : []

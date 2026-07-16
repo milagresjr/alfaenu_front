@@ -85,7 +85,7 @@ export default function DocumentosPage() {
 
   return (
     <div className="min-h-[calc(100vh-200px)] py-4 sm:py-8 w-full">
-      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="w-full mx-auto px-4 sm:px-6">
         <div className="bg-card rounded-2xl w-full shadow-xl border p-4 sm:p-6 md:p-8">
           <DocumentosContent
             data={data}

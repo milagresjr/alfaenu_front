@@ -10,8 +10,9 @@ export interface Cliente {
 }
 
 export type TipoVisto = "nacional" | "schengen"
+export type NumeroEntradas = "uma" | "duas" | "multiplas"
 export type SubtipoNacional = "formacao" | "trabalho" | "estudante"
-export type SubtipoSchengen = "turismo" | "negocios" | "familiar"
+export type SubtipoSchengen = "turismo" | "negocios" | "familiar" | "estudos" | "cultural" | "desporto" | "visita_oficial" | "razoes_medicas" | "escala_aeronautica" | "outro"
 export type Subtipo = SubtipoNacional | SubtipoSchengen
 export type Financiamento = "financiado" | "auto"
 export type OrigemFinanciamento = "nacional" | "estrangeiro"
@@ -19,6 +20,7 @@ export type TipoMinuta =
   | "minuta1" 
   | "minuta2" 
   | "formulario" 
+  | "formulario_schengen"
   | "termo_responsabilidade" 
   | "solicitar_agendamento" 
   | "solicitar_matricula"
@@ -32,7 +34,13 @@ export type TipoMinuta =
 export interface ProcessoData {
   cliente: MyClienteType | null
   tipoVisto: TipoVisto | null
+  objectivoViagem?: string
+  numeroEntradas?: NumeroEntradas
   subtipo: Subtipo | null
+  subtipoOutroDescricao?: string
+  dataPrevisaoChegada?: string
+  quantidadeDias?: number
+  dataPrevisaoSaida?: string
   financiamento: Financiamento | null
   financiamentoOrigem?: OrigemFinanciamento | null
   financiador_id?: number | null

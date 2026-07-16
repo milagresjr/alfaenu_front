@@ -37,9 +37,10 @@ import { useSaveProcessoProgress } from "@/features/processo-progress/hooks/useP
 import { toast } from "react-toastify"
 import { ModalSelecionarCurso } from "../_components/ModalSelecionarCurso"
 import { CourseType } from "@/features/course/types"
-import { ModalEmitirTermoResponsabilidade } from "../_components/ModalEmitirTermoResponsabilidade"
-import { ModalEmitirFormulario } from "../_components/ModalEmitirFormulario"
-import { ModalSolicitarAgendamento } from "../_components/ModalSolicitarAgendamento"
+import { ModalEmitirTermoResponsabilidade } from "../_components/ModalEmitirTermoResponsabilidade";
+import { ModalEmitirFormulario } from "../_components/ModalEmitirFormulario";
+import { ModalEmitirFormularioSchengen } from "../_components/ModalEmitirFormularioSchengen";
+import { ModalSolicitarAgendamento } from "../_components/ModalSolicitarAgendamento";
 import { ModalAgendamentoExistente } from "../_components/ModalAgendamentoExistente"
 import { ModalSolicitarPrintVoo } from "../_components/ModalSolicitarPrintVoo"
 import { ModalSolicitarReservaHotel } from "../_components/ModalSolicitarReservaHotel"
@@ -69,6 +70,7 @@ type TipoMinuta =
   | "minuta1"
   | "minuta2"
   | "formulario"
+  | "formulario_schengen"
   | "termo_responsabilidade"
   | "solicitar_agendamento"
   | "solicitar_matricula"
@@ -99,7 +101,7 @@ interface DocumentosContentProps {
 const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta[] => {
   const cards: Minuta[] = [
     {
-      id: "print_voo",
+      id: "print_voo" as TipoMinuta,
       titulo: "Print de Voo",
       descricao: "Comprovante de reserva ou bilhete de passagem aérea",
       icone: Plane,
@@ -111,7 +113,7 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
       ],
     },
     {
-      id: "reserva_hotel",
+      id: "reserva_hotel" as TipoMinuta,
       titulo: "Reserva de Hotel",
       descricao: "Comprovante de reserva de hospedagem durante a estada",
       icone: Building2,
@@ -123,7 +125,7 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
       ],
     },
     {
-      id: "seguro_viagem",
+      id: "seguro_viagem" as TipoMinuta,
       titulo: "Seguro de Viagem",
       descricao: "Solicitação de seguro de viagem para o período da estada",
       icone: ShieldCheck,
@@ -159,7 +161,7 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
       ],
     }] : []),
     {
-      id: "solicitar_agendamento",
+      id: "solicitar_agendamento" as TipoMinuta,
       titulo: "Solicitar Agendamento",
       descricao: "Formulário para agendamento de entrevista ou entrega de documentos",
       icone: Calendar,
@@ -183,8 +185,8 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
         "Comprovante de pagamento",
       ],
     }] : []),
-    {
-      id: "formulario",
+    ...(!isSchengen ? [{
+      id: "formulario" as TipoMinuta,
       titulo: "Formulário",
       descricao: "Formulário padrão para preenchimento de dados do processo",
       icone: ClipboardList,
@@ -194,9 +196,23 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
         "Informações do curso",
         "Dados do financiamento",
       ],
-    },
+    }] : []),
+    // Formulário Schengen - substitui o Formulário nacional quando for visto Schengen
+    ...(isSchengen ? [{
+      id: "formulario_schengen" as TipoMinuta,
+      titulo: "Formulário Schengen",
+      descricao: "Formulário oficial de pedido de visto Schengen (uniforme)",
+      icone: ClipboardList,
+      cor: "from-emerald-500 to-teal-500",
+      documentos: [
+        "Dados de identificação",
+        "Documento de viagem",
+        "Objetivo da viagem",
+        "Meios de subsistência",
+      ],
+    }] : []),
     {
-      id: "termo_responsabilidade",
+      id: "termo_responsabilidade" as TipoMinuta,
       titulo: "Exemplo Termo de Responsabilidade",
       descricao: "Modelo de termo de responsabilidade financeira",
       icone: FileSignature,
@@ -208,7 +224,7 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
       ],
     },
     {
-      id: "minuta1",
+      id: "minuta1" as TipoMinuta,
       titulo: "Minuta 1 (DECLARAÇÃO DE ESTADA PREVISTA)",
       descricao: "Documento padrão para solicitação de visto de formação profissional",
       icone: FileSignature,
@@ -220,7 +236,7 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
       ],
     },
     {
-      id: "minuta2",
+      id: "minuta2" as TipoMinuta,
       titulo: "Minuta 2 (CARTA DE INTENÇÃO)",
       descricao: "Modelo alternativo para casos específicos de formação",
       icone: FileText,
@@ -232,7 +248,7 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
       ],
     },
     {
-      id: "outros_documentos_importantes",
+      id: "outros_documentos_importantes" as TipoMinuta,
       titulo: "Outros Documentos Importantes",
       descricao: "Checklist de documentos complementares para o processo",
       icone: FolderOpen,
@@ -245,7 +261,7 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
     },
   ];
 
-  return cards;
+  return cards as Minuta[];
 }
 
 export default function DocumentosContent({
@@ -263,6 +279,7 @@ export default function DocumentosContent({
   const [showMatriculaPage, setShowMatriculaPage] = useState(false);
   const [showTermoResponsabilidadeModal, setShowTermoResponsabilidadeModal] = useState(false);
   const [showFormularioModal, setShowFormularioModal] = useState(false);
+  const [showFormularioSchengenModal, setShowFormularioSchengenModal] = useState(false);
   const [showAgendamentoModal, setShowAgendamentoModal] = useState(false);
   const [showAgendamentoExistenteModal, setShowAgendamentoExistenteModal] = useState(false);
   const [showPrintVooModal, setShowPrintVooModal] = useState(false);
@@ -283,10 +300,10 @@ export default function DocumentosContent({
   const saveProcessoProgress = useSaveProcessoProgress();
   const isSchengen = data.tipoVisto === "schengen"
   const { data: solicitacaoMatricula } = useGetSolicitacaoMatriculaByClienteId(String(data.cliente?.id));
-  const { data: solicitacaoAgendamento } = useGetSolicitacaoAgendamentoByClienteId(String(data.cliente?.id));
-  const { data: solicitacaoPrintVoo } = useGetSolicitacaoPrintVooByClienteId(String(data.cliente?.id));
+  const { data: solicitacaoAgendamento, refetch: refetchAgendamento } = useGetSolicitacaoAgendamentoByClienteId(String(data.cliente?.id));
+  const { data: solicitacaoPrintVoo, refetch: refetchPrintVoo } = useGetSolicitacaoPrintVooByClienteId(String(data.cliente?.id));
   const { data: solicitacaoReservaHotel } = useGetSolicitacaoReservaHotelByClienteId(String(data.cliente?.id));
-  const { data: solicitacaoSeguroViagem } = useGetSolicitacaoSeguroViagemByClienteId(String(data.cliente?.id));
+  const { data: solicitacaoSeguroViagem, refetch: refetchSeguroViagem } = useGetSolicitacaoSeguroViagemByClienteId(String(data.cliente?.id));
   const { data: solicitacaoReconhecimentoRegistoCriminal } = useGetSolicitacaoReconhecimentoRegistoCriminalByClienteId(String(data.cliente?.id));
 
   const { data: reconhecimentoConsulado } = useGetReconhecimentoConsuladoByClienteId(String(data.cliente?.id));
@@ -346,9 +363,13 @@ export default function DocumentosContent({
           status_outros_documentos_importantes: "nao_enviado",
           status_reconhecimento_termo_consulado: "nao_enviado",
           status_formulario: false,
+          status_formulario_schengen: false,
           status_termo_responsabilidade: false,
           status_minuta1: false,
           status_minuta2: false,
+          checklist_extrato_bancario: false,
+          checklist_declaracao: false,
+          checklist_recibo_salarial: false,
           status_geral: "em_andamento",
         }, {
           onSuccess: () => {
@@ -415,6 +436,7 @@ export default function DocumentosContent({
                status.status_outros_documentos_importantes === 'aprovado';
 
       case 'formulario':
+      case 'formulario_schengen':
       case 'termo_responsabilidade':
       case 'minuta1':
       case 'minuta2':
@@ -455,6 +477,9 @@ export default function DocumentosContent({
 
       case 'formulario':
         return status.status_formulario ? 'concluido' : 'nao_enviado';
+
+      case 'formulario_schengen':
+        return status.status_formulario_schengen ? 'concluido' : 'nao_enviado';
 
       case 'termo_responsabilidade':
         return status.status_termo_responsabilidade ? 'concluido' : 'nao_enviado';
@@ -530,6 +555,7 @@ export default function DocumentosContent({
       case 'minuta1': return 'Criar Minuta 1';
       case 'minuta2': return 'Criar Minuta 2';
       case 'formulario': return 'Criar Formulário';
+      case 'formulario_schengen': return 'Emitir Formulário Schengen';
       case 'termo_responsabilidade': return 'Emitir Termo';
       case 'solicitar_matricula': return 'Solicitar Matrícula';
       case 'solicitar_agendamento': return 'Solicitar Agendamento';
@@ -652,6 +678,8 @@ export default function DocumentosContent({
       setShowAgendamentoModal(true)
     } else if (minutaId === "formulario") {
       setShowFormularioModal(true)
+    } else if (minutaId === "formulario_schengen") {
+      setShowFormularioSchengenModal(true)
     } else if (minutaId === "print_voo") {
       setShowPrintVooModal(true)
     } else if (minutaId === "reserva_hotel") {
@@ -713,6 +741,33 @@ export default function DocumentosContent({
       } catch (error) {
         console.error('Erro ao baixar formulário:', error)
         toast.error('Erro ao baixar formulário')
+      }
+    } else if (minutaId === 'formulario_schengen') {
+      if (!data.cliente?.id) return
+
+      try {
+        const response = await api.post('formulario-schengen/gerar-pdf', {
+          ...data,
+          cliente: null,
+          cliente_id: data.cliente.id,
+        }, {
+          responseType: 'blob'
+        })
+
+        const blob = new Blob([response.data], { type: 'application/pdf' })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `formulario_schengen_${data.cliente.nome}.pdf`
+        document.body.appendChild(a)
+        a.click()
+        a.remove()
+        window.URL.revokeObjectURL(url)
+
+        toast.success('Formulário Schengen baixado novamente!')
+      } catch (error) {
+        console.error('Erro ao baixar formulário Schengen:', error)
+        toast.error('Erro ao baixar formulário Schengen')
       }
     } else if (minutaId === 'minuta1') {
       setShowMinutaModal(true)
@@ -883,6 +938,9 @@ export default function DocumentosContent({
       case 'formulario':
         updatedStatus.status_formulario = true;
         break;
+      case 'formulario_schengen':
+        updatedStatus.status_formulario_schengen = true;
+        break;
       case 'termo_responsabilidade':
         updatedStatus.status_termo_responsabilidade = true;
         break;
@@ -909,6 +967,7 @@ export default function DocumentosContent({
       updatedStatus.status_solicitacao_reconhecimento_registo_criminal === 'pendente' &&
       updatedStatus.status_outros_documentos_importantes === 'pendente' &&
       updatedStatus.status_formulario === true &&
+      updatedStatus.status_formulario_schengen === true &&
       updatedStatus.status_termo_responsabilidade === true &&
       updatedStatus.status_minuta1 === true &&
       updatedStatus.status_minuta2 === true
@@ -920,6 +979,19 @@ export default function DocumentosContent({
       clienteId: String(data.cliente.id),
       newSolicitacao: updatedStatus
     });
+  };
+
+  const handleChecklistChange = async (key: 'checklist_extrato_bancario' | 'checklist_declaracao' | 'checklist_recibo_salarial', value: boolean) => {
+    if (!documentoProfundoStatus || !data.cliente?.id) return;
+
+    const updatedStatus = { ...documentoProfundoStatus, [key]: value };
+
+    await updateStatusMutation.mutateAsync({
+      clienteId: String(data.cliente.id),
+      newSolicitacao: updatedStatus
+    });
+
+    refetchStatus();
   };
 
   useEffect(() => {
@@ -1104,6 +1176,24 @@ export default function DocumentosContent({
                           <p className="text-sm text-muted-foreground mt-1">
                             {minuta.descricao}
                           </p>
+
+                          {minuta.id === 'print_voo' && solicitacaoPrintVoo?.data_ida && (
+                            <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                              <span>Ida: {new Date(solicitacaoPrintVoo.data_ida).toLocaleDateString('pt-PT')}</span>
+                              <span>Volta: {new Date(solicitacaoPrintVoo.data_volta).toLocaleDateString('pt-PT')}</span>
+                            </div>
+                          )}
+                          {minuta.id === 'seguro_viagem' && solicitacaoSeguroViagem?.data_ida && (
+                            <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                              <span>Ida: {new Date(solicitacaoSeguroViagem.data_ida).toLocaleDateString('pt-PT')}</span>
+                              <span>Volta: {new Date(solicitacaoSeguroViagem.data_volta).toLocaleDateString('pt-PT')}</span>
+                            </div>
+                          )}
+                          {minuta.id === 'solicitar_agendamento' && solicitacaoAgendamento?.created_at && (
+                            <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                              <span>Solicitado em: {new Date(solicitacaoAgendamento.created_at).toLocaleDateString('pt-PT')}</span>
+                            </div>
+                          )}
 
                           <div className="mt-3 flex flex-col md:flex-row gap-2">
                             {!disabled && (
@@ -1355,13 +1445,30 @@ export default function DocumentosContent({
         }}
       />
 
+      <ModalEmitirFormularioSchengen
+        open={showFormularioSchengenModal}
+        onOpenChange={setShowFormularioSchengenModal}
+        data={data}
+        cliente={data.cliente}
+        onSuccess={(pdfUrl) => {
+          setData((prev) => ({
+            ...prev,
+            formularioSchengenPdfUrl: pdfUrl,
+          }))
+          updateDocumentStatus('formulario_schengen')
+          refetchStatus()
+        }}
+      />
+
       <ModalSolicitarAgendamento
         open={showAgendamentoModal}
         onOpenChange={setShowAgendamentoModal}
         cliente={data.cliente}
+        tipoVisto={data.tipoVisto ?? undefined}
         onSuccess={async () => {
           await updateDocumentStatus('solicitar_agendamento');
           refetchStatus();
+          refetchAgendamento();
         }}
       />
 
@@ -1372,6 +1479,7 @@ export default function DocumentosContent({
         onSuccess={async () => {
           await updateDocumentStatus('solicitar_agendamento');
           refetchStatus();
+          refetchAgendamento();
         }}
       />
 
@@ -1384,6 +1492,7 @@ export default function DocumentosContent({
         onSuccess={async () => {
           await updateDocumentStatus('print_voo');
           refetchStatus();
+          refetchPrintVoo();
         }}
       />
 
@@ -1424,6 +1533,10 @@ export default function DocumentosContent({
         onOpenChange={setShowOutrosDocumentosImportantesModal}
         cliente={data.cliente}
         financiadorId={data.financiador_id}
+        checklistExtrato={documentoProfundoStatus?.checklist_extrato_bancario ?? false}
+        checklistDeclaracao={documentoProfundoStatus?.checklist_declaracao ?? false}
+        checklistRecibo={documentoProfundoStatus?.checklist_recibo_salarial ?? false}
+        onChecklistChange={handleChecklistChange}
         onSuccess={async () => {
           await updateDocumentStatus('outros_documentos_importantes');
           refetchStatus();
@@ -1439,6 +1552,7 @@ export default function DocumentosContent({
         onSuccess={async () => {
           await updateDocumentStatus('seguro_viagem');
           refetchStatus();
+          refetchSeguroViagem();
         }}
       />
 

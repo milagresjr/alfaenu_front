@@ -62,7 +62,7 @@ export const getDescricoes = async (): Promise<SolicitacaoAgendamentoDescricaoTy
   }
 }
 
-export const createDescricao = async (data: { descricao: string; status?: boolean }): Promise<SolicitacaoAgendamentoDescricaoType> => {
+export const createDescricao = async (data: { descricao: string; tipo: string; status?: boolean }): Promise<SolicitacaoAgendamentoDescricaoType> => {
   try {
     const response = await api.post<{ data: SolicitacaoAgendamentoDescricaoType }>('/solicitacao-agendamento-descricao', data)
     return response.data.data
@@ -72,7 +72,7 @@ export const createDescricao = async (data: { descricao: string; status?: boolea
   }
 }
 
-export const updateDescricao = async (id: string, data: { descricao?: string; status?: boolean }): Promise<SolicitacaoAgendamentoDescricaoType> => {
+export const updateDescricao = async (id: string, data: { descricao?: string; tipo?: string; status?: boolean }): Promise<SolicitacaoAgendamentoDescricaoType> => {
   try {
     const response = await api.put<{ data: SolicitacaoAgendamentoDescricaoType }>(`/solicitacao-agendamento-descricao/${id}`, data)
     return response.data.data

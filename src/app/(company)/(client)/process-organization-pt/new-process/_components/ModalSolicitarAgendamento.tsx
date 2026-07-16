@@ -29,6 +29,7 @@ interface ModalSolicitarAgendamentoProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   cliente?: MyClienteType | null
+  tipoVisto?: string
   onSuccess?: () => void
 }
 
@@ -36,6 +37,7 @@ export function ModalSolicitarAgendamento({
   open,
   onOpenChange,
   cliente,
+  tipoVisto,
   onSuccess,
 }: ModalSolicitarAgendamentoProps) {
   const [isLoading, setIsLoading] = useState(false)
@@ -47,7 +49,7 @@ export function ModalSolicitarAgendamento({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const createSolicitacaoAgendamento = useCreateSolicitacaoAgendamento()
-  const { data: descricaoAtiva } = useGetDescricaoAtiva()
+  const { data: descricaoAtiva } = useGetDescricaoAtiva(tipoVisto)
 
   const descricaoTexto = Array.isArray(descricaoAtiva) ? descricaoAtiva[0]?.descricao : descricaoAtiva?.descricao
 
