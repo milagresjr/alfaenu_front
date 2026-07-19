@@ -14,4 +14,6 @@ export type ProcessoProgressType = {
   financiador_nome?: string;
   documentos_profundo: string | null;
   status: string;
+  data_prevista_chegada?: string;
+  data_prevista_saida?: string;
 }

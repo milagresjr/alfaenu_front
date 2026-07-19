@@ -432,8 +432,7 @@ export default function DocumentosContent({
                status.status_solicitacao_reconhecimento_registo_criminal === 'aprovado';
 
       case 'outros_documentos_importantes':
-        return status.status_outros_documentos_importantes === 'pendente' ||
-               status.status_outros_documentos_importantes === 'aprovado';
+        return false;
 
       case 'formulario':
       case 'formulario_schengen':
@@ -986,6 +985,20 @@ export default function DocumentosContent({
 
     const updatedStatus = { ...documentoProfundoStatus, [key]: value };
 
+    const checkedCount = [
+      updatedStatus.checklist_extrato_bancario,
+      updatedStatus.checklist_declaracao,
+      updatedStatus.checklist_recibo_salarial,
+    ].filter(Boolean).length;
+
+    if (checkedCount === 0) {
+      updatedStatus.status_outros_documentos_importantes = 'nao_enviado';
+    } else if (checkedCount === 3) {
+      updatedStatus.status_outros_documentos_importantes = 'aprovado';
+    } else {
+      updatedStatus.status_outros_documentos_importantes = 'pendente';
+    }
+
     await updateStatusMutation.mutateAsync({
       clienteId: String(data.cliente.id),
       newSolicitacao: updatedStatus
@@ -1008,6 +1021,8 @@ export default function DocumentosContent({
         financiador_id: String(data.financiador_id),
         financiador_nome: String(data.financiador_nome),
         status: 'em_progresso',
+        data_prevista_chegada: data.dataPrevisaoChegada || '',
+        data_prevista_saida: data.dataPrevisaoSaida || '',
       }, {
         onSuccess: () => {
           toast.success('Progresso do processo salvo com sucesso');
@@ -1487,8 +1502,8 @@ export default function DocumentosContent({
         open={showPrintVooModal}
         onOpenChange={setShowPrintVooModal}
         cliente={data.cliente}
-        dataPrevistaChegada={solicitacaoMatricula?.data_prevista_chegada}
-        dataPrevistaSaida={solicitacaoMatricula?.data_prevista_saida}
+        dataPrevistaChegada={solicitacaoMatricula?.data_prevista_chegada || data.dataPrevisaoChegada}
+        dataPrevistaSaida={solicitacaoMatricula?.data_prevista_saida || data.dataPrevisaoSaida}
         onSuccess={async () => {
           await updateDocumentStatus('print_voo');
           refetchStatus();
@@ -1500,8 +1515,8 @@ export default function DocumentosContent({
         open={showReservaHotelModal}
         onOpenChange={setShowReservaHotelModal}
         cliente={data.cliente}
-        dataPrevistaChegada={solicitacaoMatricula?.data_prevista_chegada}
-        dataPrevistaSaida={solicitacaoMatricula?.data_prevista_saida}
+        dataPrevistaChegada={solicitacaoMatricula?.data_prevista_chegada || data.dataPrevisaoChegada}
+        dataPrevistaSaida={solicitacaoMatricula?.data_prevista_saida || data.dataPrevisaoSaida}
         onSuccess={async () => {
           await updateDocumentStatus('reserva_hotel');
           refetchStatus();
@@ -1538,7 +1553,6 @@ export default function DocumentosContent({
         checklistRecibo={documentoProfundoStatus?.checklist_recibo_salarial ?? false}
         onChecklistChange={handleChecklistChange}
         onSuccess={async () => {
-          await updateDocumentStatus('outros_documentos_importantes');
           refetchStatus();
         }}
       />
@@ -1547,8 +1561,8 @@ export default function DocumentosContent({
         open={showSeguroViagemModal}
         onOpenChange={setShowSeguroViagemModal}
         cliente={data.cliente}
-        dataPrevistaChegada={solicitacaoMatricula?.data_prevista_chegada}
-        dataPrevistaSaida={solicitacaoMatricula?.data_prevista_saida}
+        dataPrevistaChegada={solicitacaoMatricula?.data_prevista_chegada || data.dataPrevisaoChegada}
+        dataPrevistaSaida={solicitacaoMatricula?.data_prevista_saida || data.dataPrevisaoSaida}
         onSuccess={async () => {
           await updateDocumentStatus('seguro_viagem');
           refetchStatus();

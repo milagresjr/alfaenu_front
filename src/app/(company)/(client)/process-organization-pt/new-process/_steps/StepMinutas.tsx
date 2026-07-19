@@ -32,6 +32,8 @@ export default function StepMinutas({ data, setData }: StepProps) {
           financiador_nome: data.financiador_nome,
           minuta_selecionada: data.minutaSelecionada,
           status: "em_andamento",
+          data_prevista_chegada: data.dataPrevisaoChegada,
+          data_prevista_saida: data.dataPrevisaoSaida,
         })
       } catch (error) {
         console.error("Erro ao salvar progresso:", error)

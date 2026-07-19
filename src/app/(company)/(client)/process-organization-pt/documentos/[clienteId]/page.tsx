@@ -50,6 +50,8 @@ export default function DocumentosPage() {
           financiador_nome: processoData.financiador_nome ?? null,
           minutaSelecionada: processoData.minutaSelecionada,
           status: processoData.status,
+          dataPrevisaoChegada: processoData.data_prevista_chegada,
+          dataPrevisaoSaida: processoData.data_prevista_saida,
         })
       } catch (error) {
         console.error("Erro ao carregar dados do processo:", error)

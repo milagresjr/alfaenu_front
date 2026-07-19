@@ -15,7 +15,7 @@ import { useEffect, useState } from "react";
 import { ClienteType } from "@/features/client/types";
 import { useTermos } from "@/features/term/hooks/useTermosQuery";
 import { useServicos } from "@/features/service/hooks/useServicesQuery";
-import { ChevronDown, ChevronLeft, File, Trash2 } from "lucide-react";
+import { ChevronDown, ChevronLeft, File, Trash2, Eye, Loader2, RefreshCw, CheckCircle } from "lucide-react";
 import { ServiceType } from "@/features/service/types";
 import { toast } from "react-toastify";
 import { useContratoStore } from "../store/useContratoStore";
@@ -119,6 +119,12 @@ export function FormContrato() {
     const [notaSaved, setNotaSaved] = useState(false);
 
     const [servicosSaved, setServicosSaved] = useState(false);
+
+    const [termoConteudoModificado, setTermoConteudoModificado] = useState<string | null>(null);
+    const [showPreviewDialog, setShowPreviewDialog] = useState(false);
+    const [editNota, setEditNota] = useState("");
+    const [previewPdfUrl, setPreviewPdfUrl] = useState<string | null>(null);
+    const [isRegenerating, setIsRegenerating] = useState(false);
 
     const progress = useProgress();
 
@@ -475,13 +481,15 @@ export function FormContrato() {
 
         await Swal.fire({
             title: "Criar Contrato",
-            text: "Tem certeza que deseja criar este contrato?",
+            html: '<span style="font-size:1.1rem;color:#374151;">Tem certeza que deseja criar este contrato?</span>',
             icon: "question",
             showCancelButton: true,
             confirmButtonColor: "#27ae60",
             cancelButtonColor: "#d33",
             confirmButtonText: "Sim, confirmar",
             cancelButtonText: "Cancelar",
+            showLoaderOnConfirm: true,
+            allowOutsideClick: false,
             preConfirm: () => {
                 return new Promise<void>((resolve, reject) => {
                     const newData = {
@@ -492,7 +500,8 @@ export function FormContrato() {
                         assinatura_cliente: assinaturaCliente,
                         assinatura_user: assinaturaUser,
                         servicos: servicosSelecionadosData,
-                        subcontas: subcontas
+                        subcontas: subcontas,
+                        termo_conteudo: termoConteudoModificado,
                     };
                     console.log("Data do contrato", newData);
                     // return;
@@ -523,29 +532,74 @@ export function FormContrato() {
     async function previewPdfDocumento(data: ContratoType) {
         try {
             setLoadingPreview(true);
-            const response = await api.post(`contract/preview-pdf`, data, {
-                responseType: 'blob', // ⚠️ Muito importante para PDFs
-            });
+            const response = await api.post(`contract/preview-pdf`, data);
 
             if (response.status !== 200) {
                 toast.error('Erro ao gerar pdf');
-                console.error("Erro ao gerar PDF:", response);
                 throw new Error("Erro ao gerar PDF");
             }
 
-            // Cria uma URL temporária do PDF
-            const file = new Blob([response.data], { type: 'application/pdf' });
-            const fileURL = URL.createObjectURL(file);
-
-            // Abre o PDF numa nova aba
-            window.open(fileURL, "_blank");
-
+            const { pdf, termo_conteudo } = response.data;
+            const pdfBlob = new Blob(
+                [Uint8Array.from(atob(pdf), (c) => c.charCodeAt(0))],
+                { type: 'application/pdf' }
+            );
+            const url = URL.createObjectURL(pdfBlob);
+            setPreviewPdfUrl(url);
+            setTermoConteudoModificado(termo_conteudo);
+            setEditNota("");
+            setShowPreviewDialog(true);
         } catch (error) {
             toast.error("Erro ao gerar PDF.");
             console.error(error);
-            setLoadingPreview(false);
         } finally {
             setLoadingPreview(false);
+        }
+    }
+
+    async function handleRegeneratePreview() {
+        if (!editNota.trim()) {
+            toast.error("Digite uma instrução para editar o contrato.");
+            return;
+        }
+        try {
+            setIsRegenerating(true);
+            const data = getValues();
+            const response = await api.post(`contract/preview-edit`, {
+                termo_conteudo: termoConteudoModificado,
+                nota: editNota,
+                cliente_id: cliente?.id,
+                cliente_nome: cliente?.nome,
+                cliente_telefone: cliente?.telefone,
+                cliente_endereco: cliente?.endereco,
+                cliente_bi: cliente?.n_bi,
+                valor_por_pagar: data.valor_por_pagar,
+                servicos: servicosSelecionadosData,
+                subcontas: subcontas,
+                assinatura_cliente: assinaturaCliente,
+                assinatura_user: assinaturaUser,
+            });
+
+            if (response.status !== 200) {
+                toast.error('Erro ao regenerar preview');
+                return;
+            }
+
+            const { pdf, termo_conteudo } = response.data;
+            if (previewPdfUrl) URL.revokeObjectURL(previewPdfUrl);
+            const pdfBlob = new Blob(
+                [Uint8Array.from(atob(pdf), (c) => c.charCodeAt(0))],
+                { type: 'application/pdf' }
+            );
+            setPreviewPdfUrl(URL.createObjectURL(pdfBlob));
+            setTermoConteudoModificado(termo_conteudo);
+            setEditNota("");
+            toast.success("Preview atualizado com sucesso!");
+        } catch (error) {
+            toast.error("Erro ao regenerar preview.");
+            console.error(error);
+        } finally {
+            setIsRegenerating(false);
         }
     }
 
@@ -642,8 +696,26 @@ export function FormContrato() {
                             <Button className="h-[40px]" onClick={handleOpenSheetServicos} size="sm" type="button" variant="outline">
                                 + Adicionar Subcontas
                             </Button>
+                            <Button
+                                onClick={handleSubmit(onSubmitPreviewPdf)}
+                                disabled={loadingPreviewPdf}
+                                className="h-[40px]"
+                                size="sm"
+                                variant="outline"
+                            >
+                                {loadingPreviewPdf ? (
+                                    <Loader2 size={16} className="animate-spin" />
+                                ) : (
+                                    <Eye size={16} />
+                                )}
+                                Pré-visualizar
+                            </Button>
                             <Button className="w-auto h-[40px]" size="sm" variant="primary" type="submit" disabled={created.isPending}>
-                                {created.isPending ? "Salvando..." : "Salvar"}
+                                {created.isPending ? (
+                                    <><Loader2 size={16} className="animate-spin" /> Salvando</>
+                                ) : (
+                                    "Salvar"
+                                )}
                             </Button>
                         </div>
                     </div>
@@ -1058,6 +1130,51 @@ export function FormContrato() {
                 // onOpenContract={() => router.push(`/contract/${idContratoCreated}`)}
                 contractName={watch("termo_id") ? opcoesTermos?.find(t => t.value === String(watch("termo_id")))?.label : "Contrato"}
             />
+
+            <Dialog open={showPreviewDialog} onOpenChange={setShowPreviewDialog}>
+                <DialogContent className="max-h-[98vh] flex flex-col" style={{ maxWidth: '80vw' }}>
+                    <DialogHeader>
+                        <DialogTitle>Pré-visualizar Contrato</DialogTitle>
+                    </DialogHeader>
+                    <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-2 gap-4 overflow-hidden">
+                        <iframe
+                            src={previewPdfUrl || ""}
+                            className="w-full h-full min-h-[70vh] rounded border border-gray-200"
+                        />
+                        <div className="flex flex-col gap-3">
+                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                Instrução para editar o contrato:
+                            </label>
+                            <textarea
+                                className="w-full min-h-[120px] rounded-lg border border-gray-300 p-3 text-sm resize-y focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                placeholder="Ex: Adicione uma cláusula de confidencialidade..."
+                                value={editNota}
+                                onChange={(e) => setEditNota(e.target.value)}
+                            />
+                            <Button
+                                onClick={handleRegeneratePreview}
+                                disabled={isRegenerating || !editNota.trim()}
+                                className="flex items-center justify-center gap-2"
+                            >
+                                {isRegenerating ? (
+                                    <Loader2 size={16} className="animate-spin" />
+                                ) : (
+                                    <RefreshCw size={16} />
+                                )}
+                                Re-gerar Preview
+                            </Button>
+                            <div className="mt-auto flex justify-end">
+                                <Button
+                                    onClick={() => setShowPreviewDialog(false)}
+                                    variant="outline"
+                                >
+                                    Fechar
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
 
         </div>
     )

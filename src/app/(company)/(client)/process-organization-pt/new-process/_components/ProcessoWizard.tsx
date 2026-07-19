@@ -105,6 +105,8 @@ export default function ProcessoWizard() {
           financiador_nome: processoData.financiador_nome ?? null,
           minutaSelecionada: processoData.minutaSelecionada,
           status: processoData.status,
+          dataPrevisaoChegada: processoData.data_prevista_chegada,
+          dataPrevisaoSaida: processoData.data_prevista_saida,
         });
         
         // Definir a etapa baseada no progresso salvo
@@ -152,6 +154,8 @@ export default function ProcessoWizard() {
             financiador_nome: data.financiador_nome,
             minuta_selecionada: data.minutaSelecionada,
             status: data.status,
+            data_prevista_chegada: data.dataPrevisaoChegada,
+            data_prevista_saida: data.dataPrevisaoSaida,
           };
           console.log("Meu payload: ",payload);
           // return;
@@ -167,6 +171,8 @@ export default function ProcessoWizard() {
             financiador_nome: data.financiador_nome,
             minuta_selecionada: data.minutaSelecionada,
             status: data.status,
+            data_prevista_chegada: data.dataPrevisaoChegada,
+            data_prevista_saida: data.dataPrevisaoSaida,
           });
         } catch (error) {
           console.error("Erro ao salvar progresso:", error);
