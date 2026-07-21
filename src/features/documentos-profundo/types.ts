@@ -1,5 +1,8 @@
 
 export type DocumentoProfundoStatus = {
+  id?: number;
+  created_at?: string;
+  updated_at?: string;
   cliente_id: number;
   status_solicitacao_matricula: "nao_enviado" | "pendente" | "aprovado" | "rejeitado";
   status_solicitacao_agendamento: "nao_enviado" | "pendente" | "aprovado" | "rejeitado";
