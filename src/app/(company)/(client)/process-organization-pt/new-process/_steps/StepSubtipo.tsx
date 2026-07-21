@@ -175,7 +175,11 @@ export default function StepSubtipo({
       subtipo,
       financiamento: null,
     }))
-    abrirModalDatas()
+    if (data.tipoVisto === "nacional") {
+      next()
+    } else {
+      abrirModalDatas()
+    }
   }
 
   const handleConfirmarOutro = () => {
@@ -186,7 +190,11 @@ export default function StepSubtipo({
       subtipoOutroDescricao: outroDescricao.trim(),
       financiamento: null,
     }))
-    abrirModalDatas()
+    if (data.tipoVisto === "nacional") {
+      next()
+    } else {
+      abrirModalDatas()
+    }
   }
 
   const handleCancelarOutro = () => {
@@ -277,7 +285,7 @@ export default function StepSubtipo({
                   whileTap={{ scale: 0.98 }}
                 >
                   <Card
-                    className="cursor-pointer transition-all hover:shadow-lg border-2 hover:border-primary/50 group"
+                    className="cursor-pointer transition-all hover:shadow-lg border-2 hover:border-primary/50 h-full group"
                     onClick={() => handleSelect(option.id)}
                   >
                     <CardContent className="p-4">

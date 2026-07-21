@@ -1,5 +1,6 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createDocumentoProfundoStatus, getDocumentoProfundoStatus, getDocumentoProfundoStatusByClienteId, updateDocumentoProfundoStatus } from "../api/documentoProfundoApi";
+import { uploadDeclaracaoServico, getDeclaracoesServico } from "../api/declaracaoServicoApi";
 
 export const useGetDocumentoProfundoStatus = () => {
     const { data, isError, isLoading } = useQuery({
@@ -31,9 +32,30 @@ export const useCreateDocumentoProfundoStatus = () => {
     return mutation;
 };
 
+export const useUploadDeclaracaoServico = () => {
+  return useMutation({
+    mutationFn: (params: { clienteId: string; file: File }) => uploadDeclaracaoServico(params.clienteId, params.file),
+  })
+}
+
+export const useGetDeclaracoesServico = (page: number, per_page: number) => {
+  return useQuery({
+    queryKey: ['declaracoes-servico', page, per_page],
+    queryFn: () => getDeclaracoesServico(page, per_page),
+    staleTime: 1000 * 60 * 5,
+    networkMode: 'always',
+  })
+}
+
 export const useUpdateDocumentoProfundoStatus = () => {
+    const queryClient = useQueryClient();
     const mutation = useMutation({
         mutationFn: (params: {clienteId: string, newSolicitacao: any}) => updateDocumentoProfundoStatus(params.clienteId, params.newSolicitacao),
+        onSuccess: (_, params) => {
+            queryClient.invalidateQueries({
+                queryKey: ['documentoProfundoStatus', params.clienteId]
+            });
+        },
     });
 
     return mutation;

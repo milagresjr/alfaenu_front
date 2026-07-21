@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import {
   Dialog,
   DialogContent,
@@ -10,93 +10,94 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { Loader2, MapPin, Eye, Download, RefreshCw, CheckCircle2 } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Loader2, FileText, Download, RefreshCw, Eye, CheckCircle2 } from "lucide-react"
+import { format } from "date-fns"
 import { toast } from "react-toastify"
 import { api } from "@/services/api"
 import { cn } from "@/lib/utils"
 import { MyClienteType } from "@/features/myClient/types"
+import { SubtipoSchengen } from "@/types/processo"
 
-function formatDateToInput(dateStr?: string): string {
-  if (!dateStr) return ''
-  const d = new Date(dateStr)
-  if (isNaN(d.getTime())) return ''
-  return d.toISOString().split('T')[0]
-}
-
-interface ModalPlanoTuristicoProps {
+interface ModalPreencherMinuta2SchengenProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onSuccess?: (pdfUrl: string) => void
   cliente?: MyClienteType | null
-  dataPrevistaChegada?: string
-  dataPrevistaSaida?: string
+  subtipo?: SubtipoSchengen | null
+  subtipoOutroDescricao?: string
+  initialValues?: Partial<MinutaFormValues>
 }
 
-interface PlanoFormValues {
-  data_prevista_chegada: string
-  data_prevista_saida: string
-  objetivos: string
+interface MinutaFormValues {
+  data_prevista_chegada: Date | undefined
+  duracao_estadia: string
+  local_hospedagem: string
 }
 
-const initialFormValues: PlanoFormValues = {
-  data_prevista_chegada: "",
-  data_prevista_saida: "",
-  objetivos: "",
+const initialFormValues: MinutaFormValues = {
+  data_prevista_chegada: undefined,
+  duracao_estadia: "",
+  local_hospedagem: "",
 }
 
-export function ModalPlanoTuristico({
+function formatDateForPayload(value: Date | undefined): string {
+  return value ? format(value, "yyyy-MM-dd") : ""
+}
+
+export function ModalPreencherMinuta2Schengen({
   open,
   onOpenChange,
   onSuccess,
   cliente,
-  dataPrevistaChegada,
-  dataPrevistaSaida,
-}: ModalPlanoTuristicoProps) {
+  subtipo,
+  subtipoOutroDescricao,
+  initialValues,
+}: ModalPreencherMinuta2SchengenProps) {
   const [mode, setMode] = useState<'form' | 'preview' | 'approved'>('form')
   const [isLoading, setIsLoading] = useState(false)
   const [isRegenerating, setIsRegenerating] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
   const [conteudoHtml, setConteudoHtml] = useState<string | null>(null)
-  const [formData, setFormData] = useState<PlanoFormValues>({ ...initialFormValues })
-  const [errors, setErrors] = useState<Partial<Record<keyof PlanoFormValues, string>>>({})
+  const [formData, setFormData] = useState<MinutaFormValues>({ ...initialFormValues, ...initialValues })
+  const [errors, setErrors] = useState<Partial<Record<keyof MinutaFormValues, string>>>({})
 
   useEffect(() => {
     if (open) {
       setMode('form')
-      setFormData({
-        data_prevista_chegada: dataPrevistaChegada ? formatDateToInput(dataPrevistaChegada) : "",
-        data_prevista_saida: dataPrevistaSaida ? formatDateToInput(dataPrevistaSaida) : "",
-        objetivos: "",
-      })
+      setFormData({ ...initialFormValues, ...initialValues })
       setErrors({})
       setConteudoHtml(null)
     }
-  }, [open, dataPrevistaChegada, dataPrevistaSaida])
+  }, [open, initialValues])
 
-  const handleTextChange = (field: keyof PlanoFormValues, value: string) => {
+  const handleTextChange = (field: keyof MinutaFormValues, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }))
     }
   }
 
+  const handleDateChange = (field: keyof MinutaFormValues, date: Date | undefined) => {
+    setFormData((prev) => ({ ...prev, [field]: date }))
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }))
+    }
+  }
+
   const validateForm = (): boolean => {
-    const newErrors: Partial<Record<keyof PlanoFormValues, string>> = {}
+    const newErrors: Partial<Record<keyof MinutaFormValues, string>> = {}
 
     if (!formData.data_prevista_chegada) {
       newErrors.data_prevista_chegada = "Data prevista de chegada é obrigatória"
     }
-    if (!formData.data_prevista_saida) {
-      newErrors.data_prevista_saida = "Data prevista de saída é obrigatória"
+    if (!formData.duracao_estadia?.trim() || Number(formData.duracao_estadia) < 1) {
+      newErrors.duracao_estadia = "Duração da estadia é obrigatória (mín. 1 dia)"
     }
-    if (formData.data_prevista_chegada && formData.data_prevista_saida && formData.data_prevista_saida < formData.data_prevista_chegada) {
-      newErrors.data_prevista_saida = "Data de saída não pode ser anterior à data de chegada"
-    }
-    if (!formData.objetivos?.trim()) {
-      newErrors.objetivos = "Descrição dos objetivos é obrigatória"
+    if (!formData.local_hospedagem?.trim()) {
+      newErrors.local_hospedagem = "Local de hospedagem é obrigatório"
     }
 
     setErrors(newErrors)
@@ -105,9 +106,11 @@ export function ModalPlanoTuristico({
 
   const payload = {
     cliente_id: cliente?.id,
-    data_prevista_chegada: formData.data_prevista_chegada,
-    data_prevista_saida: formData.data_prevista_saida,
-    objetivos: formData.objetivos,
+    data_prevista_chegada: formatDateForPayload(formData.data_prevista_chegada),
+    duracao_estadia: formData.duracao_estadia,
+    local_hospedagem: formData.local_hospedagem,
+    subtipo: subtipo || 'turismo',
+    subtipo_outro_descricao: subtipoOutroDescricao || '',
   }
 
   const handleGerarConteudo = async () => {
@@ -119,7 +122,7 @@ export function ModalPlanoTuristico({
     setIsLoading(true)
 
     try {
-      const response = await api.post('plano-turistico/gerar-pdf', payload)
+      const response = await api.post('minuta2-schengen/gerar-pdf', payload)
 
       if (!response.data?.conteudo_html) {
         throw new Error('Resposta inválida do servidor.')
@@ -128,12 +131,12 @@ export function ModalPlanoTuristico({
       setConteudoHtml(response.data.conteudo_html)
       setMode('preview')
     } catch (error: any) {
-      console.error("Erro ao gerar plano turístico:", error)
+      console.error("Erro ao gerar conteúdo:", error)
 
       const msg = error?.response?.data?.message
         || error?.response?.data?.error
         || error.message
-        || "Erro ao gerar plano turístico. Tente novamente."
+        || "Erro ao gerar carta de intenção. Tente novamente."
 
       toast.error(msg)
     } finally {
@@ -145,7 +148,7 @@ export function ModalPlanoTuristico({
     setIsRegenerating(true)
 
     try {
-      const response = await api.post('plano-turistico/gerar-pdf', payload)
+      const response = await api.post('minuta2-schengen/gerar-pdf', payload)
 
       if (!response.data?.conteudo_html) {
         throw new Error('Resposta inválida do servidor.')
@@ -153,12 +156,12 @@ export function ModalPlanoTuristico({
 
       setConteudoHtml(response.data.conteudo_html)
     } catch (error: any) {
-      console.error("Erro ao regenerar plano turístico:", error)
+      console.error("Erro ao regenerar conteúdo:", error)
 
       const msg = error?.response?.data?.message
         || error?.response?.data?.error
         || error.message
-        || "Erro ao regenerar plano turístico. Tente novamente."
+        || "Erro ao regenerar carta de intenção. Tente novamente."
 
       toast.error(msg)
     } finally {
@@ -168,7 +171,7 @@ export function ModalPlanoTuristico({
 
   const handleAprovar = () => {
     setMode('approved')
-    toast.success("Plano turístico aprovado!")
+    toast.success("Carta de intenção aprovada!")
   }
 
   const handleDownloadPdf = async () => {
@@ -177,7 +180,7 @@ export function ModalPlanoTuristico({
     setIsDownloading(true)
 
     try {
-      const response = await api.post('plano-turistico/baixar-pdf', {
+      const response = await api.post('minuta2-schengen/baixar-pdf', {
         cliente_id: cliente?.id,
         conteudo_html: conteudoHtml,
       }, {
@@ -187,15 +190,14 @@ export function ModalPlanoTuristico({
       const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }))
       const link = document.createElement('a')
       link.href = url
-      link.download = `plano_turistico_${cliente?.nome?.replace(/\s/g, "_") || "documento"}.pdf`
+      link.download = `carta_intencao_${cliente?.nome?.replace(/\s/g, "_") || "documento"}.pdf`
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
       window.URL.revokeObjectURL(url)
 
-      toast.success("Plano turístico gerado com sucesso!")
+      toast.success("Carta de intenção gerada com sucesso!")
       onSuccess?.(url)
-      onOpenChange(false)
     } catch (error: any) {
       console.error("Erro ao baixar PDF:", error)
 
@@ -203,12 +205,12 @@ export function ModalPlanoTuristico({
         try {
           const errorText = await error.response.data.text()
           const errorJson = JSON.parse(errorText)
-          toast.error(errorJson.message || "Erro ao baixar plano turístico")
+          toast.error(errorJson.message || "Erro ao baixar carta de intenção")
         } catch {
-          toast.error("Erro ao baixar plano turístico. Tente novamente.")
+          toast.error("Erro ao baixar carta de intenção. Tente novamente.")
         }
       } else {
-        toast.error(error.message || "Erro ao baixar plano turístico. Tente novamente.")
+        toast.error(error.message || "Erro ao baixar carta de intenção. Tente novamente.")
       }
     } finally {
       setIsDownloading(false)
@@ -217,7 +219,7 @@ export function ModalPlanoTuristico({
 
   const modalWidthClass = mode !== 'form'
     ? 'max-w-[95vw] sm:max-w-[95vw] md:max-w-[95vw] lg:max-w-[90vw] xl:max-w-[85vw]'
-    : 'max-w-[95vw] sm:max-w-[90vw] md:max-w-[70vw] lg:max-w-[60vw] xl:max-w-[50vw]'
+    : 'max-w-[95vw] sm:max-w-[90vw] md:max-w-[60vw] lg:max-w-[50vw] xl:max-w-[40vw]'
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -226,15 +228,15 @@ export function ModalPlanoTuristico({
           <div className="p-6 overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="text-2xl flex items-center gap-2">
-                <MapPin className="h-6 w-6 text-primary" />
-                Plano Turístico
+                <FileText className="h-6 w-6 text-primary" />
+                Carta de Intenção
               </DialogTitle>
               <DialogDescription>
-                Insira os dados abaixo para gerar o plano turístico.
+                Insira os dados abaixo para gerar a carta de intenção para {subtipo ? (subtipo === 'outro' ? subtipoOutroDescricao || 'Schengen' : subtipo) : 'Schengen'}.
               </DialogDescription>
             </DialogHeader>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 py-4">
+            <div className="flex flex-col gap-4 py-4">
               <div className="space-y-2">
                 <Label htmlFor="data_prevista_chegada">
                   Data Prevista de Chegada *
@@ -242,8 +244,8 @@ export function ModalPlanoTuristico({
                 <input
                   type="date"
                   id="data_prevista_chegada"
-                  value={formData.data_prevista_chegada}
-                  onChange={(e) => handleTextChange("data_prevista_chegada", e.target.value)}
+                  value={formData.data_prevista_chegada ? format(formData.data_prevista_chegada, "yyyy-MM-dd") : ""}
+                  onChange={(e) => handleDateChange("data_prevista_chegada", e.target.value ? new Date(e.target.value) : undefined)}
                   className={cn(
                     "h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden",
                     "bg-transparent text-gray-800 dark:text-white/90",
@@ -255,38 +257,37 @@ export function ModalPlanoTuristico({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="data_prevista_saida">
-                  Data Prevista de Saída *
+                <Label htmlFor="duracao_estadia">
+                  Duração da Estadia (dias) *
                 </Label>
-                <input
-                  type="date"
-                  id="data_prevista_saida"
-                  value={formData.data_prevista_saida}
-                  onChange={(e) => handleTextChange("data_prevista_saida", e.target.value)}
-                  className={cn(
-                    "h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs focus:outline-hidden",
-                    "bg-transparent text-gray-800 dark:text-white/90",
-                    "border-gray-300 dark:border-white/10 focus:border-brand-300 focus:ring-brand-500/20",
-                    errors.data_prevista_saida && "border-red-500 focus:border-red-500"
-                  )}
+                <Input
+                  type="number"
+                  id="duracao_estadia"
+                  min={1}
+                  value={formData.duracao_estadia}
+                  onChange={(e) => handleTextChange("duracao_estadia", e.target.value)}
+                  placeholder="10"
+                  className={cn(errors.duracao_estadia ? "border-red-500" : "", "w-full")}
                 />
-                {errors.data_prevista_saida && <p className="text-sm text-red-500">{errors.data_prevista_saida}</p>}
+                {errors.duracao_estadia && (
+                  <p className="text-sm text-red-500">{errors.duracao_estadia}</p>
+                )}
               </div>
 
-              <div className="space-y-2 sm:col-span-2">
-                <Label htmlFor="objetivos">
-                  Objetivos do Plano Turístico *
+              <div className="space-y-2">
+                <Label htmlFor="local_hospedagem">
+                  Local de Hospedagem *
                 </Label>
                 <Textarea
-                  id="objetivos"
-                  rows={4}
-                  value={formData.objetivos}
-                  onChange={(e) => handleTextChange("objetivos", e.target.value)}
-                  placeholder="Descreva os objetivos do plano turístico, locais a visitar, atividades planeadas..."
-                  className={cn(errors.objetivos ? "border-red-500" : "", "w-full")}
+                  id="local_hospedagem"
+                  rows={3}
+                  value={formData.local_hospedagem}
+                  onChange={(e) => handleTextChange("local_hospedagem", e.target.value)}
+                  placeholder="Hotel Central, Av. da Liberdade, Lisboa"
+                  className={cn(errors.local_hospedagem ? "border-red-500" : "", "w-full")}
                 />
-                {errors.objetivos && (
-                  <p className="text-sm text-red-500">{errors.objetivos}</p>
+                {errors.local_hospedagem && (
+                  <p className="text-sm text-red-500">{errors.local_hospedagem}</p>
                 )}
               </div>
             </div>
@@ -314,7 +315,7 @@ export function ModalPlanoTuristico({
                 ) : (
                   <>
                     <Eye className="h-4 w-4" />
-                    Gerar Plano Turístico
+                    Gerar Carta
                   </>
                 )}
               </Button>
@@ -325,12 +326,12 @@ export function ModalPlanoTuristico({
             <div className="shrink-0 px-6 pt-6">
               <DialogHeader>
                 <DialogTitle className="text-2xl flex items-center gap-2">
-                  <MapPin className="h-6 w-6 text-primary" />
-                  {mode === 'approved' ? 'Plano Turístico Aprovado' : 'Pré-visualizar Plano Turístico'}
+                  <FileText className="h-6 w-6 text-primary" />
+                  {mode === 'approved' ? 'Carta de Intenção Aprovada' : 'Pré-visualizar Carta de Intenção'}
                 </DialogTitle>
                 <DialogDescription>
                   {mode === 'approved'
-                    ? 'O plano turístico foi aprovado. Faça o download do PDF.'
+                    ? 'A carta de intenção foi aprovada. Faça o download do PDF.'
                     : 'Revise o conteúdo gerado antes de aprovar.'}
                 </DialogDescription>
               </DialogHeader>
@@ -339,13 +340,13 @@ export function ModalPlanoTuristico({
             <div className="flex-1 min-h-0 overflow-y-auto px-6 pb-4">
               <div className="max-w-[794px] mx-auto">
                 {conteudoHtml && (
-                  <iframe
-                    sandbox="allow-scripts"
-                    srcDoc={conteudoHtml}
-                    className="w-full min-h-[70vh] border rounded-lg bg-white shadow-sm"
-                    title="Pré-visualização do Plano Turístico"
-                  />
-                )}
+                    <iframe
+                      sandbox="allow-scripts"
+                      srcDoc={conteudoHtml}
+                      className="w-full min-h-[70vh] border rounded-lg bg-white shadow-sm"
+                      title="Pré-visualização da Carta de Intenção"
+                    />
+                  )}
               </div>
             </div>
 

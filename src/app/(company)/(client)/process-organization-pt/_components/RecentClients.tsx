@@ -188,6 +188,14 @@ export default function RecentClients() {
               ),
             },
             {
+              header: "Financiador",
+              accessor: (item: any) => (
+                <div className="flex items-center gap-2">
+                  <span className="capitalize">{item?.financiador_nome ?? '-'}</span>
+                </div>
+              ),
+            },
+            {
               header: "",
               accessor: (item: MyClienteType | any) => (
                 <div className="flex items-center justify-end gap-2">

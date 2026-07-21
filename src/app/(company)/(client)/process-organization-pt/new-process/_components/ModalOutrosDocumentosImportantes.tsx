@@ -18,6 +18,7 @@ import { MyClienteType } from "@/features/myClient/types"
 import { useQuery } from "@tanstack/react-query"
 import { getFinanciadorById } from "@/features/financiador/api/financiadorApi"
 import { useCreateSolicitacaoReconhecimentoNotario, useGerarDeclaracaoAutonoma, useGetConfigReconhecimentoNotario } from "@/features/reconhecimento-notario/hooks/useReconhecimentoNotarioQuery"
+import { useUploadDeclaracaoServico } from "@/features/documentos-profundo/hooks/useDocumentoProfundoQuery"
 
 type Step = 'checklist' | 'reconhecimento'
 
@@ -29,6 +30,8 @@ interface ModalOutrosDocumentosImportantesProps {
   checklistExtrato?: boolean
   checklistDeclaracao?: boolean
   checklistRecibo?: boolean
+  declaracaoServicoUrl?: string
+  declaracaoServicoNome?: string
   onChecklistChange?: (key: 'checklist_extrato_bancario' | 'checklist_declaracao' | 'checklist_recibo_salarial', value: boolean) => void
   onSuccess?: () => void
 }
@@ -55,6 +58,8 @@ export function ModalOutrosDocumentosImportantes({
   checklistExtrato = false,
   checklistDeclaracao = false,
   checklistRecibo = false,
+  declaracaoServicoUrl: propDeclaracaoServicoUrl,
+  declaracaoServicoNome: propDeclaracaoServicoNome,
   onChecklistChange,
   onSuccess,
 }: ModalOutrosDocumentosImportantesProps) {
@@ -64,6 +69,9 @@ export function ModalOutrosDocumentosImportantes({
   const [reciboChecked, setReciboChecked] = useState(false)
   const [declaracaoAutonomaUrl, setDeclaracaoAutonomaUrl] = useState<string | null>(null)
   const [isGerandoDeclaracao, setIsGerandoDeclaracao] = useState(false)
+  const [declaracaoServicoUrl, setDeclaracaoServicoUrl] = useState<string | null>(null)
+  const [declaracaoServicoNome, setDeclaracaoServicoNome] = useState<string | null>(null)
+  const [isUploadingDeclaracao, setIsUploadingDeclaracao] = useState(false)
 
   const [tipoEntrega, setTipoEntrega] = useState<'domicilio' | 'presencial' | null>(null)
   const [enderecoEntrega, setEnderecoEntrega] = useState('')
@@ -71,6 +79,8 @@ export function ModalOutrosDocumentosImportantes({
   const [erro, setErro] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const declaracaoServicoInputRef = useRef<HTMLInputElement>(null)
+  const uploadDeclaracaoMutation = useUploadDeclaracaoServico()
 
   const { data: financiador } = useQuery({
     queryKey: ["financiador", financiadorId],
@@ -88,8 +98,10 @@ export function ModalOutrosDocumentosImportantes({
       setExtratoChecked(checklistExtrato)
       setDeclaracaoChecked(checklistDeclaracao)
       setReciboChecked(checklistRecibo)
+      setDeclaracaoServicoUrl(propDeclaracaoServicoUrl ?? null)
+      setDeclaracaoServicoNome(propDeclaracaoServicoNome ?? null)
     }
-  }, [open, checklistExtrato, checklistDeclaracao, checklistRecibo])
+  }, [open, checklistExtrato, checklistDeclaracao, checklistRecibo, propDeclaracaoServicoUrl, propDeclaracaoServicoNome])
 
   useEffect(() => {
     if (!open) {
@@ -139,6 +151,54 @@ export function ModalOutrosDocumentosImportantes({
   const handleImprimir = () => {
     if (declaracaoAutonomaUrl) {
       window.open(declaracaoAutonomaUrl, '_blank')
+    }
+  }
+
+  const handleUploadDeclaracaoServico = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !cliente?.id) return
+
+    const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/png']
+    if (!tiposPermitidos.includes(file.type)) {
+      toast.error('Apenas ficheiros PDF, JPG ou PNG são permitidos.')
+      return
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error('O ficheiro deve ter no máximo 2MB.')
+      return
+    }
+
+    setIsUploadingDeclaracao(true)
+    try {
+      const result = await uploadDeclaracaoMutation.mutateAsync({
+        clienteId: String(cliente.id),
+        file,
+      })
+      setDeclaracaoServicoUrl(result.declaracao_servico_url)
+      setDeclaracaoServicoNome(result.declaracao_servico_nome)
+      if (!declaracaoChecked) {
+        setDeclaracaoChecked(true)
+        onChecklistChange?.('checklist_declaracao', true)
+      }
+      toast.success('Declaração de serviço enviada com sucesso!')
+    } catch(error: any) {
+      const msg = error?.response?.data?.errors
+        ? Object.values(error.response.data.errors).flat().join(', ')
+        : error?.response?.data?.message || 'Erro ao enviar declaração de serviço.';
+      toast.error(msg);
+      console.error("Erro ao enviar declaração de serviço.", error?.response?.data || error);
+    } finally {
+      setIsUploadingDeclaracao(false)
+    }
+    if (declaracaoServicoInputRef.current) {
+      declaracaoServicoInputRef.current.value = ''
+    }
+  }
+
+  const handleVerDeclaracaoServico = () => {
+    if (declaracaoServicoUrl) {
+      window.open(declaracaoServicoUrl, '_blank')
     }
   }
 
@@ -331,7 +391,7 @@ export function ModalOutrosDocumentosImportantes({
                     declaracaoChecked ? "border-primary bg-primary/5" : "border-gray-200 dark:border-white/10 hover:border-primary/50"
                   )}>
                     <div className={cn(
-                      "w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5",
+                      "w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5 transition-all",
                       declaracaoChecked ? "bg-primary border-primary text-white" : "border-gray-400"
                     )}>
                       {declaracaoChecked && <Check className="h-3.5 w-3.5" />}
@@ -346,11 +406,44 @@ export function ModalOutrosDocumentosImportantes({
                       }}
                       className="hidden"
                     />
-                    <div>
+                    <div className="flex-1">
                       <p className="font-medium text-sm">Declaração de Serviço</p>
                       <p className="text-xs text-muted-foreground mt-1">
-                        Declaração de serviço do financiador
+                        Faça upload da declaração de serviço do financiador (opcional)
                       </p>
+                      <div className="flex flex-wrap gap-2 mt-3" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          ref={declaracaoServicoInputRef}
+                          type="file"
+                          accept=".pdf,.jpg,.jpeg,.png"
+                          onChange={handleUploadDeclaracaoServico}
+                          className="hidden"
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => declaracaoServicoInputRef.current?.click()}
+                          disabled={isUploadingDeclaracao}
+                        >
+                          {isUploadingDeclaracao ? (
+                            <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                          ) : (
+                            <Upload className="h-4 w-4 mr-1" />
+                          )}
+                          {declaracaoServicoUrl ? 'Substituir Declaração' : 'Upload Declaração'}
+                        </Button>
+                        {declaracaoServicoUrl && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleVerDeclaracaoServico}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            {declaracaoServicoNome ?? 'Ver'}
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   </label>
                 )}

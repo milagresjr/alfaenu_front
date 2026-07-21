@@ -136,6 +136,11 @@ const allNavItems: NavItem[] = [
     ],
   },
   {
+    icon: <FileText />,
+    name: "Declarações Serviço",
+    path: "/declaracoes-servico",
+  },
+  {
     icon: <FileSignature />,
     name: "Reconh. Consulado",
     subItems: [
@@ -264,7 +269,8 @@ const AppSidebar: React.FC = () => {
             "/solicitacao-reconhecimento-registo-criminal",
             "/solicitacao-reconhecimento-registo-criminal/config",
             "/solicitacao-reconhecimento-notario",
-            "/solicitacao-reconhecimento-notario/config"
+            "/solicitacao-reconhecimento-notario/config",
+            "/declaracoes-servico"
           ];
 
           // Se o item principal é restrito, não mostra

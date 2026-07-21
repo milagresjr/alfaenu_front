@@ -236,8 +236,8 @@ export default function ProcessoWizard() {
   }
 
   return (
-    <div className="min-h-[calc(100vh-200px)] py-4 sm:py-8 w-full">
-      <div className="w-full max-w-6xl mx-auto px-4 sm:px-6">
+    <div className="min-h-[calc(100vh-200px)] py-4 sm:py-2 w-full">
+      <div className="w-full mx-auto px-4 sm:px-6">
         <div className="bg-card rounded-2xl w-full shadow-xl border p-4 sm:p-6 md:p-8">
           {/* Header */}
           <div className="flex justify-between items-start mb-6 pb-4 border-b flex-wrap gap-4">

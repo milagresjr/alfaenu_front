@@ -130,7 +130,7 @@ export default function StepTipoVisto({
                   whileHover={{ y: -4 }}
                 >
                   <Card
-                    className="cursor-pointer transition-all hover:shadow-xl border-2 hover:border-primary/50 relative overflow-hidden group"
+                    className="cursor-pointer transition-all hover:shadow-xl border-2 hover:border-primary/50 relative overflow-hidden h-full group"
                     onClick={() => handleSelect(tipo.id)}
                   >
                     <div className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${tipo.cor} opacity-10 rounded-full transform translate-x-16 -translate-y-16 group-hover:scale-150 transition-transform duration-500`} />

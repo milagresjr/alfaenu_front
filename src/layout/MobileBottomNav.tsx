@@ -192,6 +192,7 @@ function useFilteredNavItems(isInternal: boolean) {
       "/solicitacao-reconhecimento-registo-criminal/config",
       "/solicitacao-reconhecimento-notario",
       "/solicitacao-reconhecimento-notario/config",
+      "/declaracoes-servico",
     ];
     const restrictedSubPaths = [
       "/contract/subcontas", "/service", "/service-type",
@@ -205,6 +206,7 @@ function useFilteredNavItems(isInternal: boolean) {
       "/solicitacao-reconhecimento-registo-criminal/config",
       "/solicitacao-reconhecimento-notario",
       "/solicitacao-reconhecimento-notario/config",
+      "/declaracoes-servico",
     ];
     return allNavItems
       .map((item) => {
