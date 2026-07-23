@@ -203,7 +203,7 @@ export function ModalEmitirFormularioSchengen({
       };
 
       console.log(payload);
-      return;
+      // return;
 
       const response = await api.post("formulario-schengen/gerar-pdf", payload, {
         responseType: "blob",
