@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from "react"
-import { Plane, Search, CheckCircle, XCircle, Clock, AlertCircle, FileText, Upload } from "lucide-react"
+import { Plane, Search, CheckCircle, XCircle, Clock, AlertCircle, FileText, Upload, Info } from "lucide-react"
 import { useDebounce } from "@uidotdev/usehooks"
 import { toast } from "react-toastify"
 import { AxiosError } from "axios"
@@ -23,6 +23,7 @@ import { RejeitarPrintVooDialog } from "./RejeitarPrintVooDialog"
 import { EnviarPrintVooForm } from "./EnviarPrintVooForm"
 import { VerMotivoRejeicaoDialog } from "./VerMotivoRejeicaoDialog"
 import { VerComprovativoDialog } from "./VerComprovativoDialog"
+import { DetalhesPrintVooDialog } from "./DetalhesPrintVooDialog"
 
 type FilterType = 'todos' | SolicitacaoPrintVooStatus
 
@@ -65,6 +66,7 @@ export default function SoliPrintVooTable() {
   const [openEnviar, setOpenEnviar] = useState(false)
   const [openMotivo, setOpenMotivo] = useState(false)
   const [openComprovativo, setOpenComprovativo] = useState(false)
+  const [openDetalhes, setOpenDetalhes] = useState(false)
 
   const stats = useMemo(() => [
     {
@@ -251,7 +253,16 @@ export default function SoliPrintVooTable() {
           {
             header: "Ações",
             accessor: (solicitacao: SolicitacaoPrintVooType) => {
-              const actions = []
+              const actions = [
+                {
+                  label: 'Detalhes',
+                  icon: <Info className="h-4 w-4" />,
+                  onClick: () => {
+                    setSelectedSolicitacao(solicitacao)
+                    setOpenDetalhes(true)
+                  },
+                },
+              ]
 
               if (solicitacao.comprovativo_url) {
                 actions.push({
@@ -317,6 +328,12 @@ export default function SoliPrintVooTable() {
             width: "30%",
           },
         ]}
+      />
+
+      <DetalhesPrintVooDialog
+        open={openDetalhes}
+        onOpenChange={setOpenDetalhes}
+        solicitacao={selectedSolicitacao}
       />
 
       {selectedSolicitacao && (

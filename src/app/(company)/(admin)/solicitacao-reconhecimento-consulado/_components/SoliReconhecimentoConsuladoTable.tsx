@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from "react"
-import { FileSignature, Search, CheckCircle, XCircle, Clock, AlertCircle, FileText } from "lucide-react"
+import { FileSignature, Search, CheckCircle, XCircle, Clock, AlertCircle, FileText, Info } from "lucide-react"
 import { useDebounce } from "@uidotdev/usehooks"
 import { toast } from "react-toastify"
 import { AxiosError } from "axios"
@@ -21,6 +21,7 @@ import { AprovarReconhecimentoConsuladoDialog } from "./AprovarReconhecimentoCon
 import { RejeitarReconhecimentoConsuladoDialog } from "./RejeitarReconhecimentoConsuladoDialog"
 import { VerMotivoRejeicaoDialog } from "./VerMotivoRejeicaoDialog"
 import { VerComprovativoDialog } from "./VerComprovativoDialog"
+import { DetalhesReconhecimentoConsuladoDialog } from "./DetalhesReconhecimentoConsuladoDialog"
 
 type FilterType = 'todos' | ReconhecimentoConsuladoStatus
 
@@ -71,6 +72,7 @@ export default function SoliReconhecimentoConsuladoTable() {
   const [openRejeitar, setOpenRejeitar] = useState(false)
   const [openMotivo, setOpenMotivo] = useState(false)
   const [openComprovativo, setOpenComprovativo] = useState(false)
+  const [openDetalhes, setOpenDetalhes] = useState(false)
 
   const stats = useMemo(() => [
     {
@@ -216,7 +218,16 @@ export default function SoliReconhecimentoConsuladoTable() {
           {
             header: "Ações",
             accessor: (solicitacao: ReconhecimentoConsuladoType) => {
-              const actions = []
+              const actions = [
+                {
+                  label: 'Detalhes',
+                  icon: <Info className="h-4 w-4" />,
+                  onClick: () => {
+                    setSelectedSolicitacao(solicitacao)
+                    setOpenDetalhes(true)
+                  },
+                },
+              ]
 
               if (solicitacao.comprovativo_url) {
                 actions.push({
@@ -264,6 +275,12 @@ export default function SoliReconhecimentoConsuladoTable() {
             width: "30%",
           },
         ]}
+      />
+
+      <DetalhesReconhecimentoConsuladoDialog
+        open={openDetalhes}
+        onOpenChange={setOpenDetalhes}
+        solicitacao={selectedSolicitacao}
       />
 
       {selectedSolicitacao && (

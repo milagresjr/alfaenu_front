@@ -23,7 +23,7 @@ export const getSolicitacaoReconhecimentoNotarioByClienteId = async (clienteId: 
   }
 }
 
-export const gerarDeclaracaoAutonoma = async (params: { cliente_id: number; financiador_id: number; estado_civil?: string; profissao?: string }): Promise<{ declaracao_autonoma_path: string; declaracao_autonoma_url: string }> => {
+export const gerarDeclaracaoAutonoma = async (params: { cliente_id: number; financiador_id: number; estado_civil?: string; profissao?: string; rendimento_min?: number; rendimento_max?: number; parentesco?: string; parentesco_preposicao?: string }): Promise<{ declaracao_autonoma_path: string; declaracao_autonoma_url: string }> => {
   try {
     const response = await api.post<{ message: string; data: { declaracao_autonoma_path: string; declaracao_autonoma_url: string } }>(
       '/reconhecimento-notario/gerar-declaracao-autonoma',

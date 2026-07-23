@@ -23,6 +23,13 @@ export type SolicitacaoSeguroViagemType = {
     id: number
     nome: string
     email: string
+    telefone?: string
+    n_passaporte?: string
+    n_bi?: string
+    passaporte_path?: string
+    bi_path?: string
+    passaporte_url?: string
+    bi_url?: string
   }
 }
 

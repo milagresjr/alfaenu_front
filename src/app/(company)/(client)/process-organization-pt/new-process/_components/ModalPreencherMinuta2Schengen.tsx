@@ -66,6 +66,7 @@ export function ModalPreencherMinuta2Schengen({
 
   useEffect(() => {
     if (open) {
+      console.log('[DEBUG ModalPreencherMinuta2Schengen] open true, initialValues:', initialValues);
       setMode('form')
       setFormData({ ...initialFormValues, ...initialValues })
       setErrors({})

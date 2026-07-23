@@ -24,7 +24,7 @@ export const useGetSolicitacaoReconhecimentoNotarioByClienteId = (clienteId: str
 
 export const useGerarDeclaracaoAutonoma = () => {
   return useMutation({
-    mutationFn: (params: { cliente_id: number; financiador_id: number; estado_civil?: string; profissao?: string }) =>
+    mutationFn: (params: { cliente_id: number; financiador_id: number; estado_civil?: string; profissao?: string; rendimento_min?: number; rendimento_max?: number; parentesco?: string; parentesco_preposicao?: string }) =>
       gerarDeclaracaoAutonoma(params),
   })
 }

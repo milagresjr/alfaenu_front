@@ -12,6 +12,7 @@ type TableProps<T> = {
   columns: Column<T>[];
   isLoading?: boolean;
   emptyMessage?: string;
+  tableLayout?: 'fixed' | 'auto';
 };
 
 export function TableMain<T>({
@@ -19,6 +20,7 @@ export function TableMain<T>({
   columns,
   isLoading = false,
   emptyMessage = "Nenhum dado encontrado.",
+  tableLayout = 'fixed',
 }: TableProps<T>) {
   const showEmpty = !isLoading && data.length === 0;
 
@@ -26,7 +28,7 @@ export function TableMain<T>({
     <div className="w-full">
       {/* scroll só no mobile */}
       <div className="overflow-x-auto md:overflow-x-visible">
-        <table className="w-full md:table-fixed border-collapse">
+        <table className={`w-full border-collapse ${tableLayout === 'fixed' ? 'md:table-fixed' : ''}`}>
           <thead className="bg-gray-50 dark:bg-gray-800 sticky top-0 z-10">
             <tr>
               {columns.map((col, index) => (

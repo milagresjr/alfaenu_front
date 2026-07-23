@@ -20,7 +20,7 @@ import { getFinanciadorById } from "@/features/financiador/api/financiadorApi"
 import { useCreateSolicitacaoReconhecimentoNotario, useGerarDeclaracaoAutonoma, useGetConfigReconhecimentoNotario } from "@/features/reconhecimento-notario/hooks/useReconhecimentoNotarioQuery"
 import { useUploadDeclaracaoServico } from "@/features/documentos-profundo/hooks/useDocumentoProfundoQuery"
 
-type Step = 'checklist' | 'reconhecimento'
+type Step = 'checklist' | 'formulario_declaracao' | 'reconhecimento'
 
 interface ModalOutrosDocumentosImportantesProps {
   open: boolean
@@ -73,6 +73,39 @@ export function ModalOutrosDocumentosImportantes({
   const [declaracaoServicoNome, setDeclaracaoServicoNome] = useState<string | null>(null)
   const [isUploadingDeclaracao, setIsUploadingDeclaracao] = useState(false)
 
+  const [rendimentoMin, setRendimentoMin] = useState('')
+  const [rendimentoMax, setRendimentoMax] = useState('')
+  const [parentesco, setParentesco] = useState('')
+  const [parentescoOutro, setParentescoOutro] = useState('')
+  const [parentescoGenero, setParentescoGenero] = useState<'M' | 'F' | null>(null)
+
+  const parentescoOptions = [
+    { label: 'Pai', value: 'Pai', genero: 'M' as const },
+    { label: 'Mãe', value: 'Mãe', genero: 'F' as const },
+    { label: 'Irmão', value: 'Irmão', genero: 'M' as const },
+    { label: 'Irmã', value: 'Irmã', genero: 'F' as const },
+    { label: 'Tio', value: 'Tio', genero: 'M' as const },
+    { label: 'Tia', value: 'Tia', genero: 'F' as const },
+    { label: 'Cônjuge', value: 'Cônjuge', genero: 'M' as const },
+    { label: 'Outro', value: 'Outro', genero: null },
+  ]
+
+  const getParentescoPreposicao = () => {
+    if (parentesco === 'Outro') {
+      return parentescoGenero === 'F' ? 'da minha' : 'do meu'
+    }
+    const opt = parentescoOptions.find(o => o.value === parentesco)
+    return opt?.genero === 'F' ? 'da minha' : 'do meu'
+  }
+
+  const formatKz = (value: string) => {
+    const numeric = value.replace(/\D/g, '')
+    if (!numeric) return ''
+    return numeric.replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+  }
+
+  const unformatKz = (value: string) => value.replace(/\./g, '')
+
   const [tipoEntrega, setTipoEntrega] = useState<'domicilio' | 'presencial' | null>(null)
   const [enderecoEntrega, setEnderecoEntrega] = useState('')
   const [comprovativo, setComprovativo] = useState<File | null>(null)
@@ -107,6 +140,11 @@ export function ModalOutrosDocumentosImportantes({
     if (!open) {
       setStep('checklist')
       setDeclaracaoAutonomaUrl(null)
+      setRendimentoMin('')
+      setRendimentoMax('')
+      setParentesco('')
+      setParentescoOutro('')
+      setParentescoGenero(null)
       setTipoEntrega(null)
       setEnderecoEntrega('')
       setComprovativo(null)
@@ -114,7 +152,7 @@ export function ModalOutrosDocumentosImportantes({
     }
   }, [open])
 
-  const allChecked = extratoChecked && declaracaoChecked && reciboChecked
+  const allChecked = extratoChecked && declaracaoChecked && (isPorContaPropria || reciboChecked)
 
   const handleClose = () => {
     onOpenChange(false)
@@ -126,6 +164,32 @@ export function ModalOutrosDocumentosImportantes({
       return
     }
 
+    const rendimentoMinNum = unformatKz(rendimentoMin)
+    const rendimentoMaxNum = unformatKz(rendimentoMax)
+    const parentescoValue = parentesco === 'Outro' ? parentescoOutro : parentesco
+
+    if (!rendimentoMinNum || Number(rendimentoMinNum) <= 0) {
+      toast.error('Informe o rendimento mínimo.')
+      return
+    }
+    if (!rendimentoMaxNum || Number(rendimentoMaxNum) <= 0) {
+      toast.error('Informe o rendimento máximo.')
+      return
+    }
+    if (Number(rendimentoMaxNum) <= Number(rendimentoMinNum)) {
+      toast.error('O rendimento máximo deve ser maior que o mínimo.')
+      return
+    }
+    if (!parentescoValue) {
+      toast.error('Selecione o parentesco com o cliente.')
+      return
+    }
+
+    if (parentesco === 'Outro' && !parentescoGenero) {
+      toast.error('Selecione o género do parentesco.')
+      return
+    }
+
     setIsGerandoDeclaracao(true)
     try {
       const result = await gerarDeclaracao.mutateAsync({
@@ -133,6 +197,10 @@ export function ModalOutrosDocumentosImportantes({
         financiador_id: Number(financiadorId),
         estado_civil: 'Solteiro(a)',
         profissao: '',
+        rendimento_min: Number(rendimentoMinNum),
+        rendimento_max: Number(rendimentoMaxNum),
+        parentesco: parentescoValue,
+        parentesco_preposicao: getParentescoPreposicao(),
       })
 
       if (result.declaracao_autonoma_url) {
@@ -140,6 +208,7 @@ export function ModalOutrosDocumentosImportantes({
         setDeclaracaoChecked(true)
         onChecklistChange?.('checklist_declaracao', true)
         toast.success('Declaração autónoma gerada com sucesso!')
+        setStep('checklist')
       }
     } catch {
       toast.error('Erro ao gerar declaração autónoma.')
@@ -353,12 +422,8 @@ export function ModalOutrosDocumentosImportantes({
                         <Button
                           type="button"
                           size="sm"
-                          onClick={handleGerarDeclaracaoAutonoma}
-                          disabled={isGerandoDeclaracao}
+                          onClick={() => setStep('formulario_declaracao')}
                         >
-                          {isGerandoDeclaracao ? (
-                            <Loader2 className="h-4 w-4 animate-spin mr-1" />
-                          ) : null}
                           {declaracaoChecked ? 'Regenerar' : 'Gerar Declaração Autónoma'}
                         </Button>
                         {declaracaoChecked && (
@@ -448,35 +513,37 @@ export function ModalOutrosDocumentosImportantes({
                   </label>
                 )}
 
-                <label className={cn(
-                  "flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all",
-                  reciboChecked ? "border-primary bg-primary/5" : "border-gray-200 dark:border-white/10 hover:border-primary/50"
-                )}>
-                  <div className={cn(
-                    "w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5",
-                    reciboChecked ? "bg-primary border-primary text-white" : "border-gray-400"
+                {!isPorContaPropria && (
+                  <label className={cn(
+                    "flex items-start gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all",
+                    reciboChecked ? "border-primary bg-primary/5" : "border-gray-200 dark:border-white/10 hover:border-primary/50"
                   )}>
-                    {reciboChecked && <Check className="h-3.5 w-3.5" />}
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={reciboChecked}
-                    onChange={() => {
-                      const newVal = !reciboChecked
-                      setReciboChecked(newVal)
-                      onChecklistChange?.('checklist_recibo_salarial', newVal)
-                    }}
-                    className="hidden"
-                  />
-                  <div>
-                    <p className="font-medium text-sm">
-                      Recibo salarial dos últimos 3 meses
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {ultimosTresMeses.join(', ')}
-                    </p>
-                  </div>
-                </label>
+                    <div className={cn(
+                      "w-5 h-5 rounded border-2 flex items-center justify-center shrink-0 mt-0.5",
+                      reciboChecked ? "bg-primary border-primary text-white" : "border-gray-400"
+                    )}>
+                      {reciboChecked && <Check className="h-3.5 w-3.5" />}
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={reciboChecked}
+                      onChange={() => {
+                        const newVal = !reciboChecked
+                        setReciboChecked(newVal)
+                        onChecklistChange?.('checklist_recibo_salarial', newVal)
+                      }}
+                      className="hidden"
+                    />
+                    <div>
+                      <p className="font-medium text-sm">
+                        Recibo salarial dos últimos 3 meses
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {ultimosTresMeses.join(', ')}
+                      </p>
+                    </div>
+                  </label>
+                )}
               </div>
 
               {erro && (
@@ -504,10 +571,12 @@ export function ModalOutrosDocumentosImportantes({
                       if (!allChecked) {
                         setExtratoChecked(true)
                         setDeclaracaoChecked(true)
-                        setReciboChecked(true)
                         onChecklistChange?.('checklist_extrato_bancario', true)
                         onChecklistChange?.('checklist_declaracao', true)
-                        onChecklistChange?.('checklist_recibo_salarial', true)
+                        if (!isPorContaPropria) {
+                          setReciboChecked(true)
+                          onChecklistChange?.('checklist_recibo_salarial', true)
+                        }
                         return
                       }
                       setErro('')
@@ -525,6 +594,176 @@ export function ModalOutrosDocumentosImportantes({
                     {allChecked ? 'Concluir' : 'Marcar todos'}
                   </Button>
                 )}
+              </DialogFooter>
+            </div>
+          )}
+
+          {step === 'formulario_declaracao' && (
+            <div className="space-y-6 py-4">
+              <div className="flex items-center gap-2 mb-2">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setStep('checklist')}
+                  className="p-0 h-auto text-sm"
+                >
+                  ← Voltar
+                </Button>
+              </div>
+
+              <p className="text-sm font-medium">Dados da Declaração Autónoma</p>
+              <p className="text-sm text-muted-foreground">
+                Preencha os dados para gerar a declaração autónoma do financiador.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>
+                    Rendimento Mínimo (Kz) <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Kz</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={rendimentoMin ? formatKz(rendimentoMin) : rendimentoMin}
+                      onChange={(e) => setRendimentoMin(unformatKz(e.target.value))}
+                      placeholder="300.000"
+                      className={cn(
+                        "w-full rounded-lg border border-gray-300 dark:border-white/10 pl-10 pr-4 py-2.5 text-sm",
+                        "focus:outline-none focus:border-brand-300 focus:ring-brand-500/20",
+                        "bg-transparent text-gray-800 dark:text-white/90"
+                      )}
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>
+                    Rendimento Máximo (Kz) <span className="text-red-500">*</span>
+                  </Label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">Kz</span>
+                    <input
+                      type="text"
+                      inputMode="numeric"
+                      value={rendimentoMax ? formatKz(rendimentoMax) : rendimentoMax}
+                      onChange={(e) => setRendimentoMax(unformatKz(e.target.value))}
+                      placeholder="450.000"
+                      className={cn(
+                        "w-full rounded-lg border border-gray-300 dark:border-white/10 pl-10 pr-4 py-2.5 text-sm",
+                        "focus:outline-none focus:border-brand-300 focus:ring-brand-500/20",
+                        "bg-transparent text-gray-800 dark:text-white/90"
+                      )}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>
+                  Parentesco com o Cliente <span className="text-red-500">*</span>
+                </Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {parentescoOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      type="button"
+                      onClick={() => {
+                        setParentesco(option.value)
+                        if (option.value !== 'Outro') setParentescoGenero(null)
+                      }}
+                      className={cn(
+                        "px-4 py-2.5 rounded-lg border-2 text-sm font-medium transition-all",
+                        parentesco === option.value
+                          ? "border-primary bg-primary/5 text-primary"
+                          : "border-gray-200 dark:border-white/10 text-muted-foreground hover:border-primary/50"
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                {parentesco === 'Outro' && (
+                  <div className="space-y-3 mt-2">
+                    <input
+                      type="text"
+                      value={parentescoOutro}
+                      onChange={(e) => setParentescoOutro(e.target.value)}
+                      placeholder="Especifique o parentesco..."
+                      className={cn(
+                        "w-full rounded-lg border border-gray-300 dark:border-white/10 px-4 py-2.5 text-sm",
+                        "focus:outline-none focus:border-brand-300 focus:ring-brand-500/20",
+                        "bg-transparent text-gray-800 dark:text-white/90"
+                      )}
+                    />
+                    <div className="flex gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setParentescoGenero('M')}
+                        className={cn(
+                          "flex-1 px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all",
+                          parentescoGenero === 'M'
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-gray-200 dark:border-white/10 text-muted-foreground hover:border-primary/50"
+                        )}
+                      >
+                        Masculino
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setParentescoGenero('F')}
+                        className={cn(
+                          "flex-1 px-4 py-2 rounded-lg border-2 text-sm font-medium transition-all",
+                          parentescoGenero === 'F'
+                            ? "border-primary bg-primary/5 text-primary"
+                            : "border-gray-200 dark:border-white/10 text-muted-foreground hover:border-primary/50"
+                        )}
+                      >
+                        Feminino
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {erro && (
+                <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 rounded-lg p-3">
+                  <p className="text-sm text-red-600 dark:text-red-400 flex items-center gap-2">
+                    <AlertCircle className="h-4 w-4" />
+                    {erro}
+                  </p>
+                </div>
+              )}
+
+              <DialogFooter className="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setStep('checklist')}
+                  className="w-full sm:w-auto"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  type="button"
+                  onClick={handleGerarDeclaracaoAutonoma}
+                  disabled={isGerandoDeclaracao}
+                  className="gap-2 w-full sm:w-auto"
+                >
+                  {isGerandoDeclaracao ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Gerando...
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="h-4 w-4" />
+                      Gerar Declaração
+                    </>
+                  )}
+                </Button>
               </DialogFooter>
             </div>
           )}

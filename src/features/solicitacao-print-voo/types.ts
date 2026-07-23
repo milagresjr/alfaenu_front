@@ -11,6 +11,9 @@ export type SolicitacaoPrintVooType = {
   comprovativo_path?: string
   comprovativo_nome?: string
   comprovativo_url?: string
+  documento_path?: string
+  documento_nome?: string
+  documento_url?: string
   observacoes?: string
   motivo_rejeicao?: string
   created_at?: string
@@ -21,6 +24,12 @@ export type SolicitacaoPrintVooType = {
     email: string
     passaporte?: string
     telefone?: string
+    passaporte_path?: string
+    bi_path?: string
+    passaporte_url?: string
+    bi_url?: string
+    n_passaporte?: string
+    n_bi?: string
   }
 }
 

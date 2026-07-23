@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from "react"
-import { CalendarDays, Search, CheckCircle, XCircle, Clock, AlertCircle, FileText, Upload } from "lucide-react"
+import { CalendarDays, Search, CheckCircle, XCircle, Clock, AlertCircle, FileText, Upload, Info } from "lucide-react"
 import { useDebounce } from "@uidotdev/usehooks"
 import { toast } from "react-toastify"
 import { TableMain } from "@/components/table"
@@ -22,6 +22,7 @@ import { RejeitarAgendamentoDialog } from "./RejeitarAgendamentoDialog"
 import { EnviarAgendamentoForm } from "./EnviarAgendamentoForm"
 import { VerMotivoRejeicaoDialog } from "./VerMotivoRejeicaoDialog"
 import { VerComprovativoDialog } from "./VerComprovativoDialog"
+import { DetalhesAgendamentoDialog } from "./DetalhesAgendamentoDialog"
 
 type FilterType = 'todos' | SolicitacaoAgendamentoStatus
 
@@ -64,6 +65,7 @@ export default function SoliAgendamentoTable() {
   const [openEnviar, setOpenEnviar] = useState(false)
   const [openMotivo, setOpenMotivo] = useState(false)
   const [openComprovativo, setOpenComprovativo] = useState(false)
+  const [openDetalhes, setOpenDetalhes] = useState(false)
 
   const stats = useMemo(() => [
     {
@@ -250,7 +252,16 @@ export default function SoliAgendamentoTable() {
           {
             header: "Ações",
             accessor: (solicitacao: SolicitacaoAgendamentoType) => {
-              const actions = []
+              const actions = [
+                {
+                  label: 'Detalhes',
+                  icon: <Info className="h-4 w-4" />,
+                  onClick: () => {
+                    setSelectedSolicitacao(solicitacao)
+                    setOpenDetalhes(true)
+                  },
+                },
+              ]
 
               if (solicitacao.comprovativo_url) {
                 actions.push({
@@ -317,6 +328,12 @@ export default function SoliAgendamentoTable() {
             width: "23%",
           },
         ]}
+      />
+
+      <DetalhesAgendamentoDialog
+        open={openDetalhes}
+        onOpenChange={setOpenDetalhes}
+        solicitacao={selectedSolicitacao}
       />
 
       {selectedSolicitacao && (

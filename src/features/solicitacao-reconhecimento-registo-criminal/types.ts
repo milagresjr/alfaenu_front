@@ -20,6 +20,12 @@ export type SolicitacaoReconhecimentoRegistoCriminalType = {
     email: string
     passaporte?: string
     telefone?: string
+    passaporte_path?: string
+    bi_path?: string
+    passaporte_url?: string
+    bi_url?: string
+    n_passaporte?: string
+    n_bi?: string
   }
 }
 

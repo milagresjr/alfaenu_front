@@ -17,7 +17,6 @@ import {
   AlertCircle,
   Plane,
   Building2,
-  AlertTriangle,
   User,
   Globe,
   Wallet,
@@ -106,7 +105,182 @@ interface DocumentosContentProps {
 }
 
 const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta[] => {
-  const cards: Minuta[] = [
+  if (isSchengen) {
+    return [
+      {
+        id: "termo_responsabilidade" as TipoMinuta,
+        titulo: "Exemplo Termo de Responsabilidade",
+        descricao: "Modelo de termo de responsabilidade financeira",
+        icone: FileSignature,
+        cor: "from-amber-500 to-orange-500",
+        documentos: [
+          "Declaração do responsável",
+          "Comprovante de renda",
+          "Documento de identificação",
+        ],
+      },
+      {
+        id: "solicitar_agendamento" as TipoMinuta,
+        titulo: "Solicitar Agendamento",
+        descricao: "Formulário para agendamento de entrevista ou entrega de documentos",
+        icone: Calendar,
+        cor: "from-rose-500 to-pink-500",
+        documentos: [
+          "Escolha de data e horário",
+          "Local de atendimento",
+          "Tipo de serviço",
+        ],
+      },
+      {
+        id: "print_voo" as TipoMinuta,
+        titulo: "Print de Voo",
+        descricao: "Comprovante de reserva ou bilhete de passagem aérea",
+        icone: Plane,
+        cor: "from-orange-500 to-amber-500",
+        documentos: [
+          "Bilhete de passagem",
+          "Comprovante de reserva",
+          "Itinerário de voo",
+        ],
+      },
+      {
+        id: "seguro_viagem" as TipoMinuta,
+        titulo: "Seguro de Viagem",
+        descricao: "Solicitação de seguro de viagem para o período da estada",
+        icone: ShieldCheck,
+        cor: "from-indigo-500 to-blue-500",
+        documentos: [
+          "Comprovativo de seguro",
+          "Detalhes da viagem",
+          "Período de cobertura",
+        ],
+      },
+      {
+        id: "reserva_hotel" as TipoMinuta,
+        titulo: "Reserva de Hotel",
+        descricao: "Comprovante de reserva de hospedagem durante a estada",
+        icone: Building2,
+        cor: "from-green-500 to-emerald-500",
+        documentos: [
+          "Comprovante de reserva",
+          "Detalhes da hospedagem",
+          "Período da estada",
+        ],
+      },
+      {
+        id: "formulario_schengen" as TipoMinuta,
+        titulo: "Formulário Schengen",
+        descricao: "Formulário oficial de pedido de visto Schengen (uniforme)",
+        icone: ClipboardList,
+        cor: "from-emerald-500 to-teal-500",
+        documentos: [
+          "Dados de identificação",
+          "Documento de viagem",
+          "Objetivo da viagem",
+          "Meios de subsistência",
+        ],
+      },
+      {
+        id: "minuta2_schengen" as TipoMinuta,
+        titulo: "Minuta (CARTA DE INTENÇÃO)",
+        descricao: "Carta de intenção para solicitação de visto Schengen",
+        icone: FileText,
+        cor: "from-emerald-500 to-teal-500",
+        documentos: [
+          "Declaração de motivação",
+          "Comprovante de hospedagem",
+          "Extratos bancários",
+        ],
+      },
+      {
+        id: "plano_turistico" as TipoMinuta,
+        titulo: "Plano Turístico",
+        descricao: "Detalhamento do roteiro turístico durante a estada",
+        icone: MapPin,
+        cor: "from-purple-500 to-pink-500",
+        documentos: [
+          "Roteiro turístico",
+          "Locais a visitar",
+          "Atividades planeadas",
+        ],
+      },
+      {
+        id: "minuta1_schengen" as TipoMinuta,
+        titulo: "Minuta (DECLARAÇÃO DE ESTADA PREVISTA)",
+        descricao: "Declaração de estada prevista para solicitação de visto Schengen",
+        icone: FileSignature,
+        cor: "from-violet-500 to-purple-500",
+        documentos: [
+          "Dados de identificação",
+          "Período da estada",
+          "Local de hospedagem",
+        ],
+      },
+      {
+        id: "outros_documentos_importantes" as TipoMinuta,
+        titulo: "Outros Documentos Importantes",
+        descricao: "Checklist de documentos complementares para o processo",
+        icone: FolderOpen,
+        cor: "from-teal-500 to-emerald-500",
+        documentos: [
+          "Extrato bancário do financiador",
+          "Declaração de serviço / Declaração autónoma",
+          "Recibo salarial do financiador",
+        ],
+      },
+    ] as Minuta[]
+  }
+
+  return [
+    {
+      id: "termo_responsabilidade" as TipoMinuta,
+      titulo: "Exemplo Termo de Responsabilidade",
+      descricao: "Modelo de termo de responsabilidade financeira",
+      icone: FileSignature,
+      cor: "from-amber-500 to-orange-500",
+      documentos: [
+        "Declaração do responsável",
+        "Comprovante de renda",
+        "Documento de identificação",
+      ],
+    },
+    {
+      id: "solicitar_agendamento" as TipoMinuta,
+      titulo: "Solicitar Agendamento",
+      descricao: "Formulário para agendamento de entrevista ou entrega de documentos",
+      icone: Calendar,
+      cor: "from-rose-500 to-pink-500",
+      documentos: [
+        "Escolha de data e horário",
+        "Local de atendimento",
+        "Tipo de serviço",
+      ],
+    },
+    {
+      id: "solicitar_matricula" as TipoMinuta,
+      titulo: "Solicitar Matrícula",
+      descricao: "Solicitação de matrícula na instituição de ensino",
+      icone: BookOpen,
+      cor: "from-cyan-500 to-sky-500",
+      status: solicitacaoMatricula ? solicitacaoMatricula.status : 'nao_enviado',
+      documentos: [
+        "Documentos pessoais",
+        "Histórico escolar",
+        "Comprovante de pagamento",
+      ],
+    },
+    {
+      id: "reconhecimento_registo_criminal" as TipoMinuta,
+      titulo: "Reconhecimento de Registo Criminal",
+      descricao: "Solicitação de reconhecimento do registo criminal",
+      icone: Fingerprint,
+      cor: "from-rose-500 to-red-500",
+      documentos: [
+        "Registo criminal",
+        "Comprovativo de entrega",
+        "Documento de identificação",
+      ],
+    },
     {
       id: "print_voo" as TipoMinuta,
       titulo: "Print de Voo",
@@ -117,6 +291,18 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
         "Bilhete de passagem",
         "Comprovante de reserva",
         "Itinerário de voo",
+      ],
+    },
+    {
+      id: "seguro_viagem" as TipoMinuta,
+      titulo: "Seguro de Viagem",
+      descricao: "Solicitação de seguro de viagem para o período da estada",
+      icone: ShieldCheck,
+      cor: "from-indigo-500 to-blue-500",
+      documentos: [
+        "Comprovativo de seguro",
+        "Detalhes da viagem",
+        "Período de cobertura",
       ],
     },
     {
@@ -132,92 +318,6 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
       ],
     },
     {
-      id: "seguro_viagem" as TipoMinuta,
-      titulo: "Seguro de Viagem",
-      descricao: "Solicitação de seguro de viagem para o período da estada",
-      icone: ShieldCheck,
-      cor: "from-indigo-500 to-blue-500",
-      documentos: [
-        "Comprovativo de seguro",
-        "Detalhes da viagem",
-        "Período de cobertura",
-      ],
-    },
-    ...(!isSchengen ? [{
-      id: "reconhecimento_registo_criminal" as TipoMinuta,
-      titulo: "Reconhecimento de Registo Criminal",
-      descricao: "Solicitação de reconhecimento do registo criminal",
-      icone: Fingerprint,
-      cor: "from-rose-500 to-red-500",
-      documentos: [
-        "Registo criminal",
-        "Comprovativo de entrega",
-        "Documento de identificação",
-      ],
-    }] : []),
-    ...(isSchengen ? [{
-      id: "minuta1_schengen" as TipoMinuta,
-      titulo: "Declaração de Estada Prevista (Schengen)",
-      descricao: "Declaração de estada prevista para solicitação de visto Schengen",
-      icone: FileSignature,
-      cor: "from-violet-500 to-purple-500",
-      documentos: [
-        "Dados de identificação",
-        "Período da estada",
-        "Local de hospedagem",
-      ],
-    },
-    {
-      id: "plano_turistico" as TipoMinuta,
-      titulo: "Plano Turístico",
-      descricao: "Detalhamento do roteiro turístico durante a estada",
-      icone: MapPin,
-      cor: "from-purple-500 to-pink-500",
-      documentos: [
-        "Roteiro turístico",
-        "Locais a visitar",
-        "Atividades planeadas",
-      ],
-    },
-    {
-      id: "minuta2_schengen" as TipoMinuta,
-      titulo: "Carta de Intenção",
-      descricao: "Carta de intenção para solicitação de visto Schengen",
-      icone: FileText,
-      cor: "from-emerald-500 to-teal-500",
-      documentos: [
-        "Declaração de motivação",
-        "Comprovante de hospedagem",
-        "Extratos bancários",
-      ],
-    },
-    ] : []),
-    {
-      id: "solicitar_agendamento" as TipoMinuta,
-      titulo: "Solicitar Agendamento",
-      descricao: "Formulário para agendamento de entrevista ou entrega de documentos",
-      icone: Calendar,
-      cor: "from-rose-500 to-pink-500",
-      documentos: [
-        "Escolha de data e horário",
-        "Local de atendimento",
-        "Tipo de serviço",
-      ],
-    },
-    ...(!isSchengen ? [{
-      id: "solicitar_matricula" as TipoMinuta,
-      titulo: 'Solicitar Matrícula',
-      descricao: "Solicitação de matrícula na instituição de ensino",
-      icone: BookOpen,
-      cor: "from-cyan-500 to-sky-500",
-      status: solicitacaoMatricula ? solicitacaoMatricula.status : 'nao_enviado',
-      documentos: [
-        "Documentos pessoais",
-        "Histórico escolar",
-        "Comprovante de pagamento",
-      ],
-    }] : []),
-    ...(!isSchengen ? [{
       id: "formulario" as TipoMinuta,
       titulo: "Formulário",
       descricao: "Formulário padrão para preenchimento de dados do processo",
@@ -227,32 +327,6 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
         "Dados cadastrais",
         "Informações do curso",
         "Dados do financiamento",
-      ],
-    }] : []),
-    // Formulário Schengen - substitui o Formulário nacional quando for visto Schengen
-    ...(isSchengen ? [{
-      id: "formulario_schengen" as TipoMinuta,
-      titulo: "Formulário Schengen",
-      descricao: "Formulário oficial de pedido de visto Schengen (uniforme)",
-      icone: ClipboardList,
-      cor: "from-emerald-500 to-teal-500",
-      documentos: [
-        "Dados de identificação",
-        "Documento de viagem",
-        "Objetivo da viagem",
-        "Meios de subsistência",
-      ],
-    }] : []),
-    {
-      id: "termo_responsabilidade" as TipoMinuta,
-      titulo: "Exemplo Termo de Responsabilidade",
-      descricao: "Modelo de termo de responsabilidade financeira",
-      icone: FileSignature,
-      cor: "from-amber-500 to-orange-500",
-      documentos: [
-        "Declaração do responsável",
-        "Comprovante de renda",
-        "Documento de identificação",
       ],
     },
     {
@@ -279,21 +353,7 @@ const minutas = (solicitacaoMatricula: any, isSchengen: boolean = false): Minuta
         "Comprovante de matrícula",
       ],
     },
-    {
-      id: "outros_documentos_importantes" as TipoMinuta,
-      titulo: "Outros Documentos Importantes",
-      descricao: "Checklist de documentos complementares para o processo",
-      icone: FolderOpen,
-      cor: "from-teal-500 to-emerald-500",
-      documentos: [
-        "Extrato bancário do financiador",
-        "Declaração de serviço / Declaração autónoma",
-        "Recibo salarial do financiador",
-      ],
-    },
-  ];
-
-  return cards as Minuta[];
+  ] as Minuta[]
 }
 
 export default function DocumentosContent({
@@ -336,7 +396,7 @@ export default function DocumentosContent({
   const { data: solicitacaoMatricula } = useGetSolicitacaoMatriculaByClienteId(String(data.cliente?.id));
   const { data: solicitacaoAgendamento, refetch: refetchAgendamento } = useGetSolicitacaoAgendamentoByClienteId(String(data.cliente?.id));
   const { data: solicitacaoPrintVoo, refetch: refetchPrintVoo } = useGetSolicitacaoPrintVooByClienteId(String(data.cliente?.id));
-  const { data: solicitacaoReservaHotel } = useGetSolicitacaoReservaHotelByClienteId(String(data.cliente?.id));
+  const { data: solicitacaoReservaHotel, refetch: refetchReservaHotel } = useGetSolicitacaoReservaHotelByClienteId(String(data.cliente?.id));
   const { data: solicitacaoSeguroViagem, refetch: refetchSeguroViagem } = useGetSolicitacaoSeguroViagemByClienteId(String(data.cliente?.id));
   const { data: solicitacaoReconhecimentoRegistoCriminal } = useGetSolicitacaoReconhecimentoRegistoCriminalByClienteId(String(data.cliente?.id));
 
@@ -741,6 +801,7 @@ export default function DocumentosContent({
     } else if (minutaId === "minuta1_schengen") {
       setShowMinuta1SchengenModal(true)
     } else if (minutaId === "minuta2_schengen") {
+      console.log('[DEBUG handleSelect minuta2_schengen] data:', { dataPrevisaoChegada: data.dataPrevisaoChegada, dataPrevisaoSaida: data.dataPrevisaoSaida, data });
       setShowMinuta2SchengenModal(true)
     } else if (minutaId === "seguro_viagem") {
       setShowSeguroViagemModal(true)
@@ -906,26 +967,26 @@ export default function DocumentosContent({
       a.remove()
       toast.success('Agendamento baixado com sucesso!')
     } else if (minutaId === 'print_voo') {
-      if (!solicitacaoPrintVoo?.comprovativo_url) {
+      if (!solicitacaoPrintVoo?.documento_url) {
         toast.error('Documento não disponível.')
         return
       }
       const a = document.createElement('a')
-      a.href = solicitacaoPrintVoo.comprovativo_url
-      a.download = solicitacaoPrintVoo.comprovativo_nome || 'documento_voo.pdf'
+      a.href = solicitacaoPrintVoo.documento_url
+      a.download = solicitacaoPrintVoo.documento_nome || 'documento_voo.pdf'
       a.target = '_blank'
       document.body.appendChild(a)
       a.click()
       a.remove()
       toast.success('Documento baixado com sucesso!')
     } else if (minutaId === 'reserva_hotel') {
-      if (!solicitacaoReservaHotel?.comprovativo_url) {
+      if (!solicitacaoReservaHotel?.documento_url) {
         toast.error('Documento não disponível.')
         return
       }
       const a = document.createElement('a')
-      a.href = solicitacaoReservaHotel.comprovativo_url
-      a.download = solicitacaoReservaHotel.comprovativo_nome || 'documento_hotel.pdf'
+      a.href = solicitacaoReservaHotel.documento_url
+      a.download = solicitacaoReservaHotel.documento_nome || 'documento_hotel.pdf'
       a.target = '_blank'
       document.body.appendChild(a)
       a.click()
@@ -955,13 +1016,13 @@ export default function DocumentosContent({
       a.remove()
       toast.success('Comprovativo baixado com sucesso!')
     } else if (minutaId === 'seguro_viagem') {
-      if (!solicitacaoSeguroViagem?.comprovativo_url) {
+      if (!solicitacaoSeguroViagem?.documento_url) {
         toast.error('Documento de seguro não disponível.')
         return
       }
       const a = document.createElement('a')
-      a.href = solicitacaoSeguroViagem.comprovativo_url
-      a.download = solicitacaoSeguroViagem.comprovativo_nome || 'documento_seguro_viagem.pdf'
+      a.href = solicitacaoSeguroViagem.documento_url
+      a.download = solicitacaoSeguroViagem.documento_nome || 'documento_seguro_viagem.pdf'
       a.target = '_blank'
       document.body.appendChild(a)
       a.click()
@@ -986,7 +1047,9 @@ export default function DocumentosContent({
         updatedStatus.status_solicitacao_matricula = 'pendente';
         break;
       case 'solicitar_agendamento':
-        updatedStatus.status_solicitacao_agendamento = 'pendente';
+        if (documentoProfundoStatus.status_solicitacao_agendamento === 'nao_enviado') {
+          updatedStatus.status_solicitacao_agendamento = 'pendente';
+        }
         break;
       case 'print_voo':
         updatedStatus.status_solicitacao_print_voo = 'pendente';
@@ -1067,9 +1130,11 @@ export default function DocumentosContent({
       updatedStatus.checklist_recibo_salarial,
     ].filter(Boolean).length;
 
+    const maxCount = financiadorData?.tipo_trabalho === 'por_conta_propria' ? 2 : 3;
+
     if (checkedCount === 0) {
       updatedStatus.status_outros_documentos_importantes = 'nao_enviado';
-    } else if (checkedCount === 3) {
+    } else if (checkedCount >= maxCount) {
       updatedStatus.status_outros_documentos_importantes = 'aprovado';
     } else {
       updatedStatus.status_outros_documentos_importantes = 'pendente';
@@ -1295,7 +1360,7 @@ export default function DocumentosContent({
                             </>
                           )}
                           {minuta.id === 'termo_responsabilidade' && (
-                            <div className="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
+                            <div className="mt-2 flex items-center gap-4 text-sm font-semibold text-foreground">
                               {data.financiador_nome && (
                                 <span>Financiador: {data.financiador_nome}</span>
                               )}
@@ -1312,9 +1377,11 @@ export default function DocumentosContent({
                               <span className={documentoProfundoStatus?.checklist_declaracao ? 'text-green-600' : 'text-red-400'}>
                                 {documentoProfundoStatus?.checklist_declaracao ? '✓' : '✗'} {financiadorData?.tipo_trabalho === 'por_conta_propria' ? 'Decl. Autónoma' : 'Decl. Serviço'}
                               </span>
-                              <span className={documentoProfundoStatus?.checklist_recibo_salarial ? 'text-green-600' : 'text-red-400'}>
-                                {documentoProfundoStatus?.checklist_recibo_salarial ? '✓' : '✗'} Recibo salarial
-                              </span>
+                              {financiadorData?.tipo_trabalho !== 'por_conta_propria' && (
+                                <span className={documentoProfundoStatus?.checklist_recibo_salarial ? 'text-green-600' : 'text-red-400'}>
+                                  {documentoProfundoStatus?.checklist_recibo_salarial ? '✓' : '✗'} Recibo salarial
+                                </span>
+                              )}
                             </div>
                           )}
 
@@ -1359,11 +1426,11 @@ export default function DocumentosContent({
                             ) || (
                               minuta.id === 'solicitar_agendamento' && currentStatus === 'aprovado' && solicitacaoAgendamento?.agendamento_url
                             ) || (
-                              minuta.id === 'print_voo' && currentStatus === 'aprovado' && solicitacaoPrintVoo?.comprovativo_url
+                              minuta.id === 'print_voo' && currentStatus === 'aprovado' && solicitacaoPrintVoo?.documento_url
                             ) || (
-                              minuta.id === 'reserva_hotel' && currentStatus === 'aprovado' && solicitacaoReservaHotel?.comprovativo_url
+                              minuta.id === 'reserva_hotel' && currentStatus === 'aprovado' && solicitacaoReservaHotel?.documento_url
                             ) || (
-                              minuta.id === 'seguro_viagem' && currentStatus === 'aprovado' && solicitacaoSeguroViagem?.comprovativo_url
+                              minuta.id === 'seguro_viagem' && currentStatus === 'aprovado' && solicitacaoSeguroViagem?.documento_url
                             ) || (
                               minuta.id === 'outros_documentos_importantes' && (reconhecimentoNotarioData?.declaracao_autonoma_url || documentoProfundoStatus?.declaracao_servico_url)
                             )                           ) && (
@@ -1384,16 +1451,19 @@ export default function DocumentosContent({
 
 {minuta.id === 'termo_responsabilidade' && (
                               <>
-                                {(!documentoProfundoStatus?.status_reconhecimento_termo_consulado || documentoProfundoStatus?.status_reconhecimento_termo_consulado === 'nao_enviado') && (
+                                {currentStatus === 'concluido' && (!documentoProfundoStatus?.status_reconhecimento_termo_consulado || documentoProfundoStatus?.status_reconhecimento_termo_consulado === 'nao_enviado') && (
                                   <Button
                                     type="button"
-                                    variant="outline"
+                                    variant="destructive"
                                     size="sm"
                                     onClick={(e) => {
                                       e.stopPropagation()
                                       setShowReconhecimentoConsuladoModal(true)
                                     }}
-                                    className="gap-1"
+                                    className={cn(
+                                      "gap-1",
+                                      "animate-pulse shadow-lg shadow-red-500/50 ring-2 ring-red-500"
+                                    )}
                                   >
                                     <FileSignature className="h-3 w-3" />
                                     Reconhecer no Consulado
@@ -1511,7 +1581,7 @@ export default function DocumentosContent({
             : undefined,
           local_hospedagem: solicitacaoReservaHotel?.endereco_arredores || '',
         }}
-        onSuccess={(pdfUrl) => {
+        onSuccess={() => {
           refetchStatus();
         }}
       />
@@ -1526,7 +1596,7 @@ export default function DocumentosContent({
             : undefined,
           local_hospedagem: solicitacaoReservaHotel?.endereco_arredores || '',
         }}
-        onSuccess={(pdfUrl) => {
+        onSuccess={() => {
           refetchStatus();
         }}
       />
@@ -1634,6 +1704,7 @@ export default function DocumentosContent({
         onSuccess={async () => {
           await updateDocumentStatus('reserva_hotel');
           refetchStatus();
+          refetchReservaHotel();
         }}
       />
 
@@ -1704,6 +1775,15 @@ export default function DocumentosContent({
         cliente={data.cliente}
         subtipo={data.subtipo as any}
         subtipoOutroDescricao={data.subtipoOutroDescricao}
+        initialValues={{
+          data_prevista_chegada: data.dataPrevisaoChegada
+            ? new Date(data.dataPrevisaoChegada)
+            : undefined,
+          data_prevista_saida: data.dataPrevisaoSaida
+            ? new Date(data.dataPrevisaoSaida)
+            : undefined,
+          local_hospedagem: solicitacaoReservaHotel?.endereco_arredores || '',
+        }}
         onSuccess={async () => {
           await updateDocumentStatus('minuta1_schengen');
           refetchStatus()
@@ -1716,6 +1796,19 @@ export default function DocumentosContent({
         cliente={data.cliente}
         subtipo={data.subtipo as any}
         subtipoOutroDescricao={data.subtipoOutroDescricao}
+        initialValues={{
+          data_prevista_chegada: data.dataPrevisaoChegada
+            ? new Date(data.dataPrevisaoChegada)
+            : undefined,
+          duracao_estadia: data.dataPrevisaoChegada && data.dataPrevisaoSaida
+            ? String(Math.ceil(
+                (new Date(data.dataPrevisaoSaida).getTime() -
+                 new Date(data.dataPrevisaoChegada).getTime()) /
+                (1000 * 60 * 60 * 24)
+              ))
+            : '',
+          local_hospedagem: solicitacaoReservaHotel?.endereco_arredores || '',
+        }}
         onSuccess={async () => {
           await updateDocumentStatus('minuta2_schengen');
           refetchStatus()

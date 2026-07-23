@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from "react"
-import { FolderOpen, Search, CheckCircle, Clock, FileText, Home, MapPin } from "lucide-react"
+import { FolderOpen, Search, CheckCircle, Clock, FileText, Home, MapPin, Info } from "lucide-react"
 import { useDebounce } from "@uidotdev/usehooks"
 import { toast } from "react-toastify"
 import { AxiosError } from "axios"
@@ -18,6 +18,7 @@ import {
 import { SolicitacaoReconhecimentoNotarioType } from "@/features/reconhecimento-notario/types"
 import { AprovarReconhecimentoNotarioDialog } from "./AprovarReconhecimentoNotarioDialog"
 import { VerComprovativoDialog } from "./VerComprovativoDialog"
+import { DetalhesReconhecimentoNotarioDialog } from "./DetalhesReconhecimentoNotarioDialog"
 
 type FilterType = 'todos' | 'pendente' | 'aprovado'
 
@@ -50,6 +51,7 @@ export default function SoliReconhecimentoNotarioTable() {
   const [selectedSolicitacao, setSelectedSolicitacao] = useState<SolicitacaoReconhecimentoNotarioType | null>(null)
   const [showAprovarDialog, setShowAprovarDialog] = useState(false)
   const [showComprovativoDialog, setShowComprovativoDialog] = useState(false)
+  const [openDetalhes, setOpenDetalhes] = useState(false)
 
   const columns = useMemo(() => [
     {
@@ -98,6 +100,14 @@ export default function SoliReconhecimentoNotarioTable() {
       accessor: (row: SolicitacaoReconhecimentoNotarioType) => (
         <DropdownActions
           actions={[
+            {
+              label: 'Detalhes',
+              icon: <Info className="h-4 w-4" />,
+              onClick: () => {
+                setSelectedSolicitacao(row)
+                setOpenDetalhes(true)
+              },
+            },
             ...(row.comprovativo_url
               ? [{
                   label: 'Ver Comprovativo',
@@ -193,6 +203,12 @@ export default function SoliReconhecimentoNotarioTable() {
         columns={columns}
         isLoading={isLoading}
         emptyMessage="Nenhuma solicitação encontrada."
+      />
+
+      <DetalhesReconhecimentoNotarioDialog
+        open={openDetalhes}
+        onOpenChange={setOpenDetalhes}
+        solicitacao={selectedSolicitacao}
       />
 
       {selectedSolicitacao && (

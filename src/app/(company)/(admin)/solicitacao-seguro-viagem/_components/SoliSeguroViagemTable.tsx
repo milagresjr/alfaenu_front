@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from "react"
-import { ShieldCheck, Search, CheckCircle, XCircle, Clock, AlertCircle, FileText, Upload } from "lucide-react"
+import { ShieldCheck, Search, CheckCircle, XCircle, Clock, AlertCircle, FileText, Upload, Info } from "lucide-react"
 import { useDebounce } from "@uidotdev/usehooks"
 import { toast } from "react-toastify"
 import { AxiosError } from "axios"
@@ -23,6 +23,7 @@ import { RejeitarSeguroViagemDialog } from "./RejeitarSeguroViagemDialog"
 import { EnviarSeguroViagemForm } from "./EnviarSeguroViagemForm"
 import { VerMotivoRejeicaoDialog } from "./VerMotivoRejeicaoDialog"
 import { VerComprovativoDialog } from "./VerComprovativoDialog"
+import { DetalhesSeguroViagemDialog } from "./DetalhesSeguroViagemDialog"
 
 type FilterType = 'todos' | SolicitacaoSeguroViagemStatus
 
@@ -65,6 +66,7 @@ export default function SoliSeguroViagemTable() {
   const [openEnviar, setOpenEnviar] = useState(false)
   const [openMotivo, setOpenMotivo] = useState(false)
   const [openComprovativo, setOpenComprovativo] = useState(false)
+  const [openDetalhes, setOpenDetalhes] = useState(false)
 
   const stats = useMemo(() => [
     {
@@ -206,30 +208,60 @@ export default function SoliSeguroViagemTable() {
         data={solicitacoes}
         isLoading={isLoading}
         emptyMessage="Nenhuma solicitação de seguro de viagem encontrada."
+        tableLayout="auto"
         columns={[
           {
             header: "Cliente",
+            width: "35%",
             accessor: (solicitacao: SolicitacaoSeguroViagemType) => (
               <span>{solicitacao.cliente?.nome || '-'}</span>
             ),
-            width: "18%",
+          },
+          {
+            header: "Email",
+            width: "25%",
+            accessor: (solicitacao: SolicitacaoSeguroViagemType) => (
+              <span className="text-xs">{solicitacao.cliente?.email || '-'}</span>
+            ),
+          },
+          {
+            header: "Telefone",
+            width: "20%",
+            accessor: (solicitacao: SolicitacaoSeguroViagemType) => (
+              <span>{solicitacao.cliente?.telefone || '-'}</span>
+            ),
+          },
+          {
+            header: "Origem",
+            width: "25%",
+            accessor: (solicitacao: SolicitacaoSeguroViagemType) => (
+              <span>{solicitacao.pais_origem || '-'}</span>
+            ),
+          },
+          {
+            header: "Destino",
+            width: "25%",
+            accessor: (solicitacao: SolicitacaoSeguroViagemType) => (
+              <span>{solicitacao.pais_destino || '-'}</span>
+            ),
           },
           {
             header: "Data Ida",
+            width: "25%",
             accessor: (solicitacao: SolicitacaoSeguroViagemType) => (
               <span>{solicitacao.data_ida ? formatarDataLong(solicitacao.data_ida) : '-'}</span>
             ),
-            width: "13%",
           },
           {
             header: "Data Volta",
+            width: "25%",
             accessor: (solicitacao: SolicitacaoSeguroViagemType) => (
               <span>{solicitacao.data_volta ? formatarDataLong(solicitacao.data_volta) : '-'}</span>
             ),
-            width: "13%",
           },
           {
             header: "Status",
+            width: "25%",
             accessor: (solicitacao: SolicitacaoSeguroViagemType) => {
               const cfg = statusConfig[solicitacao.status]
               return (
@@ -239,19 +271,22 @@ export default function SoliSeguroViagemTable() {
                 </Badge>
               )
             },
-            width: "11%",
-          },
-          {
-            header: "Data",
-            accessor: (solicitacao: SolicitacaoSeguroViagemType) => (
-              <span>{solicitacao.created_at ? formatarDataLong(solicitacao.created_at) : '-'}</span>
-            ),
-            width: "15%",
           },
           {
             header: "Ações",
+            className: "text-right",
+            width: "10%",
             accessor: (solicitacao: SolicitacaoSeguroViagemType) => {
-              const actions = []
+              const actions = [
+                {
+                  label: 'Detalhes',
+                  icon: <Info className="h-4 w-4" />,
+                  onClick: () => {
+                    setSelectedSolicitacao(solicitacao)
+                    setOpenDetalhes(true)
+                  },
+                },
+              ]
 
               if (solicitacao.comprovativo_url) {
                 actions.push({
@@ -314,9 +349,14 @@ export default function SoliSeguroViagemTable() {
 
               return <DropdownActions actions={actions} />
             },
-            width: "30%",
           },
         ]}
+      />
+
+      <DetalhesSeguroViagemDialog
+        open={openDetalhes}
+        onOpenChange={setOpenDetalhes}
+        solicitacao={selectedSolicitacao}
       />
 
       {selectedSolicitacao && (

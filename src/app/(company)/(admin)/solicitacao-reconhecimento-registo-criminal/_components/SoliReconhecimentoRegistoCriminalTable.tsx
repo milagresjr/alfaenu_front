@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useMemo } from "react"
-import { Fingerprint, Search, CheckCircle, Clock, FileText, Home, MapPin } from "lucide-react"
+import { Fingerprint, Search, CheckCircle, Clock, FileText, Home, MapPin, Info } from "lucide-react"
 import { useDebounce } from "@uidotdev/usehooks"
 import { toast } from "react-toastify"
 import { AxiosError } from "axios"
@@ -18,6 +18,7 @@ import {
 import { SolicitacaoReconhecimentoRegistoCriminalType } from "@/features/solicitacao-reconhecimento-registo-criminal/types"
 import { AprovarReconhecimentoRegistoCriminalDialog } from "./AprovarReconhecimentoRegistoCriminalDialog"
 import { VerComprovativoDialog } from "./VerComprovativoDialog"
+import { DetalhesRegistoCriminalDialog } from "./DetalhesRegistoCriminalDialog"
 
 type FilterType = 'todos' | 'pendente' | 'aprovado'
 
@@ -50,6 +51,7 @@ export default function SoliReconhecimentoRegistoCriminalTable() {
   const [selectedSolicitacao, setSelectedSolicitacao] = useState<SolicitacaoReconhecimentoRegistoCriminalType | null>(null)
   const [openAprovar, setOpenAprovar] = useState(false)
   const [openComprovativo, setOpenComprovativo] = useState(false)
+  const [openDetalhes, setOpenDetalhes] = useState(false)
 
   const stats = useMemo(() => [
     {
@@ -182,7 +184,16 @@ export default function SoliReconhecimentoRegistoCriminalTable() {
           {
             header: "Ações",
             accessor: (solicitacao: SolicitacaoReconhecimentoRegistoCriminalType) => {
-              const actions = []
+              const actions = [
+                {
+                  label: 'Detalhes',
+                  icon: <Info className="h-4 w-4" />,
+                  onClick: () => {
+                    setSelectedSolicitacao(solicitacao)
+                    setOpenDetalhes(true)
+                  },
+                },
+              ]
 
               if (solicitacao.comprovativo_url) {
                 actions.push({
@@ -211,6 +222,12 @@ export default function SoliReconhecimentoRegistoCriminalTable() {
             width: "19%",
           },
         ]}
+      />
+
+      <DetalhesRegistoCriminalDialog
+        open={openDetalhes}
+        onOpenChange={setOpenDetalhes}
+        solicitacao={selectedSolicitacao}
       />
 
       {selectedSolicitacao && (
